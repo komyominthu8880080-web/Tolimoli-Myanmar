@@ -10312,41 +10312,39 @@ function quickAddToCart(productId, event) {
   </div>
   <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
 </div>
-<!-- 🚨 FLOATING EMERGENCY BUTTON & 💬 EXPANDABLE CHAT SPEED DIAL -->
-<div class="floating-action-container">
-  
-  <!-- 💬 Chat Speed Dial အစုအဖွဲ့ -->
-  <div class="fab-speed-dial" id="fabSpeedDial">
-    <div class="fab-options" id="fabOptions">
-     <!-- Group Chat Option -->
-          <a href="https://t.me/tolimolimyanmar" target="_blank" rel="noopener noreferrer" class="fab-item fab-viber" style="background:#0088cc !important; cursor:pointer;" title="Group Chat သို့ ဝင်မည်">
-            <span class="fab-label" style="pointer-events:none;">Group Chat</span>
-            <i class="fab fa-telegram-plane" style="pointer-events:none;"></i>
-          </a>
 
-          <!-- Admin Chat Option -->
-          <button type="button" class="fab-item fab-admin" onclick="if(typeof openAdminChat === 'function'){ openAdminChat(); } else if(typeof openLiveChat === 'function'){ openLiveChat(); } else { window.open('https://t.me/tolimoli_admin', '_blank'); }" style="cursor:pointer;" title="Admin နှင့် စကားပြောမည်">
-            <span class="fab-label" style="pointer-events:none;">Admin နှင့် ပြောမည်</span>
-            <i class="fas fa-headset" style="pointer-events:none;"></i>
-          </button>
+<!-- FLOATING EMERGENCY BUTTON & CHAT SPEED DIAL -->
+  <div class="floating-action-container">
+    <div class="fab-speed-dial" id="fabSpeedDial">
+      <div class="fab-options" id="fabOptions">
+        <!-- Group Chat -->
+        <a href="https://t.me/tolimolimyanmar" target="_blank" rel="noopener noreferrer" class="fab-item fab-viber" style="background:#0088cc !important; cursor:pointer;" title="Group Chat သို့ ဝင်မည်">
+          <span class="fab-label" style="pointer-events:none;">Group Chat</span>
+          <i class="fab fa-telegram-plane" style="pointer-events:none;"></i>
+        </a>
 
-          <!-- Spin / Lucky Draw Option -->
-          <button type="button" class="fab-item fab-spin" onclick="if(typeof openLuckyWheel === 'function'){ openLuckyWheel(); } else if(typeof openSpinWheel === 'function'){ openSpinWheel(); } else { alert('ကံစမ်းမဲစနစ် ဖွင့်လှစ်နေပါသည်...'); }" style="cursor:pointer;" title="ကံစမ်းမဲ လှည့်မည်">
-            <span class="fab-label" style="pointer-events:none;">ကံစမ်းမဲ လှည့်မည်</span>
-            <i class="fas fa-dharmachakra" style="pointer-events:none;"></i>
-          </button>
-    
-    <!-- ပင်မ Chat ခလုတ် -->
-    <button type="button" class="fab-main-btn" id="fabMainBtn" onclick="toggleFabDial()" title="စကားပြောရန် နှိပ်ပါ">
-      <i class="fas fa-comments" id="fabIcon"></i>
+        <!-- Admin Chat -->
+        <button type="button" class="fab-item fab-admin" onclick="openModal('liveChatModal')" style="cursor:pointer;" title="Admin နှင့် ပြောမည်">
+          <span class="fab-label" style="pointer-events:none;">Admin နှင့် ပြောမည်</span>
+          <i class="fas fa-headset" style="pointer-events:none;"></i>
+        </button>
+
+        <!-- Lucky Wheel -->
+        <button type="button" class="fab-item fab-spin" onclick="openModal('spinWheelModal')" style="cursor:pointer;" title="ကံစမ်းမဲ လှည့်မည်">
+          <span class="fab-label" style="pointer-events:none;">ကံစမ်းမဲ လှည့်မည်</span>
+          <i class="fas fa-dharmachakra" style="pointer-events:none;"></i>
+        </button>
+      </div>
+
+      <button type="button" class="fab-main-btn" id="fabMainBtn" onclick="toggleFabDial()" title="စကားပြောရန်">
+        <i class="fas fa-comments" id="fabIcon" style="pointer-events:none;"></i>
+      </button>
+    </div>
+
+    <button type="button" class="fab-quick-exit" onclick="quickExit()" title="🚨 အရေးပေါ် ထွက်ရန်">
+      <span class="pulse-ring"></span>
+      <span class="exit-icon" style="pointer-events:none;">🚨</span>
     </button>
   </div>
-
-  <!-- 🚨 အရေးပေါ်ခလုတ် (လက်မ အနီးဆုံးနေရာတွင် အမြဲရှိနေမည်) -->
-  <button type="button" class="fab-quick-exit" onclick="quickExit()" title="🚨 အရေးပေါ် ထွက်ရန်">
-    <span class="pulse-ring"></span>
-    <span class="exit-icon">🚨</span>
-  </button>
-</div>
 </body>
 </html>
