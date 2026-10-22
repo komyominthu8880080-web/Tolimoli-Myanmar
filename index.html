@@ -1471,6 +1471,16 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
   border: 1px solid rgba(255,255,255,0.1);
 }
+.fab-community {
+  background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4) !important;
+}
+.fab-community i {
+  color: #ffffff !important;
+  font-size: 1.1rem !important;
+}
+
 
 /* =========================================================
    ၂။ "STOCK ရှိ" နှင့် "ငွေကြိုလွှဲသီးသန့်" BADGE ခွဲထုတ်ခြင်း (UI ရှင်းလင်းစေရန်)
@@ -10314,11 +10324,12 @@ function quickAddToCart(productId, event) {
   <div class="floating-action-container">
     <div class="fab-speed-dial" id="fabSpeedDial">
       <div class="fab-options" id="fabOptions">
+    
         <!-- Group Chat -->
-        <button type="button" class="fab-item" onclick="toggleFab(); if(typeof openCommunityChat === 'function'){ openCommunityChat(); } else if(typeof openModal === 'function'){ openModal('communityModal'); }">
-        <span class="fab-label">Group Chat</span>
-        <i class="fas fa-users" style="pointer-events: none;"></i>
-        </button>
+<button type="button" class="fab-item fab-community" onclick="toggleFabDial(); openModal('communityModal');" style="cursor:pointer;" title="Community Chat">
+  <span class="fab-label" style="pointer-events:none;">Group Chat</span>
+  <i class="fas fa-users" style="pointer-events:none;"></i>
+</button>
 
         <!-- Admin Chat -->
         <button type="button" class="fab-item fab-admin" onclick="openModal('liveChatModal')" style="cursor:pointer;" title="Admin နှင့် ပြောမည်">
