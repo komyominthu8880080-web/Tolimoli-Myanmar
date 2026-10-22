@@ -1427,13 +1427,15 @@
   gap: 10px;
   margin-bottom: 10px;
   opacity: 0;
-  pointer-events: none;
+  visibility: hidden !important;
+  pointer-events: none !important;
   transform: translateY(15px);
   transition: all 0.25s ease-out;
 }
 .fab-speed-dial.open .fab-options {
   opacity: 1;
-  pointer-events: auto;
+  visibility: visible !important;
+  pointer-events: auto !important;
   transform: translateY(0);
 }
 .fab-item {
