@@ -1563,37 +1563,51 @@ header.sticky-scrolled .hero-compact {
 }
 
 /* ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း လေးထောင့်တုံးပုံစံ မြှားနှစ်ထပ် (») Indicator */
-.category-bar-wrapper::after {
-  content: "»" !important;
+/* Category Bar ဘယ်/ညာ မြှားခလုတ်များ (အဖြူအတုံးပေါ် အနီရောင်မြှား) */
+.cat-nav-btn {
   position: absolute !important;
   top: 50% !important;
-  right: 0px !important;
   transform: translateY(-50%) !important;
-  width: 32px !important;
-  height: 38px !important;
-  background: linear-gradient(to right, rgba(11, 15, 25, 0.4), #0b0f19 75%) !important;
-  color: #38bdf8 !important; /* မြင်သာထင်ရှားသော အပြာဖျော့ရောင် */
-  font-size: 26px !important;
+  width: 26px !important;
+  height: 32px !important;
+  background: #ffffff !important;
+  color: #ef4444 !important; /* အနီရောင် မြှား */
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border-radius: 4px !important;
+  font-size: 18px !important;
   font-weight: 900 !important;
-  line-height: 34px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  border-radius: 6px 0 0 6px !important;
-  pointer-events: none !important;
-  z-index: 1045 !important;
-  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.5) !important;
-  animation: bounceRight 1.2s infinite ease-in-out !important;
+  cursor: pointer !important;
+  z-index: 1050 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  padding: 0 !important;
+  line-height: 1 !important;
 }
 
-@keyframes bounceRight {
-  0%, 100% { transform: translateY(-50%) translateX(0); }
-  50% { transform: translateY(-50%) translateX(4px); }
+.cat-nav-btn:active {
+  background: #f1f5f9 !important;
+  transform: translateY(-50%) scale(0.92) !important;
+}
+
+.cat-nav-left {
+  left: 2px !important;
+}
+
+.cat-nav-right {
+  right: 2px !important;
+}
+
+/* ခလုတ်များနှင့် ကွယ်မသွားစေရန် category ဘေးဘောင် padding ချန်ခြင်း */
+.category-wrapper {
+  padding-left: 32px !important;
+  padding-right: 32px !important;
+  scroll-behavior: smooth !important;
 }
 
 /* "အမျိုးအစားအားလုံး" ခလုတ်အား နေရာပိုလွတ်စေရန် အနည်းငယ် သေးချုံ့ပေးခြင်း */
 .category-btn,
-.category-btn:first-child,
 .category-wrapper button:first-child {
   font-size: 11.5px !important;
   padding: 5px 8px !important;
@@ -1835,12 +1849,27 @@ body.modal-open .floating-action-container {
 </div>
 
   <!-- CATEGORIES PILLS SCROLL -->
-  <div class="category-bar-wrapper">
+  <div class="category-bar-wrapper" style="position: relative;">
+  <!-- ဘယ်ဘက်သို့ ရွှေ့သည့် ခလုတ် -->
+  <button type="button" class="cat-nav-btn cat-nav-left" onclick="scrollCategories(-140)" title="ဘယ်သို့ရွှေ့ရန်">«</button>
+
   <button type="button" class="btn-open-cat-modal" onclick="openCategorySheet()">
     <i class="fas fa-th-large"></i> အမျိုးအစားအားလုံး ▾
   </button>
   <div class="category-scroll-bar" id="categoryContainer" style="display:flex; gap:6px; overflow-x:auto;"></div>
+
+  <!-- ညာဘက်သို့ ရွှေ့သည့် ခလုတ် -->
+  <button type="button" class="cat-nav-btn cat-nav-right" onclick="scrollCategories(140)" title="ညာသို့ရွှေ့ရန်">»</button>
 </div>
+
+<script>
+function scrollCategories(amount) {
+  const container = document.getElementById('categoryContainer');
+  if (container) {
+    container.scrollBy({ left: amount, behavior: 'smooth' });
+  }
+}
+</script>
 
   <!-- PRODUCT GRID -->
   <main class="products-grid" id="productGrid"></main>
