@@ -1562,31 +1562,42 @@ header.sticky-scrolled .hero-compact {
   display: none !important;
 }
 
-/* ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း လှုပ်ရှားပြသသည့် မြှား Indicator */
+/* ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း လေးထောင့်တုံးပုံစံ မြှားနှစ်ထပ် (») Indicator */
 .category-bar-wrapper::after {
-  content: "›" !important;
+  content: "»" !important;
   position: absolute !important;
   top: 50% !important;
-  right: 6px !important;
+  right: 0px !important;
   transform: translateY(-50%) !important;
-  width: 24px !important;
-  height: 24px !important;
-  background: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-  font-size: 20px !important;
-  font-weight: bold !important;
-  line-height: 20px !important;
-  text-align: center !important;
-  border-radius: 50% !important;
+  width: 32px !important;
+  height: 38px !important;
+  background: linear-gradient(to right, rgba(11, 15, 25, 0.4), #0b0f19 75%) !important;
+  color: #38bdf8 !important; /* မြင်သာထင်ရှားသော အပြာဖျော့ရောင် */
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  line-height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 6px 0 0 6px !important;
   pointer-events: none !important;
   z-index: 1045 !important;
-  backdrop-filter: blur(4px) !important;
+  box-shadow: -4px 0 10px rgba(0, 0, 0, 0.5) !important;
   animation: bounceRight 1.2s infinite ease-in-out !important;
 }
 
 @keyframes bounceRight {
   0%, 100% { transform: translateY(-50%) translateX(0); }
   50% { transform: translateY(-50%) translateX(4px); }
+}
+
+/* "အမျိုးအစားအားလုံး" ခလုတ်အား နေရာပိုလွတ်စေရန် အနည်းငယ် သေးချုံ့ပေးခြင်း */
+.category-btn,
+.category-btn:first-child,
+.category-wrapper button:first-child {
+  font-size: 11.5px !important;
+  padding: 5px 8px !important;
+  white-space: nowrap !important;
 }
 
 /* =========================================================
