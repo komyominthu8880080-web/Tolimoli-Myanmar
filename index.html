@@ -1556,12 +1556,12 @@ header.sticky-scrolled .hero-compact {
 .mobile-bottom-bar .cart-btn {
   position: relative !important;
   white-space: nowrap !important;
-  font-size: 0.72rem !important;
-  padding: 4px 6px !important;
+  font-size: 0.65rem !important; /* စာလုံးအရွယ်အစား အနည်းငယ် ချုံ့ပေးခြင်း */
+  padding: 4px 3px !important;   /* ဘေးဘောင်နေရာလွတ် ချွေတာပေးခြင်း */
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px !important;
+  gap: 2px !important;
 }
 .mobile-bottom-bar .cart-count-badge {
   background: #ef4444 !important;
@@ -1807,7 +1807,7 @@ body.modal-open .floating-action-container {
       <i class="fas fa-download"></i> App သွင်းမည်
     </button>
     <button class="bottom-bar-btn bottom-btn-cart" onclick="openCartModal()">
-      <i class="fas fa-shopping-bag" style="color:var(--gold);"></i> ခြင်းတောင်း (<span id="cartCountBottom">0</span>)
+      | <i class="fas fa-shopping-bag" style="color:var(--gold);"></i> ခြင်း (<span id="cartCountBottom">0</span>)
     </button>
   </div>
 
