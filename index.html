@@ -1572,6 +1572,17 @@ header.sticky-scrolled .hero-compact {
   -webkit-overflow-scrolling: touch !important;
 }
 
+/* Category Bar တွင် ပါးလွှာသော Scrollbar လေး ဖော်ပြခြင်း */
+.category-wrapper::-webkit-scrollbar {
+  height: 3px !important;
+  display: block !important;
+}
+
+.category-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-radius: 10px !important;
+}
+
 /* =========================================================
    ၄။ FOOTER ခြင်းတောင်း ခလုတ် စာလုံးမကျိုးကျဘဲ ပေါ်လွင်စေရန်
    ========================================================= */
