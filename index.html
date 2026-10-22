@@ -1539,48 +1539,54 @@ header.sticky-scrolled .hero-compact {
 }
 
 /* ၂။ Category အတန်းကို Header ၏ အောက်ကပ်လျက်တွင် ဆက်ကပ်နေစေခြင်း */
-.category-bar-wrapper,
-.category-wrapper {
+/* ၂။ Category အတန်း ပုံမှန်ကပ်နေစေခြင်းနှင့် ကွက်လပ်ဟနေမှု ဖျောက်ခြင်း */
+.category-bar-wrapper {
   position: sticky !important;
-  top: 54px !important; /* Header အောက်တည့်တည့်တွင် ကွက်တိကပ်နေစေရန် */
+  top: 54px !important;
   z-index: 1040 !important;
   background: #0b0f19 !important;
-  padding: 6px 10px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  width: 100% !important;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
-}
-/* Category Bar ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း အရိပ်ပြခြင်း */
-.category-bar-wrapper {
-  position: relative !important;
-}
-
-.category-bar-wrapper::after {
-  content: "" !important;
-  position: absolute !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  width: 40px !important;
-  background: linear-gradient(to right, transparent, rgba(11, 15, 25, 0.95)) !important;
-  pointer-events: none !important;
-  z-index: 1045 !important;
 }
 
 .category-wrapper {
+  display: flex !important;
   overflow-x: auto !important;
+  white-space: nowrap !important;
+  padding: 6px 36px 6px 10px !important; /* ညာဘက်မြှားအတွက် နေရာချန်ခြင်း */
   scroll-behavior: smooth !important;
   -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important; /* မလှသော scrollbar ဖျောက်ခြင်း */
 }
-
-/* Category Bar တွင် ပါးလွှာသော Scrollbar လေး ဖော်ပြခြင်း */
 .category-wrapper::-webkit-scrollbar {
-  height: 3px !important;
-  display: block !important;
+  display: none !important;
 }
 
-.category-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.25) !important;
-  border-radius: 10px !important;
+/* ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း လှုပ်ရှားပြသသည့် မြှား Indicator */
+.category-bar-wrapper::after {
+  content: "›" !important;
+  position: absolute !important;
+  top: 50% !important;
+  right: 6px !important;
+  transform: translateY(-50%) !important;
+  width: 24px !important;
+  height: 24px !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  line-height: 20px !important;
+  text-align: center !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 1045 !important;
+  backdrop-filter: blur(4px) !important;
+  animation: bounceRight 1.2s infinite ease-in-out !important;
+}
+
+@keyframes bounceRight {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(4px); }
 }
 
 /* =========================================================
