@@ -1563,47 +1563,49 @@ header.sticky-scrolled .hero-compact {
 }
 
 /* ညာဘက်သို့ ရွှေ့ကြည့်နိုင်ကြောင်း လေးထောင့်တုံးပုံစံ မြှားနှစ်ထပ် (») Indicator */
-/* Category Bar ဘယ်/ညာ မြှားခလုတ်များ (အဖြူအတုံးပေါ် အနီရောင်မြှား) */
+/* Category Bar ဘယ်/ညာ ခလုတ် ဒီဇိုင်း */
 .cat-nav-btn {
-  position: absolute !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 26px !important;
-  height: 32px !important;
+  flex-shrink: 0 !important;
+  width: 24px !important;
+  height: 30px !important;
   background: #ffffff !important;
   color: #ef4444 !important; /* အနီရောင် မြှား */
-  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
   border-radius: 4px !important;
-  font-size: 18px !important;
+  font-size: 16px !important;
   font-weight: 900 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
   z-index: 1050 !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   padding: 0 !important;
   line-height: 1 !important;
 }
 
 .cat-nav-btn:active {
   background: #f1f5f9 !important;
-  transform: translateY(-50%) scale(0.92) !important;
+  transform: scale(0.92) !important;
 }
 
+/* ခလုတ်များ ထပ်မနေစေရန် static/relative ထားပေးခြင်း */
 .cat-nav-left {
-  left: 2px !important;
+  position: static !important;
+  transform: none !important;
 }
 
 .cat-nav-right {
-  right: 2px !important;
+  position: static !important;
+  transform: none !important;
 }
 
-/* ခလုတ်များနှင့် ကွယ်မသွားစေရန် category ဘေးဘောင် padding ချန်ခြင်း */
-.category-wrapper {
-  padding-left: 32px !important;
-  padding-right: 32px !important;
-  scroll-behavior: smooth !important;
+/* Category စာရင်းများ scroll ချောမွေ့စေခြင်း */
+#categoryContainer {
+  scrollbar-width: none !important;
+}
+#categoryContainer::-webkit-scrollbar {
+  display: none !important;
 }
 
 /* "အမျိုးအစားအားလုံး" ခလုတ်အား နေရာပိုလွတ်စေရန် အနည်းငယ် သေးချုံ့ပေးခြင်း */
@@ -1849,16 +1851,19 @@ body.modal-open .floating-action-container {
 </div>
 
   <!-- CATEGORIES PILLS SCROLL -->
-  <div class="category-bar-wrapper" style="position: relative;">
-  <!-- ဘယ်ဘက်သို့ ရွှေ့သည့် ခလုတ် -->
-  <button type="button" class="cat-nav-btn cat-nav-left" onclick="scrollCategories(-140)" title="ဘယ်သို့ရွှေ့ရန်">«</button>
-
-  <button type="button" class="btn-open-cat-modal" onclick="openCategorySheet()">
+<div class="category-bar-wrapper" style="position: relative; display: flex; align-items: center; gap: 4px;">
+  <!-- ၁။ အမျိုးအစားအားလုံး ခလုတ် (အရင်ဆုံး နေရာယူမည်) -->
+  <button type="button" class="btn-open-cat-modal" onclick="openCategorySheet()" style="flex-shrink: 0;">
     <i class="fas fa-th-large"></i> အမျိုးအစားအားလုံး ▾
   </button>
-  <div class="category-scroll-bar" id="categoryContainer" style="display:flex; gap:6px; overflow-x:auto;"></div>
 
-  <!-- ညာဘက်သို့ ရွှေ့သည့် ခလုတ် -->
+  <!-- ၂။ ဘယ်ဘက်သို့ ရွှေ့သည့် ခလုတ် (အမျိုးအစားအားလုံး ၏ ချက်ချင်းနောက်တွင် ကပ်ထားခြင်း) -->
+  <button type="button" class="cat-nav-btn cat-nav-left" onclick="scrollCategories(-140)" title="ဘယ်သို့ရွှေ့ရန်">«</button>
+
+  <!-- ၃။ Category စာရင်းများ ပြေးမည့် နေရာ -->
+  <div class="category-scroll-bar" id="categoryContainer" style="display:flex; gap:6px; overflow-x:auto; flex: 1;"></div>
+
+  <!-- ၄။ ညာဘက်သို့ ရွှေ့သည့် ခလုတ် (ညာဘက် အစွန်းဆုံးတွင် ကပ်ထားခြင်း) -->
   <button type="button" class="cat-nav-btn cat-nav-right" onclick="scrollCategories(140)" title="ညာသို့ရွှေ့ရန်">»</button>
 </div>
 
