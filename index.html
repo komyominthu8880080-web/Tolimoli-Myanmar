@@ -151,9 +151,9 @@
     }
     .cat-pill-btn.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; }
 
-    .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 6px 12px 30px; }
-    @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 10px 16px 30px; } }
-
+    .products-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 6px 12px 140px !important; }
+    @media (min-width: 768px) { .products-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; padding: 10px 16px 140px !important; } }
+    
     .product-card {
       background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; position: relative;
     }
@@ -1345,12 +1345,20 @@
 .floating-action-container {
   position: fixed;
   right: 16px;
-  bottom: 110px; /* အောက်ခြေ Fixed Bottom Bar များ၏ အထက်နားတွင် ကွက်တိထားရှိခြင်း */
+  bottom: 110px;
   z-index: 1080;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+  pointer-events: none !important; /* နေရာလွတ်များကို Click ဖောက်ထွင်းစေရန် */
+}
+
+/* ခလုတ်များတွင်သာ Click အလုပ်လုပ်စေရန် ပြန်ဖွင့်ပေးခြင်း */
+.floating-action-container .fab-main-btn,
+.floating-action-container .fab-quick-exit,
+.floating-action-container .fab-item {
+  pointer-events: auto !important;
 }
 
 /* 🚨 အရေးပေါ်ခလုတ် (Thumb Zone ညာဘက်အောက်ခြေ) */
