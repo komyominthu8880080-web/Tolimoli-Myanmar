@@ -10315,10 +10315,10 @@ function quickAddToCart(productId, event) {
     <div class="fab-speed-dial" id="fabSpeedDial">
       <div class="fab-options" id="fabOptions">
         <!-- Group Chat -->
-        <a href="https://t.me/tolimolimyanmar" target="_blank" rel="noopener noreferrer" class="fab-item fab-viber" style="background:#0088cc !important; cursor:pointer;" title="Group Chat သို့ ဝင်မည်">
-          <span class="fab-label" style="pointer-events:none;">Group Chat</span>
-          <i class="fab fa-telegram-plane" style="pointer-events:none;"></i>
-        </a>
+        <button type="button" class="fab-item" onclick="toggleFab(); if(typeof openCommunityChat === 'function'){ openCommunityChat(); } else if(typeof openModal === 'function'){ openModal('communityModal'); }">
+        <span class="fab-label">Group Chat</span>
+        <i class="fas fa-users" style="pointer-events: none;"></i>
+        </button>
 
         <!-- Admin Chat -->
         <button type="button" class="fab-item fab-admin" onclick="openModal('liveChatModal')" style="cursor:pointer;" title="Admin နှင့် ပြောမည်">
