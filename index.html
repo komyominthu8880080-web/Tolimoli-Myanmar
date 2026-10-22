@@ -4004,9 +4004,9 @@ orders = deduplicateOrders(raw);
               </div>
               <div class="product-card-actions">
   <!-- ၁။ အသေးစိတ်ကြည့်မည် ခလုတ် (ခရမ်းရောင်) -->
-  <button type="button" class="btn-view-detail" onclick="event.stopPropagation(); openProductDetail('${p.id}')">
-    <i class="fas fa-eye"></i> အသေးစိတ်
-  </button>
+  <button type="button" class="btn-view-detail" onclick="event.stopPropagation(); if(typeof openProductDetail==='function') openProductDetail('${p.id}');">
+  <i class="fas fa-eye" style="pointer-events: none;"></i> <span style="pointer-events: none;">အသေးစိတ်</span>
+</button>
   
   <!-- ၂။ ခြင်းထဲထည့်မည် ခလုတ် (ရွှေဝါရောင်) -->
   <button type="button" class="btn-quick-add-cart" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); quickAddToCart('${p.id}', event)">
