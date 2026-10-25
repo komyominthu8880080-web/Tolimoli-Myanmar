@@ -5242,7 +5242,11 @@ orders = deduplicateOrders(raw);
         </tr>
       `).join('');
 
-      openModal('adminOrderDetailModal');
+      // Admin Dashboard ကို ခဏဖျောက်ပြီး ဘောင်ချာ Modal ကို တန်းပေါ်စေခြင်း
+    const adminM = document.getElementById('adminModal');
+    if (adminM) adminM.style.display = 'none';
+
+    openModal('adminOrderDetailModal');
     const dtlM = document.getElementById('adminOrderDetailModal');
     if (dtlM) {
       dtlM.style.setProperty('display', 'flex', 'important');
@@ -5265,7 +5269,11 @@ orders = deduplicateOrders(raw);
 
       renderOrderEditItemsUI();
       
-      openModal('orderEditModal');
+      // Admin Dashboard ကို ခဏဖျောက်ပြီး အော်ဒါပြင် Modal ကို တန်းပေါ်စေခြင်း
+    const adminM = document.getElementById('adminModal');
+    if (adminM) adminM.style.display = 'none';
+
+    openModal('orderEditModal');
     const editM = document.getElementById('orderEditModal');
     if (editM) {
       editM.style.setProperty('display', 'flex', 'important');
@@ -6645,6 +6653,13 @@ function closeModal(id) {
   if (m) {
     m.classList.remove('active');
     m.style.display = 'none';
+  }
+  if (id === 'adminOrderDetailModal' || id === 'orderEditModal') {
+    const adminM = document.getElementById('adminModal');
+    if (adminM) {
+      adminM.style.display = 'flex';
+      adminM.classList.add('active');
+    }
   }
   document.body.classList.remove('modal-open');
 
