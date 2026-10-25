@@ -2393,7 +2393,7 @@ function scrollCategories(amount) {
   </div>
 
   <!-- 7. ADMIN ORDER DETAIL & ROYAL COD WORKFLOW MODAL -->
-  <div class="modal-overlay" id="adminOrderDetailModal" style="z-index: 999999;">
+  <div class="modal-overlay" id="adminOrderDetailModal" style="z-index: 9999999 !important; position: fixed !important;">
     <div class="modal-content" style="max-width:460px;">
       <button class="modal-close" onclick="closeModal('adminOrderDetailModal')"><i class="fas fa-times"></i></button>
       <h3 style="color:var(--gold); font-size:15px; margin-bottom:10px;"><i class="fas fa-file-invoice"></i> အော်ဒါအသေးစိတ်နှင့် COD စာရင်းကိုင်</h3>
@@ -5233,6 +5233,11 @@ orders = deduplicateOrders(raw);
       `).join('');
 
       openModal('adminOrderDetailModal');
+  const dtlM = document.getElementById('adminOrderDetailModal');
+  if (dtlM) {
+    dtlM.style.setProperty('display', 'flex', 'important');
+    dtlM.style.setProperty('z-index', '999999999', 'important');
+  }
     }
 
     var currentEditingOrder = null;
@@ -5251,6 +5256,11 @@ orders = deduplicateOrders(raw);
 
       renderOrderEditItemsUI();
       openModal('orderEditModal');
+  const editM = document.getElementById('orderEditModal');
+  if (editM) {
+    editM.style.setProperty('display', 'flex', 'important');
+    editM.style.setProperty('z-index', '999999999', 'important');
+  }
     }
 
     function renderOrderEditItemsUI() {
