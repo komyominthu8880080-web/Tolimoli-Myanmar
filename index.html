@@ -1773,6 +1773,16 @@ body.modal-open .floating-action-container {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+#adminOrderDetailModal,
+#orderEditModal {
+  z-index: 2147483647 !important;
+  position: fixed !important;
+}
+#adminOrderDetailModal .modal-content,
+#orderEditModal .modal-content {
+  position: relative !important;
+  z-index: 2147483647 !important;
+}
   </style>
 </head>
 <body>
@@ -5233,11 +5243,10 @@ orders = deduplicateOrders(raw);
       `).join('');
 
       openModal('adminOrderDetailModal');
-  const dtlM = document.getElementById('adminOrderDetailModal');
-  if (dtlM) {
-    dtlM.style.setProperty('display', 'flex', 'important');
-    dtlM.style.setProperty('z-index', '999999999', 'important');
-  }
+    const dtlM = document.getElementById('adminOrderDetailModal');
+    if (dtlM) {
+      dtlM.style.setProperty('display', 'flex', 'important');
+      dtlM.style.setProperty('z-index', '2147483647', 'important');
     }
 
     var currentEditingOrder = null;
@@ -5255,12 +5264,13 @@ orders = deduplicateOrders(raw);
       document.getElementById('editOrderCustAddress').value = o.address || '';
 
       renderOrderEditItemsUI();
+      
       openModal('orderEditModal');
-  const editM = document.getElementById('orderEditModal');
-  if (editM) {
-    editM.style.setProperty('display', 'flex', 'important');
-    editM.style.setProperty('z-index', '999999999', 'important');
-  }
+    const editM = document.getElementById('orderEditModal');
+    if (editM) {
+      editM.style.setProperty('display', 'flex', 'important');
+      editM.style.setProperty('z-index', '2147483647', 'important');
+    }
     }
 
     function renderOrderEditItemsUI() {
