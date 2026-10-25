@@ -1839,6 +1839,16 @@ body.modal-open .floating-action-container {
     </button>
   </div>
 
+<!-- ရှာဖွေရေးဘားအောက်ရှိ Deli & ကားဂိတ် ရုံးခွဲများ ကြည့်ရန် ခလုတ် -->
+      <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
+        <button 
+          type="button" 
+          onclick="openPublicDeliveryModal()" 
+          style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"></button>
+          🚚 Deli & ကားဂိတ် ရုံးခွဲများ ကြည့်ရန်
+        </button>
+      </div>
+
   <div style="display: flex; justify-content: flex-end;">
     <select class="sort-select-box" id="sortFilterSelect" onchange="handleSortFilterChange()" style="width: 100%; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #cbd5e1; font-size: 0.78rem;">
       <option value="default">ပုံမှန် စီစဉ်မှု</option>
@@ -2461,11 +2471,20 @@ function scrollCategories(amount) {
         <div style="font-size:11.5px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">📦 ပို့ဆောင်ရေး၊ ကားဂိတ်/Royal ရုံးခွဲနှင့် ဘောင်ချာထည့်ရန်</div>
         
         <!-- AUTO-FILL SELECTOR FROM DIRECTORY -->
-        <div style="margin-bottom:6px;">
-          <select id="dtlStationSelect" onchange="handleStationSelectAutoFill(this.value)" style="width:100%; padding:6px; background:#0f172a; border:1px solid var(--gold); color:#fde047; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;">
-            <option value="">-- ကားဂိတ် / Royal / Deli ရုံးခွဲ ရွေးချယ်ပါ (Auto-Fill) --</option>
-          </select>
-        </div>
+        <!-- AUTO-FILL SELECTOR (စာရိုက်၍ ရှာနိုင်သော စနစ်) -->
+      <div style="margin-bottom:6px;">
+        <input 
+          type="text" 
+          list="dtlStationDataList" 
+          id="dtlStationSelect" 
+          placeholder="🔍 ကားဂိတ် / Royal / Deli ရုံးခွဲ ရိုက်ရှာပါ..." 
+          oninput="handleStationSelectAutoFill(this.value)"
+          style="width:100%; padding:7px 10px; background:#0b0f19; border:1px solid #38bdf8; border-radius:6px; color:#fff; font-size:12px; outline:none;"
+        >
+        <datalist id="dtlStationDataList">
+          <!-- JS မှ အလိုအလျောက် စာရင်းများ ထည့်ပေးမည် ဖြစ်သလို မူရင်းစာရင်းလည်း ထားနိုင်ပါသည် -->
+        </datalist>
+      </div>
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:4px;">
           <div>
@@ -9366,29 +9385,36 @@ var adminLogoClicks = 0;
     }
 
     function populateStationSelectOptions() {
-      const select = document.getElementById('dtlStationSelect');
-      if (!select) return;
+  const dataList = document.getElementById('dtlStationDataList');
+  if (!dataList || !Array.isArray(deliveryStations)) return;
 
-      select.innerHTML = '<option value="">-- ကားဂိတ် / Royal / Deli ရုံးခွဲ ရွေးချယ်ပါ (Auto-Fill) --</option>' +
-        deliveryStations.map(st => {
-          const meta = getStationTypeMeta(st.type);
-          return `<option value="${st.id}">[${meta.prefix}] ${st.name}</option>`;
-        }).join('');
-    }
+  dataList.innerHTML = deliveryStations.map(st => {
+    const meta = getStationTypeMeta(st.type);
+    const displayText = `[${meta.prefix}] ${st.name}`;
+    return `<option value="${displayText}">`;
+  }).join('');
+}
 
-    function handleStationSelectAutoFill(stationId) {
-      if (!stationId) return;
-      const st = deliveryStations.find(x => x.id === stationId);
-      if (!st) return;
+function handleStationSelectAutoFill(typedText) {
+  if (!typedText || !Array.isArray(deliveryStations)) return;
 
-      const busInp = document.getElementById('dtlBusLine');
-      const phoneInp = document.getElementById('dtlStationPhone');
-      const addrInp = document.getElementById('dtlStationAddress');
+  const cleanText = typedText.trim().toLowerCase();
+  const st = deliveryStations.find(x => {
+    const meta = getStationTypeMeta(x.type);
+    const fullText = `[${meta.prefix}] ${x.name}`.toLowerCase();
+    return fullText === cleanText || x.name.toLowerCase() === cleanText;
+  });
 
-      if (busInp) busInp.value = st.name;
-      if (phoneInp) phoneInp.value = st.phone || '';
-      if (addrInp) addrInp.value = st.address || '';
-    }
+  if (!st) return;
+
+  const busInp = document.getElementById('dtlBusLine');
+  const phoneInp = document.getElementById('dtlStationPhone');
+  const addrInp = document.getElementById('dtlStationAddress');
+
+  if (busInp) busInp.value = st.name || '';
+  if (phoneInp) phoneInp.value = st.phone || '';
+  if (addrInp) addrInp.value = st.address || '';
+}
 
     // Firebase real-time listener for delivery stations directory
     if (typeof fbDb !== 'undefined') {
@@ -10438,5 +10464,74 @@ function quickAddToCart(productId, event) {
       <span class="exit-icon" style="pointer-events:none;">🚨</span>
     </button>
   </div>
+
+  <!-- Public Delivery Stations Directory Modal -->
+<div id="publicDeliveryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); z-index: 10005; align-items: center; justify-content: center; padding: 15px;">
+  <div style="background: #111827; border: 1px solid #374151; border-radius: 12px; width: 100%; max-width: 440px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);">
+    
+    <!-- Modal Header -->
+    <div style="padding: 12px 16px; background: #1f2937; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151;">
+      <h4 style="margin: 0; font-size: 14px; color: #fff;">🚚 ပို့ဆောင်ရေး ရုံးခွဲနှင့် ကားဂိတ်များ</h4>
+      <span onclick="closePublicDeliveryModal()" style="color: #9ca3af; font-size: 22px; cursor: pointer; font-weight: bold; line-height: 1;">&times;</span>
+    </div>
+
+    <!-- Search Input -->
+    <div style="padding: 10px 15px; background: #111827;">
+      <input type="text" id="publicDeliSearch" placeholder="🔍 မြို့နယ် သို့မဟုတ် ဂိတ်အမည် ရိုက်ရှာပါ..." oninput="filterPublicDeliveryList(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: #0b0f19; border: 1px solid #38bdf8; color: #fff; font-size: 12px; outline: none;">
+    </div>
+
+    <!-- Stations List Area -->
+    <div id="publicDeliveryListContainer" style="padding: 10px 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px;">
+      <!-- JS မှ စာရင်းများကို အလိုအလျောက် ပြသပေးမည် -->
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openPublicDeliveryModal() {
+  const modal = document.getElementById('publicDeliveryModal');
+  if (modal) modal.style.display = 'flex';
+  const searchInput = document.getElementById('publicDeliSearch');
+  if (searchInput) searchInput.value = '';
+  renderPublicDeliveryList(typeof deliveryStations !== 'undefined' ? deliveryStations : []);
+}
+
+function closePublicDeliveryModal() {
+  const modal = document.getElementById('publicDeliveryModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderPublicDeliveryList(list) {
+  const container = document.getElementById('publicDeliveryListContainer');
+  if (!container) return;
+
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div style="color: #9ca3af; font-size: 12px; text-align: center; padding: 20px;">စာရင်းမရှိသေးပါခင်ဗျာ။</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(st => {
+    const meta = typeof getStationTypeMeta === 'function' ? getStationTypeMeta(st.type) : { prefix: 'ဂိတ်' };
+    return `
+      <div style="background: #1e293b; padding: 10px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+        <div style="font-weight: bold; font-size: 13px; color: #f87171;">[${meta.prefix}] ${st.name || ''}</div>
+        <div style="font-size: 11.5px; color: #cbd5e1; margin: 4px 0;">📍 ${st.address || 'လိပ်စာ အသေးစိတ် မဖော်ပြထားပါ'}</div>
+        ${st.phone ? `<a href="tel:${st.phone}" style="display: inline-block; font-size: 11px; background: #ef4444; color: #fff; padding: 3px 8px; border-radius: 4px; text-decoration: none; margin-top: 4px;">📞 ${st.phone} သို့ ဖုန်းခေါ်မည်</a>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function filterPublicDeliveryList(query) {
+  if (typeof deliveryStations === 'undefined') return;
+  const q = query.trim().toLowerCase();
+  const filtered = deliveryStations.filter(st => 
+    (st.name && st.name.toLowerCase().includes(q)) || 
+    (st.address && st.address.toLowerCase().includes(q))
+  );
+  renderPublicDeliveryList(filtered);
+}
+</script>
 </body>
 </html>
