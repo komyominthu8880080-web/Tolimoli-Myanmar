@@ -10557,6 +10557,28 @@ addFocGiftItem = function() {
         renderStationPhoneInputs();
       }
     });
+    
+    // --- ADMIN PIN PAD TRIGGER FIX ---
+var adminLogoClicks = 0;
+var adminLogoTimer = null;
+
+function triggerAdminPinPad() {
+  adminLogoClicks++;
+  clearTimeout(adminLogoTimer);
+  adminLogoTimer = setTimeout(() => { 
+    adminLogoClicks = 0; 
+  }, 1400); // ၁.၄ စက္ကန့်အတွင်း ၃ ချက်နှိပ်ရပါမည်
+
+  if (adminLogoClicks >= 3) {
+    adminLogoClicks = 0;
+    // အကယ်၍ Pin Pad (သို့) တိုက်ရိုက် Prompt ပေါ်လာစေချင်လျှင် -
+    if (typeof openCustomPinModal === 'function') {
+      openCustomPinModal(); // Custom Pin Pad ပုံစံဖြင့် ဖွင့်မည်
+    } else {
+      openAdminPrompt(); // မူရင်း Prompt ပုံစံဖြင့် ဖွင့်မည်
+    }
+  }
+}
   </script>
 </body>
 </html>
