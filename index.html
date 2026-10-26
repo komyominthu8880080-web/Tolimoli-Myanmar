@@ -6742,7 +6742,7 @@ function closeModal(id) {
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
 
-    // --- LUXURY PIN PAD SYSTEM & PROMPT FIX ---
+    // --- SINGLE CLEAN LUXURY PIN PAD SYSTEM ---
   var adminClicks = 0;
   var adminTimer = null;
   var enteredAdminPin = "";
@@ -6752,7 +6752,7 @@ function closeModal(id) {
     clearTimeout(adminTimer);
     adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
     
-    // Logo ကို ၃ ချက်နှိပ်လိုက်လျှင် လှပသော PIN Pad Modal ကို ဖွင့်ပေးမည်
+    // Logo ကို ၃ ချက်နှိပ်လျှင် Luxury PIN Pad သာ သီးသန့်ဖွင့်မည် (Browser Prompt မတက်စေပါ)
     if (adminClicks >= 3) {
       adminClicks = 0;
       enteredAdminPin = "";
@@ -6761,14 +6761,11 @@ function closeModal(id) {
     }
   }
 
-  // PIN ခလုတ်များ နှိပ်သည့်အခါ အလုပ်လုပ်မည့် စနစ်
   function pressPinDigit(digit) {
     if (enteredAdminPin.length < 4) {
       enteredAdminPin += digit;
       updatePinDotsUI();
     }
-    
-    // ဂဏန်း ၄ လုံး ပြည့်သည်နှင့် စစ်ဆေးမည်
     if (enteredAdminPin.length === 4) {
       setTimeout(verifyAdminEnteredPin, 150);
     }
@@ -6799,28 +6796,28 @@ function closeModal(id) {
     }
   }
 
-  // အသစ်ပြောင်းထားသော PIN ကို Firebase နှင့် LocalStorage နှစ်ခုလုံးမှ ဦးစားပေး စစ်ဆေးခြင်း
+  // Firebase Realtime Database မှ အသစ်ပြောင်းထားသော PIN ဖြင့်သာ စစ်ဆေးခြင်း
   async function verifyAdminEnteredPin() {
-    let savedPin = localStorage.getItem('tm_admin_pin');
+    let cloudPin = null;
     
     if (typeof fbDb !== 'undefined') {
       try {
         const snap = await fbDb.ref('shop_admin_pin').once('value');
         if (snap.val()) {
-          savedPin = String(snap.val()).trim();
-          localStorage.setItem('tm_admin_pin', savedPin);
+          cloudPin = String(snap.val()).trim();
+          localStorage.setItem('tm_admin_pin', cloudPin);
         }
       } catch (e) {
-        console.warn('Firebase PIN Check note:', e);
+        console.warn('Firebase PIN Check error:', e);
       }
     }
 
-    const validPin = savedPin || '1234';
+    const validPin = cloudPin || localStorage.getItem('tm_admin_pin');
 
-    if (enteredAdminPin === validPin) {
+    // 1234 မပါဘဲ Settings ထဲက သတ်မှတ်ထားသည့် PIN အသစ်နှင့်သာ အောင်မြင်မည်
+    if (validPin && enteredAdminPin === validPin) {
       closeModal('customAdminPinModal');
       
-      // Admin Dashboard အတွင်း ဒေတာများ ဆွဲယူဖွင့်လှစ်ခြင်း
       if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(validPin);
       if (typeof renderCategoryUI === 'function') renderCategoryUI();
       if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
