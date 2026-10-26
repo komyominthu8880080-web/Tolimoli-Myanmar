@@ -2393,6 +2393,34 @@ function scrollCategories(amount) {
         </div>
       </div>
 
+      <!-- PUBLIC DELIVERY STATIONS DIRECTORY MODAL FOR CUSTOMERS -->
+  <div class="modal-overlay" id="publicDeliveryModal" style="z-index: 10008;">
+    <div class="modal-content" style="max-width: 440px; max-height: 85vh; padding: 16px;">
+      <button class="modal-close" onclick="closeModal('publicDeliveryModal')"><i class="fas fa-times"></i></button>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <i class="fas fa-truck-moving" style="color:#ef4444; font-size:1.2rem;"></i>
+        <h3 style="color:#fff; font-size:1.05rem; margin:0;">Deli & ကားဂိတ် ရုံးခွဲများ စာရင်း</h3>
+      </div>
+      <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">
+        လူကြီးမင်းတို့ ပစ္စည်းထုတ်ယူနိုင်မည့် သက်ဆိုင်ရာ ကားဂိတ်များနှင့် Deli ရုံးခွဲ လိပ်စာ/ဖုန်းနံပါတ်များ ဖြစ်ပါသည်ခင်ဗျာ။
+      </p>
+
+      <!-- Customer Search Bar -->
+      <div style="margin-bottom: 8px;">
+        <input 
+          type="text" 
+          id="publicStationSearchInput" 
+          placeholder="🔍 မြို့နယ် / ဂိတ်အမည် / ဖုန်းနံပါတ် ဖြင့် ရှာပါ..." 
+          oninput="renderPublicStationsDirectory()" 
+          style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #ef4444; color: #fff; border-radius: 8px; font-size: 11.5px; outline: none; box-sizing: border-box;"
+        >
+      </div>
+
+      <!-- Stations List for Customers -->
+      <div id="publicStationsDirectoryList" style="max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+    </div>
+  </div>
+
   <!-- 6. CUSTOMER HISTORY MODAL -->
   <div class="modal-overlay" id="custHistoryModal" style="z-index: 999999;">
     <div class="modal-content" style="max-width:560px;">
@@ -10715,11 +10743,63 @@ addFocGiftItem = function() {
       }
     }
 
-    function openPublicDeliveryModal() {
-      renderAdminStationsDirectory();
-      openModal('adminModal');
-      switchAdminTab('settingsTab', document.querySelectorAll('.admin-nav-btn')[12]);
-    }
+    // ဝယ်သူများအတွက် Deli & ကားဂိတ် ရုံးခွဲစာရင်း ဖွင့်ပေးခြင်း
+function openPublicDeliveryModal() {
+  renderPublicStationsDirectory();
+  openModal('publicDeliveryModal');
+}
+
+function renderPublicStationsDirectory() {
+  const container = document.getElementById('publicStationsDirectoryList');
+  if (!container) return;
+
+  const searchVal = (document.getElementById('publicStationSearchInput')?.value || '').toLowerCase().trim();
+
+  if (!Array.isArray(deliveryStations) || deliveryStations.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:12px;">ရုံးခွဲ/ကားဂိတ် စာရင်း မရှိသေးပါခင်ဗျာ</p>';
+    return;
+  }
+
+  const filtered = deliveryStations.filter(st => {
+    const nameMatch = (st.name || '').toLowerCase().includes(searchVal);
+    const phoneMatch = (st.phone || '').toLowerCase().includes(searchVal);
+    const addrMatch = (st.address || '').toLowerCase().includes(searchVal);
+    const typeMatch = (st.type || '').toLowerCase().includes(searchVal);
+    return nameMatch || phoneMatch || addrMatch || typeMatch;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:12px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ကားဂိတ် မတွေ့ရှိပါ</p>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(st => {
+    const phones = String(st.phone || '').split(',').map(p => p.trim()).filter(Boolean);
+    const firstPhone = phones.length > 0 ? phones[0].replace(/[^0-9]/g, '') : '';
+
+    return `
+      <div style="background:rgba(255,255,255,0.04); border:1px solid #334155; border-radius:8px; padding:8px 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <span class="station-type-badge ${st.type === 'bus' ? 'badge-type-bus' : st.type === 'royal' ? 'badge-type-royal' : 'badge-type-deli'}">${(st.type || 'STATION').toUpperCase()}</span>
+            <b style="color:#fde047; font-size:12px;">${st.name}</b>
+          </div>
+          ${firstPhone ? `
+            <a href="tel:${firstPhone}" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:10.5px; font-weight:bold; padding:3px 8px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+              <i class="fas fa-phone-alt"></i> ခေါ်မည်
+            </a>
+          ` : ''}
+        </div>
+        <div style="color:#10b981; font-size:11px; margin-top:4px;">
+          📞 <b>ဖုန်း:</b> ${st.phone || '-'}
+        </div>
+        <div style="color:#cbd5e1; font-size:11px; margin-top:2px; line-height:1.35;">
+          📍 <b>လိပ်စာ:</b> ${st.address || '-'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
 
     // --- TRIGGER ADMIN PIN PAD / LOGIN SYSTEM ---
     var adminEnteredPin = '';
