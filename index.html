@@ -1849,26 +1849,27 @@ body.modal-open .floating-action-container {
     </button>
   </div>
 
-<!-- ရှာဖွေရေးဘားအောက်ရှိ Deli & ကားဂိတ် ရုံးခွဲများ ကြည့်ရန် ခလုတ် -->
-      <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-        <button 
-          type="button" 
-          onclick="openPublicDeliveryModal()" 
-          style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #fca5a5; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"></button>
-          🚚 Deli & ကားဂိတ် ရုံးခွဲများ ကြည့်ရန်
-        </button>
-      </div>
+<!-- 50% / 50% CLEAN BALANCED ROW: SORT SELECT & DELI DIRECTORY BUTTON -->
+  <div style="display: flex; gap: 8px; align-items: center; margin-top: 2px;">
+    <!-- ပုံမှန် စီစဉ်မှု Dropdown (50%) -->
+    <div style="flex: 1;">
+      <select class="sort-select-box" id="sortFilterSelect" onchange="handleSortFilterChange()" style="width: 100%; padding: 7px 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(212,175,55,0.3); border-radius: 8px; color: #fde047; font-size: 0.76rem; font-weight: 600; outline: none; cursor: pointer;">
+        <option value="default">⬍ ပုံမှန် စီစဉ်မှု</option>
+        <option value="price_low">စျေး: အနည်းမှ အများ</option>
+        <option value="price_high">စျေး: အများမှ အနည်း</option>
+        <option value="popular">လူကြိုက်များသော ပစ္စည်းများ</option>
+        <option value="stock">Stock အများဆုံး ပစ္စည်းများ</option>
+      </select>
+    </div>
 
-  <div style="display: flex; justify-content: flex-end;">
-    <select class="sort-select-box" id="sortFilterSelect" onchange="handleSortFilterChange()" style="width: 100%; padding: 6px 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #cbd5e1; font-size: 0.78rem;">
-      <option value="default">ပုံမှန် စီစဉ်မှု</option>
-      <option value="price_low">စျေး: အနည်းမှ အများ</option>
-      <option value="price_high">စျေး: အများမှ အနည်း</option>
-      <option value="popular">လူကြိုက်များသော ပစ္စည်းများ</option>
-      <option value="stock">Stock အများဆုံး ပစ္စည်းများ</option>
-    </select>
+    <!-- Deli & ကားဂိတ် ရုံးခွဲများ ကြည့်ရန် ခလုတ် (50%) -->
+    <button 
+      type="button" 
+      onclick="openPublicDeliveryModal()" 
+      style="flex: 1; height: 35px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.25)); border: 1.5px solid #ef4444; color: #fca5a5; padding: 0 8px; border-radius: 8px; font-size: 0.74rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 5px; white-space: nowrap;">
+      <i class="fas fa-truck-moving" style="color: #ef4444;"></i> Deli & ဂိတ်ခွဲများ
+    </button>
   </div>
-</div>
 
   <!-- CATEGORIES PILLS SCROLL -->
 <div class="category-bar-wrapper" style="position: relative; display: flex; align-items: center; gap: 4px;">
@@ -5242,13 +5243,17 @@ orders = deduplicateOrders(raw);
         </tr>
       `).join('');
 
-      // Admin Dashboard ကို ခဏဖျောက်ပြီး ဘောင်ချာ Modal ကို တန်းပေါ်စေခြင်း
+      // Admin Modal ကို အလွှာပိတ်ပေးပြီး ဘောင်ချာ Modal ကို ရှေ့ဆုံး တန်းတင်ခြင်း
     const adminM = document.getElementById('adminModal');
-    if (adminM) adminM.style.display = 'none';
+    if (adminM) {
+      adminM.classList.remove('active');
+      adminM.style.setProperty('display', 'none', 'important');
+    }
 
     openModal('adminOrderDetailModal');
     const dtlM = document.getElementById('adminOrderDetailModal');
     if (dtlM) {
+      dtlM.classList.add('active');
       dtlM.style.setProperty('display', 'flex', 'important');
       dtlM.style.setProperty('z-index', '2147483647', 'important');
     }
@@ -5269,13 +5274,17 @@ orders = deduplicateOrders(raw);
 
       renderOrderEditItemsUI();
       
-      // Admin Dashboard ကို ခဏဖျောက်ပြီး အော်ဒါပြင် Modal ကို တန်းပေါ်စေခြင်း
+      // Admin Modal ကို အလွှာပိတ်ပေးပြီး အော်ဒါပြင် Modal ကို ရှေ့ဆုံး တန်းတင်ခြင်း
     const adminM = document.getElementById('adminModal');
-    if (adminM) adminM.style.display = 'none';
+    if (adminM) {
+      adminM.classList.remove('active');
+      adminM.style.setProperty('display', 'none', 'important');
+    }
 
     openModal('orderEditModal');
     const editM = document.getElementById('orderEditModal');
     if (editM) {
+      editM.classList.add('active');
       editM.style.setProperty('display', 'flex', 'important');
       editM.style.setProperty('z-index', '2147483647', 'important');
     }
