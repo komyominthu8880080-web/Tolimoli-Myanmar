@@ -1803,7 +1803,8 @@ body.modal-open .floating-action-container {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ" style="cursor: pointer; z-index: 99999; position: relative;"></div>
+      <!-- Admin ဝင်ရန် Logo သို့မဟုတ် စာတန်းကို ၃ ချက် နှိပ်ပါ -->
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ" style="cursor: pointer; z-index: 99999; position: relative; display: flex; align-items: center; gap: 8px;">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -1811,14 +1812,14 @@ body.modal-open .floating-action-container {
         </div>
       </div>
 
-      <div class="header-actions-group">
-        <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ် (Mute/Unmute Notifications)">
+      <!-- ညာဘက် ခလုတ်များ အတန်း -->
+      <div class="header-actions-group" style="display: flex; align-items: center; gap: 6px;">
+        <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ်">
           <i class="fas fa-volume-up" id="globalSoundIcon"></i>
         </button>
-        <button class="btn-header-action" id="btnDiscreetMask" onclick="toggleDiscreetMask()" title="လျှို့ဝှက်ပုံစံပြောင်းရန် (Privacy Mask)">
+        <button class="btn-header-action" id="btnDiscreetMask" onclick="toggleDiscreetMask()" title="လျှို့ဝှက်ပုံစံပြောင်းရန်">
           <i class="fas fa-mask"></i>
         </button>
-
         <button class="btn-header-action" onclick="openWishlistModal()" title="အသဲပုံ (Wishlist)">
           <i class="fas fa-heart" style="color:#f43f5e;"></i>
           <span class="cart-badge" id="wishlistCount" style="background:#f43f5e; display:none;">0</span>
