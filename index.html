@@ -10277,16 +10277,15 @@ addFocGiftItem = function() {
 
     // သီးသန့်လက်ဆောင် (Custom Gift With Photo) တင်ခြင်း
     async function addCustomManualFocGiftWithMedia() {
-      const name = document.getElementById('customFocGiftName')?.value.trim();
+      const name = (document.getElementById('customFocGiftName')?.value || '').trim();
       const tier = Number(document.getElementById('customFocGiftTier')?.value) || 1;
+      const urlInput = (document.getElementById('customFocGiftUrl')?.value || '').trim();
       const file = document.getElementById('customFocGiftFile')?.files[0];
-      const directUrl = document.getElementById('customFocGiftUrl')?.value.trim();
       const btn = document.getElementById('btnAddCustomFocGift');
 
-      if (!name) return alert('လက်ဆောင်ပစ္စည်းအမည် ရိုက်ထည့်ပေးပါခင်ဗျာ');
+      if (!name) return alert('ကျေးဇူးပြု၍ လက်ဆောင်အမည် ရိုက်ထည့်ပါခင်ဗျာ');
 
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ပုံတင်နေပါသည်...';
+      if (btn) { btn.disabled = true; btn.innerText = 'ပုံတင်နေပါသည်...'; }
 
       let finalImg = urlInput || 'logo.png';
       if (file) {
@@ -10403,10 +10402,9 @@ addFocGiftItem = function() {
         return;
       }
 
-      // Tier Calculation
       let availableGifts = focConfig.selectedGifts;
       if (min2 > 0 && subTotal >= min2) {
-        availableGifts = focConfig.selectedGifts; // VIP can choose all
+        availableGifts = focConfig.selectedGifts;
       } else {
         availableGifts = focConfig.selectedGifts.filter(g => (g.tier || 1) === 1);
       }
@@ -10425,7 +10423,6 @@ addFocGiftItem = function() {
           `;
         }
       } else {
-        // Choice Mode
         container.innerHTML = `
           <div style="background:rgba(212,175,55,0.08); border:1px solid var(--gold); border-radius:8px; padding:8px; margin:6px 0;">
             <span style="color:var(--gold); font-size:11px; font-weight:bold;"><i class="fas fa-gift"></i> အထူးလက်ဆောင် ရွေးချယ်ပါ -</span>
@@ -10447,6 +10444,279 @@ addFocGiftItem = function() {
         currentCustomerSelectedFocGift = focConfig.selectedGifts[idx];
         renderCheckoutFocSection();
       }
+    }
+
+    // --- CATEGORY UI RENDERER & SHEET POPUP ---
+    function renderCategoryUI() {
+      const container = document.getElementById('categoryContainer');
+      if (!container) return;
+      let html = `<button type="button" class="cat-pill-btn ${selectedCategory === 'All' ? 'active' : ''}" onclick="selectCategory('All')">အားလုံး</button>`;
+      categories.forEach(cat => {
+        html += `<button type="button" class="cat-pill-btn ${selectedCategory === cat ? 'active' : ''}" onclick="selectCategory('${cat}')">${cat}</button>`;
+      });
+      container.innerHTML = html;
+      syncSearchCategoryDropdown();
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      renderCategoryUI();
+      renderCatalog();
+    }
+
+    function openCategorySheet() {
+      const m = document.getElementById('categorySheetModal');
+      if (m) m.classList.add('active');
+    }
+
+    function closeCategorySheet() {
+      const m = document.getElementById('categorySheetModal');
+      if (m) m.classList.remove('active');
+    }
+
+    function syncSearchCategoryDropdown() {
+      const sel = document.getElementById('adminProductCategoryFilterSelect');
+      if (!sel) return;
+      sel.innerHTML = '<option value="All">📂 အမျိုးအစား အားလုံး</option>' + 
+        categories.map(c => `<option value="${c}">${c}</option>`).join('');
+    }
+
+    // --- DYNAMIC STATIONS / GATES MANAGEMENT & EDIT/SEARCH LOGIC ---
+    var defaultDeliveryStations = [
+      { id: 'st_1', type: 'bus', name: 'မန္တလာမင်း (မန္တလေးဂိတ်)', phone: '09420011223, 09970011223', address: 'မန္တလေး ကျွဲဆည်ကန် ကားကြီးဝင်း၊ အမှတ် (၃၅) ဂိတ်' },
+      { id: 'st_2', type: 'royal', name: 'Royal Express ရုံးခွဲ (မန္တလေး)', phone: '09777123456', address: '၇၈ လမ်း၊ ၃၁ x ၃၂ ကြား၊ မန္တလေးမြို့' }
+    ];
+    var deliveryStations = defaultDeliveryStations;
+    try {
+      const sStations = JSON.parse(localStorage.getItem('tm_delivery_stations'));
+      if (Array.isArray(sStations) && sStations.length > 0) deliveryStations = sStations;
+    } catch(e) {}
+
+    var stationTypesList = [
+      { id: 'bus', title: 'အဝေးပြေးကားဂိတ်', prefix: 'ဂိတ်' },
+      { id: 'royal', title: 'Royal Express ရုံးခွဲ', prefix: 'Royal' },
+      { id: 'deli', title: 'အခြား Deli ရုံးခွဲ', prefix: 'Deli' }
+    ];
+
+    var stationPhoneList = [''];
+    var editingStationIdx = null;
+
+    function renderStationPhoneInputs() {
+      const container = document.getElementById('stationPhoneInputsContainer');
+      if (!container) return;
+      if (!stationPhoneList || stationPhoneList.length === 0) stationPhoneList = [''];
+
+      container.innerHTML = stationPhoneList.map((ph, idx) => `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 10.5px; color: #94a3b8; min-width: 14px;">#${idx + 1}</span>
+          <input 
+            type="tel" 
+            value="${(ph || '').replace(/"/g, '&quot;')}" 
+            placeholder="ဖုန်းနံပါတ် (ဥပမာ- 09xxxxxxxxx)..." 
+            oninput="stationPhoneList[${idx}] = this.value" 
+            style="flex: 1; padding: 7px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;"
+          >
+          ${stationPhoneList.length > 1 ? `
+            <button 
+              type="button" 
+              onclick="removeStationPhoneField(${idx})" 
+              style="width: 28px; height: 28px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
+              title="ဖျက်မည်"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function addStationPhoneField(val = '') {
+      stationPhoneList.push(val);
+      renderStationPhoneInputs();
+    }
+
+    function removeStationPhoneField(idx) {
+      if (stationPhoneList.length > 1) {
+        stationPhoneList.splice(idx, 1);
+        renderStationPhoneInputs();
+      }
+    }
+
+    function renderAdminStationsDirectory() {
+      const container = document.getElementById('adminStationsDirectoryListContainer');
+      if (!container) return;
+
+      const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
+
+      if (!Array.isArray(deliveryStations) || deliveryStations.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:8px;">ဂိတ် / ရုံးခွဲ စာရင်း မရှိသေးပါ</p>';
+        return;
+      }
+
+      const filtered = deliveryStations.map((st, idx) => ({ ...st, originalIdx: idx })).filter(st => {
+        const nameMatch = (st.name || '').toLowerCase().includes(searchVal);
+        const phoneMatch = (st.phone || '').toLowerCase().includes(searchVal);
+        const addrMatch = (st.address || '').toLowerCase().includes(searchVal);
+        return nameMatch || phoneMatch || addrMatch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:8px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ကားဂိတ် မတွေ့ရှိပါ</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(st => `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:6px; padding:6px 8px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+          <div style="flex:1; padding-right:8px;">
+            <div>
+              <span class="station-type-badge ${st.type === 'bus' ? 'badge-type-bus' : st.type === 'royal' ? 'badge-type-royal' : 'badge-type-deli'}">${(st.type || 'STATION').toUpperCase()}</span>
+              <b style="color:#fff; font-size:11.5px;">${st.name}</b>
+            </div>
+            <div style="color:#10b981; font-size:10px; margin-top:2px;">📞 ${st.phone || '-'}</div>
+            <div style="color:#94a3b8; font-size:10px;">📍 ${st.address || '-'}</div>
+          </div>
+          <div style="display:flex; gap:4px; flex-shrink:0;">
+            <button type="button" class="action-badge" style="background:#0284c7; color:#fff;" onclick="editDeliveryStation(${st.originalIdx})" title="ပြင်ဆင်မည်">
+              <i class="fas fa-edit"></i> ပြင်
+            </button>
+            <button type="button" class="action-badge" style="background:#ef4444; color:#fff;" onclick="deleteDeliveryStation(${st.originalIdx})" title="ဖျက်မည်">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editDeliveryStation(idx) {
+      const st = deliveryStations[idx];
+      if (!st) return;
+
+      editingStationIdx = idx;
+
+      const typeSel = document.getElementById('newStationTypeSelect');
+      if (typeSel && st.type) typeSel.value = st.type;
+
+      const nameInp = document.getElementById('newStationNameInput');
+      if (nameInp) nameInp.value = st.name || '';
+
+      const addrInp = document.getElementById('newStationAddressInput');
+      if (addrInp) addrInp.value = st.address || '';
+
+      if (st.phone) {
+        const phones = String(st.phone).split(',').map(p => p.trim()).filter(Boolean);
+        stationPhoneList = phones.length > 0 ? phones : [''];
+      } else {
+        stationPhoneList = [''];
+      }
+      renderStationPhoneInputs();
+
+      const btnSave = document.getElementById('btnSaveStationSubmit');
+      if (btnSave) {
+        btnSave.innerHTML = '<i class="fas fa-sync-alt"></i> ပြင်ဆင်ချက် သိမ်းဆည်းမည်';
+        btnSave.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
+        btnSave.style.color = '#fff';
+      }
+      const btnCancel = document.getElementById('btnCancelStationEdit');
+      if (btnCancel) btnCancel.style.display = 'block';
+
+      document.getElementById('newStationNameInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function cancelStationEdit() {
+      editingStationIdx = null;
+      const nameInp = document.getElementById('newStationNameInput');
+      if (nameInp) nameInp.value = '';
+      const addrInp = document.getElementById('newStationAddressInput');
+      if (addrInp) addrInp.value = '';
+      stationPhoneList = [''];
+      renderStationPhoneInputs();
+
+      const btnSave = document.getElementById('btnSaveStationSubmit');
+      if (btnSave) {
+        btnSave.innerHTML = '<i class="fas fa-save"></i> ဂိတ် / ရုံးခွဲ စာရင်း သိမ်းဆည်းမည်';
+        btnSave.style.background = '';
+        btnSave.style.color = '';
+      }
+      const btnCancel = document.getElementById('btnCancelStationEdit');
+      if (btnCancel) btnCancel.style.display = 'none';
+    }
+
+    function saveNewDeliveryStationFromAdmin() {
+      const type = document.getElementById('newStationTypeSelect')?.value || 'bus';
+      const name = document.getElementById('newStationNameInput')?.value.trim();
+      const phone = stationPhoneList.map(p => p.trim()).filter(Boolean).join(', ');
+      const address = document.getElementById('newStationAddressInput')?.value.trim();
+
+      if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ပြည့်စုံစွာ ဖြည့်သွင်းပါခင်ဗျာ');
+
+      if (editingStationIdx !== null && deliveryStations[editingStationIdx]) {
+        deliveryStations[editingStationIdx].type = type;
+        deliveryStations[editingStationIdx].name = name;
+        deliveryStations[editingStationIdx].phone = phone;
+        deliveryStations[editingStationIdx].address = address;
+        alert(`[ ${name} ] ၏ အချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!`);
+      } else {
+        deliveryStations.push({
+          id: 'st_' + Date.now(),
+          type, name, phone, address
+        });
+        alert(`[ ${name} ] ကို ဂိတ်/ရုံးခွဲ စာရင်းထဲ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!`);
+      }
+
+      localStorage.setItem('tm_delivery_stations', JSON.stringify(deliveryStations));
+      if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_stations').set(deliveryStations);
+
+      renderAdminStationTypesUI();
+      renderAdminStationsDirectory();
+      populateStationSelectOptions();
+
+      cancelStationEdit();
+    }
+
+    function deleteDeliveryStation(idx) {
+      if (confirm('ဤဂိတ်/ရုံးခွဲကို စာရင်းမှ ဖျက်ရန် သေချာပါသလား?')) {
+        deliveryStations.splice(idx, 1);
+        localStorage.setItem('tm_delivery_stations', JSON.stringify(deliveryStations));
+        if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_stations').set(deliveryStations);
+        renderAdminStationsDirectory();
+        populateStationSelectOptions();
+      }
+    }
+
+    function renderAdminStationTypesUI() {
+      const select = document.getElementById('newStationTypeSelect');
+      const chipsBox = document.getElementById('adminStationTypesChipsContainer');
+      if (select) {
+        select.innerHTML = stationTypesList.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+      }
+      if (chipsBox) {
+        chipsBox.innerHTML = stationTypesList.map(t => `
+          <span style="background:rgba(255,255,255,0.06); border:1px solid #334155; color:#cbd5e1; padding:3px 8px; border-radius:12px; font-size:10.5px;">
+            ${t.title} [Tag: ${t.prefix}]
+          </span>
+        `).join('');
+      }
+    }
+
+    function populateStationSelectOptions() {
+      const dl = document.getElementById('dtlStationDataList');
+      if (!dl) return;
+      dl.innerHTML = (deliveryStations || []).map(st => `<option value="${st.name}">${st.phone || ''} - ${st.address || ''}</option>`).join('');
+    }
+
+    function handleStationSelectAutoFill(val) {
+      const st = deliveryStations.find(x => x.name === val || val.includes(x.name));
+      if (st) {
+        if (document.getElementById('dtlBusLine')) document.getElementById('dtlBusLine').value = st.name;
+        if (document.getElementById('dtlStationPhone')) document.getElementById('dtlStationPhone').value = st.phone || '';
+        if (document.getElementById('dtlStationAddress')) document.getElementById('dtlStationAddress').value = st.address || '';
+      }
+    }
+
+    function openPublicDeliveryModal() {
+      renderAdminStationsDirectory();
+      openModal('adminModal');
+      switchAdminTab('settingsTab', document.querySelectorAll('.admin-nav-btn')[12]);
     }
 
     // --- TRIGGER ADMIN PIN PAD / LOGIN SYSTEM ---
@@ -10499,7 +10769,7 @@ addFocGiftItem = function() {
         closeModal('customAdminPinModal');
         fetchAdminOrdersWithPin(validPin);
         renderCategoryUI();
-        if (typeof syncSearchCategoryDropdown === 'function') syncSearchCategoryDropdown();
+        syncSearchCategoryDropdown();
         renderAdminCategoryChips();
         renderAdminColorInputs();
         renderAdminOrders();
@@ -10507,8 +10777,9 @@ addFocGiftItem = function() {
         renderAnalytics();
         renderDiscountsList();
         loadCentralSettings();
-        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
-        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
+        renderAdminStationTypesUI();
+        renderAdminStationsDirectory();
+        populateStationSelectOptions();
         openModal('adminModal');
       } else {
         alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
@@ -10516,7 +10787,6 @@ addFocGiftItem = function() {
       }
     }
 
-    // Helper Upload to ImgBB
     async function uploadToImgBB(file) {
       const apiKey = botConfig.imgbbKey || '7c7a6d549b070dd0cc7f0f3098c64d74';
       const formData = new FormData();
@@ -10544,18 +10814,20 @@ addFocGiftItem = function() {
       if (promoBadge) promoBadge.textContent = products.filter(p => isProductPromo(p)).length;
     }
 
-    // --- WINDOW ONLOAD INITIALIZATION ---
+    // --- WINDOW INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
       initTownshipDatalist();
       applyDiscreetMaskUI();
+      renderCategoryUI();
       renderCatalog();
       updateCartBadge();
       updateWishlistBadges();
       applyCentralSettingsUI();
       initFocSettingsListener();
-      if (typeof renderStationPhoneInputs === 'function') {
-        renderStationPhoneInputs();
-      }
+      renderAdminStationTypesUI();
+      renderStationPhoneInputs();
+      renderAdminStationsDirectory();
+      populateStationSelectOptions();
     });
   </script>
 </body>
