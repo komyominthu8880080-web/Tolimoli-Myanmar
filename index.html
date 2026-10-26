@@ -6742,33 +6742,104 @@ function closeModal(id) {
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
 
-    var adminClicks = 0; var adminTimer = null;
+    // --- LUXURY PIN PAD SYSTEM & PROMPT FIX ---
+  var adminClicks = 0;
+  var adminTimer = null;
+  var enteredAdminPin = "";
+
   function openAdminPrompt() {
     adminClicks++;
     clearTimeout(adminTimer);
     adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
+    
+    // Logo ကို ၃ ချက်နှိပ်လိုက်လျှင် လှပသော PIN Pad Modal ကို ဖွင့်ပေးမည်
     if (adminClicks >= 3) {
       adminClicks = 0;
-      const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-      const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
-      if (p !== null && (p === validPin || p === '1234')) {
-        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(p);
-        if (typeof renderCategoryUI === 'function') renderCategoryUI();
-        if (typeof syncSearchCategoryDropdown === 'function') syncSearchCategoryDropdown();
-        if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
-        if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
-        if (typeof renderAdminOrders === 'function') renderAdminOrders();
-        if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-        if (typeof renderAnalytics === 'function') renderAnalytics();
-        if (typeof renderDiscountsList === 'function') renderDiscountsList();
-        if (typeof loadCentralSettings === 'function') loadCentralSettings();
-        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
-        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
-        if (typeof populateStationSelectOptions === 'function') populateStationSelectOptions();
-        openModal('adminModal');
-      } else if (p !== null) {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+      enteredAdminPin = "";
+      updatePinDotsUI();
+      openModal('customAdminPinModal');
+    }
+  }
+
+  // PIN ခလုတ်များ နှိပ်သည့်အခါ အလုပ်လုပ်မည့် စနစ်
+  function pressPinDigit(digit) {
+    if (enteredAdminPin.length < 4) {
+      enteredAdminPin += digit;
+      updatePinDotsUI();
+    }
+    
+    // ဂဏန်း ၄ လုံး ပြည့်သည်နှင့် စစ်ဆေးမည်
+    if (enteredAdminPin.length === 4) {
+      setTimeout(verifyAdminEnteredPin, 150);
+    }
+  }
+
+  function deleteLastPinDigit() {
+    if (enteredAdminPin.length > 0) {
+      enteredAdminPin = enteredAdminPin.slice(0, -1);
+      updatePinDotsUI();
+    }
+  }
+
+  function clearPinDigits() {
+    enteredAdminPin = "";
+    updatePinDotsUI();
+  }
+
+  function updatePinDotsUI() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById(`pDot_${i}`);
+      if (dot) {
+        if (i < enteredAdminPin.length) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
       }
+    }
+  }
+
+  // အသစ်ပြောင်းထားသော PIN ကို Firebase နှင့် LocalStorage နှစ်ခုလုံးမှ ဦးစားပေး စစ်ဆေးခြင်း
+  async function verifyAdminEnteredPin() {
+    let savedPin = localStorage.getItem('tm_admin_pin');
+    
+    if (typeof fbDb !== 'undefined') {
+      try {
+        const snap = await fbDb.ref('shop_admin_pin').once('value');
+        if (snap.val()) {
+          savedPin = String(snap.val()).trim();
+          localStorage.setItem('tm_admin_pin', savedPin);
+        }
+      } catch (e) {
+        console.warn('Firebase PIN Check note:', e);
+      }
+    }
+
+    const validPin = savedPin || '1234';
+
+    if (enteredAdminPin === validPin) {
+      closeModal('customAdminPinModal');
+      
+      // Admin Dashboard အတွင်း ဒေတာများ ဆွဲယူဖွင့်လှစ်ခြင်း
+      if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(validPin);
+      if (typeof renderCategoryUI === 'function') renderCategoryUI();
+      if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+      if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
+      if (typeof renderAdminOrders === 'function') renderAdminOrders();
+      if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+      if (typeof renderAnalytics === 'function') renderAnalytics();
+      if (typeof renderDiscountsList === 'function') renderDiscountsList();
+      if (typeof loadCentralSettings === 'function') loadCentralSettings();
+      if (typeof renderStockTable === 'function') renderStockTable();
+      if (typeof renderAdminProducts === 'function') renderAdminProducts();
+      
+      openModal('adminModal');
+      enteredAdminPin = "";
+      updatePinDotsUI();
+    } else {
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      alert('PIN နံပါတ် မှားယွင်းနေပါသည်ခင်ဗျာ!');
+      clearPinDigits();
     }
   }
 
