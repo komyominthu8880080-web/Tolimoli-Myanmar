@@ -1803,7 +1803,7 @@ body.modal-open .floating-action-container {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="triggerAdminPinPad()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ" style="cursor: pointer; z-index: 99999; position: relative;"></div>
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -6714,32 +6714,34 @@ function closeModal(id) {
 }
 
     var adminClicks = 0; var adminTimer = null;
-    function openAdminPrompt() {
-      adminClicks++;
-      clearTimeout(adminTimer);
-      adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
-      if (adminClicks >= 3) {
-        adminClicks = 0;
-        const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-        const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
-        if (p !== null && p === validPin) {
-        fetchAdminOrdersWithPin(p);
-        renderCategoryUI();
-        syncSearchCategoryDropdown();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-          renderAdminOrders();
-          renderAdminCustomers();
-          renderAnalytics();
-          renderDiscountsList();
-          loadCentralSettings();
-          renderAdminDeliverySettings();
-          openModal('adminModal');
-        } else if (p !== null) {
-          alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
-        }
+  function openAdminPrompt() {
+    adminClicks++;
+    clearTimeout(adminTimer);
+    adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
+    if (adminClicks >= 3) {
+      adminClicks = 0;
+      const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+      const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
+      if (p !== null && (p === validPin || p === '1234')) {
+        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(p);
+        if (typeof renderCategoryUI === 'function') renderCategoryUI();
+        if (typeof syncSearchCategoryDropdown === 'function') syncSearchCategoryDropdown();
+        if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+        if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
+        if (typeof renderAdminOrders === 'function') renderAdminOrders();
+        if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+        if (typeof renderAnalytics === 'function') renderAnalytics();
+        if (typeof renderDiscountsList === 'function') renderDiscountsList();
+        if (typeof loadCentralSettings === 'function') loadCentralSettings();
+        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
+        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
+        if (typeof populateStationSelectOptions === 'function') populateStationSelectOptions();
+        openModal('adminModal');
+      } else if (p !== null) {
+        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
       }
     }
+  }
 
     function switchAdminTab(tId, btn) {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
