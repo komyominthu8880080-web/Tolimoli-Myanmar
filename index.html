@@ -1801,18 +1801,19 @@ body.modal-open .floating-action-container {
   </div>
 
   <!-- STICKY TOP HEADER -->
-  <header>
-    <div class="header-main-row">
-      <!-- Admin ဝင်ရန် Logo သို့မဟုတ် စာတန်းကို ၃ ချက် နှိပ်ပါ -->
+  <header style="position: sticky; top: 0; z-index: 1050; background: rgba(24, 19, 45, 0.98); padding: 8px 12px;">
+    <div class="header-main-row" style="display: flex; align-items: center; justify-content: space-between;">
+      
+      <!-- Admin ဝင်ရန် Logo ကို ၃ ချက် နှိပ်ပါ -->
       <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ" style="cursor: pointer; z-index: 99999; position: relative; display: flex; align-items: center; gap: 8px;">
-        <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
+        <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1.5px solid #d4af37; display: block;">
         <div>
-          <span class="brand-title">Tolimoli Myanmar</span>
-          <span class="brand-subtitle">Adult Toys Shop</span>
+          <span class="brand-title" style="font-size: 1rem; font-weight: 700; color: #fff; display: block; line-height: 1.2;">Tolimoli Myanmar</span>
+          <span class="brand-subtitle" style="font-size: 0.62rem; color: #d4af37; display: block;">Adult Toys Shop</span>
         </div>
       </div>
 
-      <!-- ညာဘက် ခလုတ်များ အတန်း -->
+      <!-- ညာဘက် ခလုတ်များ -->
       <div class="header-actions-group" style="display: flex; align-items: center; gap: 6px;">
         <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ်">
           <i class="fas fa-volume-up" id="globalSoundIcon"></i>
@@ -6742,17 +6743,21 @@ function closeModal(id) {
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
 
-    // --- SINGLE CLEAN LUXURY PIN PAD SYSTEM ---
+  // --- SINGLE CLEAN LUXURY PIN PAD SYSTEM ---
   var adminClicks = 0;
   var adminTimer = null;
   var enteredAdminPin = "";
 
-  function openAdminPrompt() {
+  function openAdminPrompt(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     adminClicks++;
     clearTimeout(adminTimer);
     adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
     
-    // Logo ကို ၃ ချက်နှိပ်လျှင် Luxury PIN Pad သာ သီးသန့်ဖွင့်မည် (Browser Prompt မတက်စေပါ)
+    // Logo ကို ၃ ချက်နှိပ်လိုက်လျှင် Luxury PIN Pad ကို ချက်ချင်းဖွင့်မည်
     if (adminClicks >= 3) {
       adminClicks = 0;
       enteredAdminPin = "";
@@ -6760,6 +6765,15 @@ function closeModal(id) {
       openModal('customAdminPinModal');
     }
   }
+
+  // ဖုန်း Touch တွင် သေချာပေါက် အလုပ်လုပ်စေရန် Event Listener ချိတ်ဆက်ခြင်း
+  window.addEventListener('DOMContentLoaded', () => {
+    const triggerEl = document.getElementById('brandLogoTrigger');
+    if (triggerEl) {
+      triggerEl.addEventListener('click', openAdminPrompt);
+      triggerEl.addEventListener('touchend', openAdminPrompt);
+    }
+  });
 
   function pressPinDigit(digit) {
     if (enteredAdminPin.length < 4) {
@@ -6814,7 +6828,6 @@ function closeModal(id) {
 
     const validPin = cloudPin || localStorage.getItem('tm_admin_pin');
 
-    // 1234 မပါဘဲ Settings ထဲက သတ်မှတ်ထားသည့် PIN အသစ်နှင့်သာ အောင်မြင်မည်
     if (validPin && enteredAdminPin === validPin) {
       closeModal('customAdminPinModal');
       
