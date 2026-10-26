@@ -3322,10 +3322,18 @@ function scrollCategories(amount) {
               <input type="text" id="newStationNameInput" placeholder="ဥပမာ- ရွှေမန္တလာ (နေပြည်တော်ဂိတ်) သို့မဟုတ် MGL ရုံးခွဲ..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none;">
             </div>
 
-            <div>
-              <label style="font-size:10.5px; color:#10b981; display:block; margin-bottom:2px; font-weight:600;">၃။ 📞 ဆက်သွယ်ရန် ဖုန်းနံပါတ် *</label>
-              <input type="text" id="newStationPhoneInput" placeholder="ဥပမာ- 09420011223, 09970011223..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none;">
-            </div>
+            <!-- DYNAMIC PHONE NUMBERS SECTION -->
+<div style="background: rgba(16, 185, 129, 0.05); border: 1px dashed #10b981; border-radius: 8px; padding: 8px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+    <label style="font-size: 10.5px; color: #10b981; margin: 0; font-weight: 700;">
+      <i class="fas fa-phone-alt"></i> ၃။ ဆက်သွယ်ရန် ဖုန်းနံပါတ်များ *
+    </label>
+    <button type="button" onclick="addStationPhoneField()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+      <i class="fas fa-plus"></i> ဖုန်းနံပါတ် တိုးမည်
+    </button>
+  </div>
+  <div id="stationPhoneInputsContainer" style="display: flex; flex-direction: column; gap: 6px;"></div>
+</div>
 
             <div>
               <label style="font-size:10.5px; color:#38bdf8; display:block; margin-bottom:2px; font-weight:600;">၄။ 📍 ထုတ်ယူရမည့် လိပ်စာ / နေရာ *</label>
@@ -9389,10 +9397,53 @@ var adminLogoClicks = 0;
       }).join('');
     }
 
+    // --- DYNAMIC STATION PHONE NUMBERS MANAGEMENT ---
+var stationPhoneList = [''];
+
+function renderStationPhoneInputs() {
+  const container = document.getElementById('stationPhoneInputsContainer');
+  if (!container) return;
+  if (!stationPhoneList || stationPhoneList.length === 0) stationPhoneList = [''];
+
+  container.innerHTML = stationPhoneList.map((ph, idx) => `
+    <div style="display: flex; align-items: center; gap: 6px;">
+      <span style="font-size: 10.5px; color: #94a3b8; min-width: 14px;">#${idx + 1}</span>
+      <input 
+        type="tel" 
+        value="${(ph || '').replace(/"/g, '&quot;')}" 
+        placeholder="ဖုန်းနံပါတ် (ဥပမာ- 09xxxxxxxxx)..." 
+        oninput="stationPhoneList[${idx}] = this.value" 
+        style="flex: 1; padding: 7px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;"
+      >
+      ${stationPhoneList.length > 1 ? `
+        <button 
+          type="button" 
+          onclick="removeStationPhoneField(${idx})" 
+          style="width: 28px; height: 28px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
+          title="ဖျက်မည်"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function addStationPhoneField(val = '') {
+  stationPhoneList.push(val);
+  renderStationPhoneInputs();
+}
+
+function removeStationPhoneField(idx) {
+  if (stationPhoneList.length > 1) {
+    stationPhoneList.splice(idx, 1);
+    renderStationPhoneInputs();
+  }
+}
     function saveNewDeliveryStationFromAdmin() {
       const type = document.getElementById('newStationTypeSelect')?.value || 'bus';
       const name = document.getElementById('newStationNameInput')?.value.trim();
-      const phone = document.getElementById('newStationPhoneInput')?.value.trim();
+      const phone = stationPhoneList.map(p => p.trim()).filter(Boolean).join(', ');
       const address = document.getElementById('newStationAddressInput')?.value.trim();
 
       if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ဖြည့်သွင်းပါ');
@@ -9408,9 +9459,7 @@ var adminLogoClicks = 0;
       populateStationSelectOptions();
 
       if (document.getElementById('newStationNameInput')) document.getElementById('newStationNameInput').value = '';
-      if (document.getElementById('newStationPhoneInput')) document.getElementById('newStationPhoneInput').value = '';
-      if (document.getElementById('newStationAddressInput')) document.getElementById('newStationAddressInput').value = '';
-      alert(`[ ${name} ] ကို ဂိတ်/ရုံးခွဲ စာရင်းထဲ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!`);
+      stationPhoneList = ['']; renderStationPhoneInputs();
     }
 
     function deleteDeliveryStation(idx) {
