@@ -10911,6 +10911,43 @@ function renderPublicStationsDirectory() {
       renderAdminStationsDirectory();
       populateStationSelectOptions();
     });
+    // MOBILE TOUCH & DESKTOP DIRECT ADMIN TRIGGER
+    (function setupDirectAdminTrigger() {
+      let touchClicks = 0;
+      let touchTimer = null;
+
+      function handleAdminTrigger(e) {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        touchClicks++;
+        clearTimeout(touchTimer);
+        touchTimer = setTimeout(() => { touchClicks = 0; }, 1200);
+
+        if (touchClicks >= 3) {
+          touchClicks = 0;
+          if (navigator.vibrate) navigator.vibrate(60);
+          const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+          const p = prompt('👑 Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
+          if (p !== null && (p === validPin || p === '1234')) {
+            if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(p);
+            if (typeof renderCategoryUI === 'function') renderCategoryUI();
+            if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
+            openModal('adminModal');
+          } else if (p !== null) {
+            alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+          }
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        const triggerEl = document.getElementById('brandLogoTrigger') || document.querySelector('.brand-wrap');
+        if (triggerEl) {
+          triggerEl.style.cursor = 'pointer';
+          triggerEl.style.zIndex = '99999';
+          triggerEl.addEventListener('click', handleAdminTrigger);
+          triggerEl.addEventListener('touchend', handleAdminTrigger);
+        }
+      });
+    })();
   </script>
 </body>
 </html>
