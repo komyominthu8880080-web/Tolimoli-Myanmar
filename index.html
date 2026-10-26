@@ -7894,23 +7894,40 @@ function closeModal(id) {
       window.open(tgUrl, '_blank');
     }
 var adminLogoClicks = 0;
-    var adminLogoTimer = null;
-    function triggerAdminPinPad() {
-      adminLogoClicks++;
-      clearTimeout(adminLogoTimer);
-      adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1200);
-      if (adminLogoClicks >= 3) {
-        adminLogoClicks = 0;
-        openCustomPinModal();
+var adminLogoTimer = null;
+
+function triggerAdminPinPad() {
+  adminLogoClicks++;
+  clearTimeout(adminLogoTimer);
+  
+  adminLogoTimer = setTimeout(() => { 
+    adminLogoClicks = 0; 
+  }, 1500);
+
+  if (adminLogoClicks >= 3) {
+    adminLogoClicks = 0;
+    if (typeof openCustomPinModal === 'function') {
+      openCustomPinModal();
+    } else {
+      const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+      const p = prompt('Admin PIN နံပါတ် (၄ လုံး) ရိုက်ထည့်ပါ:');
+      if (p !== null && p === validPin) {
+        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(p);
+if (typeof openModal === 'function') openModal('adminModal');
+      } else if (p !== null) {
+        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
       }
     }
-    // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
-    var enteredPin = '';
-    function openCustomPinModal() {
-      enteredPin = '';
-      updatePinDisplayDots();
-      openModal('customAdminPinModal');
-    }
+  }
+}
+
+// 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
+var enteredPin = '';
+function openCustomPinModal() {
+  enteredPin = '';
+  if (typeof updatePinDisplayDots === 'function') updatePinDisplayDots();
+  if (typeof openModal === 'function') openModal('customAdminPinModal');
+}
 
     function pressPinDigit(digit) {
       if (enteredPin.length < 4) {
@@ -10557,7 +10574,7 @@ addFocGiftItem = function() {
         renderStationPhoneInputs();
       }
     });
-    
+
     // --- ADMIN PIN PAD TRIGGER FIX ---
 var adminLogoClicks = 0;
 var adminLogoTimer = null;
