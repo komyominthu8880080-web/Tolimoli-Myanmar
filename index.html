@@ -1803,7 +1803,7 @@ body.modal-open .floating-action-container {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="openCustomPinModal()" title="Admin ဝင်ရန် နှိပ်ပါ" style="position: relative; z-index: 999999 !important; cursor: pointer; pointer-events: auto !important;">
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="triggerAdminPinPad()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -1812,11 +1812,6 @@ body.modal-open .floating-action-container {
       </div>
 
       <div class="header-actions-group">
-
-        <!-- DIRECT ADMIN LOGIN KEY -->
-        <button type="button" class="btn-sound-toggle" onclick="openCustomPinModal()" title="Admin PIN Pad" style="border-color: var(--gold); color: var(--gold); z-index: 999999 !important; cursor: pointer;">
-          <i class="fas fa-key"></i>
-        </button>
         <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ် (Mute/Unmute Notifications)">
           <i class="fas fa-volume-up" id="globalSoundIcon"></i>
         </button>
@@ -3340,32 +3335,34 @@ function scrollCategories(amount) {
   <div id="stationPhoneInputsContainer" style="display: flex; flex-direction: column; gap: 6px;"></div>
 </div>
 
-      <div>
+            <div>
               <label style="font-size:10.5px; color:#38bdf8; display:block; margin-bottom:2px; font-weight:600;">၄။ 📍 ထုတ်ယူရမည့် လိပ်စာ / နေရာ *</label>
               <textarea id="newStationAddressInput" rows="2" placeholder="ဥပမာ- တောင်ကြီး မြို့မကားကြီးဝင်း၊ အမှတ် ၂၀ ဂိတ်..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none; line-height:1.4;"></textarea>
             </div>
 
             <div style="display: flex; gap: 6px; margin-top: 2px;">
-              <button type="button" id="btnSaveStationSubmit" class="btn-gold" onclick="saveNewDeliveryStationFromAdmin()" style="flex: 2; padding: 9px; font-size: 12px;">
-                <i class="fas fa-save"></i> ဂိတ် / ရုံးခွဲ စာရင်း သိမ်းဆည်းမည်
-              </button>
-              <button type="button" id="btnCancelStationEdit" class="btn-secondary" onclick="cancelStationEdit()" style="flex: 1; display: none; background: #64748b; color: #fff; font-size: 11px;">
-                မပြင်တော့ပါ
-              </button>
-
-          <!-- ကားဂိတ်နှင့် ရုံးခွဲများ ရှာဖွေရေးဘား -->
-          <div style="margin: 8px 0 4px 0;">
-            <input 
-              type="text" 
-              id="adminStationSearchInput" 
-              placeholder="🔍 ရုံးခွဲ / ဂိတ်အမည် / မြို့နယ် / ဖုန်းနံပါတ် ဖြင့် ရှာပါ..." 
-              oninput="renderAdminStationsDirectory()" 
-              style="width: 100%; padding: 7px 10px; background: #0f172a; border: 1px solid #0284c7; color: #fff; border-radius: 6px; font-size: 11px; outline: none;"
-            >
+            <button type="button" id="btnSaveStationSubmit" class="btn-gold" onclick="saveNewDeliveryStationFromAdmin()" style="flex: 2; padding: 9px; font-size: 12px;">
+              <i class="fas fa-save"></i> ဂိတ် / ရုံးခွဲ စာရင်း သိမ်းဆည်းမည်
+            </button>
+            <button type="button" id="btnCancelStationEdit" class="btn-secondary" onclick="cancelStationEdit()" style="flex: 1; display: none; background: #64748b; color: #fff; font-size: 11px;">
+              မပြင်တော့ပါ
+            </button>
           </div>
+        </div>
 
-          <!-- Existing Stations Directory List -->
-          <div id="adminStationsDirectoryListContainer" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+        <!-- ကားဂိတ်နှင့် ရုံးခွဲများ ရှာဖွေရေးဘား -->
+        <div style="margin: 8px 0 4px 0;">
+          <input 
+            type="text" 
+            id="adminStationSearchInput" 
+            placeholder="🔍 ရုံးခွဲ / ဂိတ်အမည် / မြို့နယ် / ဖုန်းနံပါတ် ဖြင့် ရှာပါ..." 
+            oninput="renderAdminStationsDirectory()" 
+            style="width: 100%; padding: 7px 10px; background: #0f172a; border: 1px solid #0284c7; color: #fff; border-radius: 6px; font-size: 11px; outline: none;"
+          >
+        </div>
+
+        <!-- Existing Stations Directory List -->
+        <div id="adminStationsDirectoryListContainer" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
         <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
           <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
           <div class="form-group" style="margin-top:6px;">
@@ -3413,7 +3410,7 @@ function scrollCategories(amount) {
 
   
   <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
-  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 2147483647 !important; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);"></div>
+  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 10009;">
     <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
       <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
       <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
@@ -7909,15 +7906,10 @@ var adminLogoClicks = 0;
     // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
     var enteredPin = '';
     function openCustomPinModal() {
-  enteredPin = '';
-  updatePinDisplayDots();
-  const m = document.getElementById('customAdminPinModal');
-  if (m) {
-    m.classList.add('active');
-    m.style.setProperty('display', 'flex', 'important');
-    m.style.setProperty('z-index', '2147483647', 'important');
-  }
-}
+      enteredPin = '';
+      updatePinDisplayDots();
+      openModal('customAdminPinModal');
+    }
 
     function pressPinDigit(digit) {
       if (enteredPin.length < 4) {
@@ -10647,11 +10639,7 @@ function quickAddToCart(productId, event) {
 <script>
 function openPublicDeliveryModal() {
   const modal = document.getElementById('publicDeliveryModal');
-  if (modal) {
-    modal.classList.add('active');
-    modal.style.setProperty('display', 'flex', 'important');
-    modal.style.setProperty('z-index', '2147483647', 'important');
-  }
+  if (modal) modal.style.display = 'flex';
   const searchInput = document.getElementById('publicDeliSearch');
   if (searchInput) searchInput.value = '';
   renderPublicDeliveryList(typeof deliveryStations !== 'undefined' ? deliveryStations : []);
