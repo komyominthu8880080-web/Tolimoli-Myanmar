@@ -3408,15 +3408,15 @@ function scrollCategories(amount) {
     </div>
   </div>
 
-  <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
+  <!-- LUXURY ADMIN PIN PAD MODAL -->
   <div class="modal-overlay" id="customAdminPinModal" style="z-index: 2147483647 !important;">
-    <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
+    <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px; background:#18132d; border:1px solid var(--gold); border-radius:16px;">
       <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
       <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
       <h3 style="color:var(--gold); font-size:1.05rem; margin-bottom:2px;">Admin Management</h3>
       <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:6px;">လုံခြုံရေး PIN နံပါတ် ၄ လုံး ရိုက်ထည့်ပါ</p>
       
-      <div class="pin-circle-display">
+      <div class="pin-circle-display" style="display:flex; justify-content:center; gap:12px; margin:14px 0 18px;">
         <div class="pin-circle-item" id="pDot_0"></div>
         <div class="pin-circle-item" id="pDot_1"></div>
         <div class="pin-circle-item" id="pDot_2"></div>
@@ -6655,26 +6655,30 @@ orders = deduplicateOrders(raw);
       document.getElementById('cfgNewPin').value = '';
     }
 
-    function openModal(id) {
+   function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
     m.classList.add('active');
     m.style.display = 'flex';
-    m.style.zIndex = '2147483647';
+    m.style.setProperty('display', 'flex', 'important');
+    m.style.setProperty('z-index', '2147483647', 'important');
   }
   document.body.classList.add('modal-open');
 
-  const topHeader = document.querySelector('header');
-  if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
+  // PIN Pad ပွင့်ချိန် Header ကို မဖျောက်ဘဲ အခြား Modal များ ပွင့်ချိန်မှသာ ဖျောက်ပေးခြင်း
+  if (id !== 'customAdminPinModal') {
+    const topHeader = document.querySelector('header');
+    if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
 
-  const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
-  if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
+    const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
+    if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
 
-  const bottomBar = document.querySelector('.mobile-bottom-bar');
-  if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+    const bottomBar = document.querySelector('.mobile-bottom-bar');
+    if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
 
-  const socialTier = document.querySelector('.fixed-social-call-tier');
-  if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
+    const socialTier = document.querySelector('.fixed-social-call-tier');
+    if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
+  }
 
   const floatContainer = document.querySelector('.floating-action-container');
   if (floatContainer) floatContainer.style.setProperty('display', 'none', 'important');
