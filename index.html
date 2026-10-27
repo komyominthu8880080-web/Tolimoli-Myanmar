@@ -3348,7 +3348,6 @@ function scrollCategories(amount) {
     မပြင်တော့ပါ
   </button>
 </div>
-</div>
 
 <!-- ကားဂိတ်နှင့် ရုံးခွဲများ ရှာဖွေရေးဘား -->
 <div style="margin: 8px 0 4px 0;">
@@ -9386,6 +9385,41 @@ function closeModal(id) {
       if (Array.isArray(sStations) && sStations.length > 0) deliveryStations = sStations;
     } catch(e) {}
 
+    // --- DYNAMIC PHONE NUMBERS STATE & HELPER (REQUIRED) ---
+var stationPhoneList = [''];
+
+function renderStationPhoneInputs() {
+  const container = document.getElementById('stationPhoneInputsContainer');
+  if (!container) return;
+  if (!stationPhoneList || stationPhoneList.length === 0) stationPhoneList = [''];
+
+  container.innerHTML = stationPhoneList.map((ph, idx) => `
+    <div style="display: flex; gap: 6px; align-items: center;">
+      <input type="text" value="${(ph || '').replace(/"/g, '&quot;')}" 
+             placeholder="09xxxxxxxxx" 
+             oninput="stationPhoneList[${idx}] = this.value;"
+             style="flex: 1; padding: 6px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;">
+      ${stationPhoneList.length > 1 ? `
+        <button type="button" onclick="removeStationPhoneField(${idx})" 
+                style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+      ` : ''}
+    </div>
+  `).join('');
+}
+
+function addStationPhoneField() {
+  stationPhoneList.push('');
+  renderStationPhoneInputs();
+}
+
+function removeStationPhoneField(idx) {
+  if (stationPhoneList.length > 1) {
+    stationPhoneList.splice(idx, 1);
+    renderStationPhoneInputs();
+  }
+}
     var editingStationIdx = null;
 
 function renderAdminStationsDirectory() {
