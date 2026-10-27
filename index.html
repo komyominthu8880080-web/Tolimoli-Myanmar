@@ -1803,7 +1803,7 @@ body.modal-open .floating-action-container {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="openCustomPinModal()" title="Admin ဝင်ရန် နှိပ်ပါ">
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="openCustomPinModal()" title="Admin ဝင်ရန် နှိပ်ပါ" style="position: relative; z-index: 999999 !important; cursor: pointer; pointer-events: auto !important;">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -1812,6 +1812,11 @@ body.modal-open .floating-action-container {
       </div>
 
       <div class="header-actions-group">
+        
+        <!-- DIRECT ADMIN LOGIN KEY -->
+        <button type="button" class="btn-sound-toggle" onclick="openCustomPinModal()" title="Admin PIN Pad" style="border-color: var(--gold); color: var(--gold); z-index: 999999 !important; cursor: pointer;">
+          <i class="fas fa-key"></i>
+        </button>
         <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ် (Mute/Unmute Notifications)">
           <i class="fas fa-volume-up" id="globalSoundIcon"></i>
         </button>
