@@ -3409,9 +3409,8 @@ function scrollCategories(amount) {
     </div>
   </div>
 
-  
   <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
-  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 10009;">
+  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 2147483647 !important;">
     <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
       <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
       <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
@@ -7887,8 +7886,10 @@ function closeModal(id) {
       const tgUrl = `https://t.me/tolimolimyanmarchannel`;
       window.open(tgUrl, '_blank');
     }
-var adminLogoClicks = 0;
+    // --- ADMIN LOGO 3-CLICKS & LUXURY PIN PAD SYSTEM ---
+    var adminLogoClicks = 0;
     var adminLogoTimer = null;
+
     function triggerAdminPinPad() {
       adminLogoClicks++;
       clearTimeout(adminLogoTimer);
@@ -7898,8 +7899,9 @@ var adminLogoClicks = 0;
         openCustomPinModal();
       }
     }
-    // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
+
     var enteredPin = '';
+
     function openCustomPinModal() {
       enteredPin = '';
       updatePinDisplayDots();
@@ -7911,7 +7913,7 @@ var adminLogoClicks = 0;
         enteredPin += digit;
         updatePinDisplayDots();
         if (enteredPin.length === 4) {
-          setTimeout(verifyCustomPinInput, 150);
+          setTimeout(verifyCustomPinInput, 200);
         }
       }
     }
@@ -7932,8 +7934,11 @@ var adminLogoClicks = 0;
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById(`pDot_${i}`);
         if (dot) {
-          if (i < enteredPin.length) dot.classList.add('active');
-          else dot.classList.remove('active');
+          if (i < enteredPin.length) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
         }
       }
     }
@@ -7955,35 +7960,39 @@ var adminLogoClicks = 0;
       if (!validPin) validPin = '1234';
 
       if (enteredPin === validPin) {
-        // Firebase Cloud မှ Discounts နှင့် FOC ဒေတာများ တိုက်ရိုက်ဆွဲယူခြင်း
-        fetchCloudDiscountsAndFoc();
         closeModal('customAdminPinModal');
-        fetchAdminOrdersWithPin(enteredPin);
-        renderCategoryUI();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-        renderAdminImageInputs();
-        renderAdminProducts();
-        renderStockTable();
-        renderAdminOrders();
-        renderAdminCustomers();
-        renderAnalytics();
-        renderDiscountsList();
-        renderAdminFlashSales();
-        renderAdminNewsList();
-        renderAdminMysteryBoxes();
-        renderAdminCommunityPosts();
-        loadCentralSettings();
-        renderAdminDeliverySettings();
-        checkAndRenderExpiryAlerts();
-        renderAdminDiscountReasonChips();
-        renderAdminChatSessionsList();
-        renderAdminBotConfigUI();
-        renderAdminStationTypesUI();
-      renderAdminStationsDirectory();
+        clearPinDigits();
+
+        // Admin Dashboard အတွက် လိုအပ်သော Data များကို ဆွဲယူပြသခြင်း
+        if (typeof fetchCloudDiscountsAndFoc === 'function') fetchCloudDiscountsAndFoc();
+        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(validPin);
+        if (typeof renderCategoryUI === 'function') renderCategoryUI();
+        if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+        if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
+        if (typeof renderAdminImageInputs === 'function') renderAdminImageInputs();
+        if (typeof renderAdminProducts === 'function') renderAdminProducts();
+        if (typeof renderStockTable === 'function') renderStockTable();
+        if (typeof renderAdminOrders === 'function') renderAdminOrders();
+        if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+        if (typeof renderAnalytics === 'function') renderAnalytics();
+        if (typeof renderDiscountsList === 'function') renderDiscountsList();
+        if (typeof renderAdminFlashSales === 'function') renderAdminFlashSales();
+        if (typeof renderAdminNewsList === 'function') renderAdminNewsList();
+        if (typeof renderAdminMysteryBoxes === 'function') renderAdminMysteryBoxes();
+        if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts();
+        if (typeof loadCentralSettings === 'function') loadCentralSettings();
+        if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+        if (typeof checkAndRenderExpiryAlerts === 'function') checkAndRenderExpiryAlerts();
+        if (typeof renderAdminDiscountReasonChips === 'function') renderAdminDiscountReasonChips();
+        if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
+        if (typeof renderAdminBotConfigUI === 'function') renderAdminBotConfigUI();
+        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
+        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
+
+        // Admin Dashboard Modal ကို အပေါ်ဆုံးသို့ ဆွဲတင်ပြသခြင်း
         openModal('adminModal');
       } else {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+        alert('PIN နံပါတ် မှားယွင်းနေပါသည်! (Default PIN: 1234)');
         clearPinDigits();
       }
     }
