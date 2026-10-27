@@ -1803,7 +1803,7 @@ body.modal-open .floating-action-container {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ" style="cursor: pointer; z-index: 99999; position: relative;"></div>
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="triggerAdminPinPad()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -2392,34 +2392,6 @@ function scrollCategories(amount) {
           <button type="button" class="btn-secondary" onclick="confirmTrackOtp()" style="background:#10b981; color:#fff; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">အတည်ပြု</button>
         </div>
       </div>
-
-      <!-- PUBLIC DELIVERY STATIONS DIRECTORY MODAL FOR CUSTOMERS -->
-  <div class="modal-overlay" id="publicDeliveryModal" style="z-index: 10008;">
-    <div class="modal-content" style="max-width: 440px; max-height: 85vh; padding: 16px;">
-      <button class="modal-close" onclick="closeModal('publicDeliveryModal')"><i class="fas fa-times"></i></button>
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-        <i class="fas fa-truck-moving" style="color:#ef4444; font-size:1.2rem;"></i>
-        <h3 style="color:#fff; font-size:1.05rem; margin:0;">Deli & ကားဂိတ် ရုံးခွဲများ စာရင်း</h3>
-      </div>
-      <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">
-        လူကြီးမင်းတို့ ပစ္စည်းထုတ်ယူနိုင်မည့် သက်ဆိုင်ရာ ကားဂိတ်များနှင့် Deli ရုံးခွဲ လိပ်စာ/ဖုန်းနံပါတ်များ ဖြစ်ပါသည်ခင်ဗျာ။
-      </p>
-
-      <!-- Customer Search Bar -->
-      <div style="margin-bottom: 8px;">
-        <input 
-          type="text" 
-          id="publicStationSearchInput" 
-          placeholder="🔍 မြို့နယ် / ဂိတ်အမည် / ဖုန်းနံပါတ် ဖြင့် ရှာပါ..." 
-          oninput="renderPublicStationsDirectory()" 
-          style="width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #ef4444; color: #fff; border-radius: 8px; font-size: 11.5px; outline: none; box-sizing: border-box;"
-        >
-      </div>
-
-      <!-- Stations List for Customers -->
-      <div id="publicStationsDirectoryList" style="max-height: 55vh; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
-    </div>
-  </div>
 
   <!-- 6. CUSTOMER HISTORY MODAL -->
   <div class="modal-overlay" id="custHistoryModal" style="z-index: 999999;">
@@ -6742,34 +6714,32 @@ function closeModal(id) {
 }
 
     var adminClicks = 0; var adminTimer = null;
-  function openAdminPrompt() {
-    adminClicks++;
-    clearTimeout(adminTimer);
-    adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
-    if (adminClicks >= 3) {
-      adminClicks = 0;
-      const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-      const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
-      if (p !== null && (p === validPin || p === '1234')) {
-        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(p);
-        if (typeof renderCategoryUI === 'function') renderCategoryUI();
-        if (typeof syncSearchCategoryDropdown === 'function') syncSearchCategoryDropdown();
-        if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
-        if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
-        if (typeof renderAdminOrders === 'function') renderAdminOrders();
-        if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-        if (typeof renderAnalytics === 'function') renderAnalytics();
-        if (typeof renderDiscountsList === 'function') renderDiscountsList();
-        if (typeof loadCentralSettings === 'function') loadCentralSettings();
-        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
-        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
-        if (typeof populateStationSelectOptions === 'function') populateStationSelectOptions();
-        openModal('adminModal');
-      } else if (p !== null) {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+    function openAdminPrompt() {
+      adminClicks++;
+      clearTimeout(adminTimer);
+      adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
+      if (adminClicks >= 3) {
+        adminClicks = 0;
+        const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+        const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
+        if (p !== null && p === validPin) {
+        fetchAdminOrdersWithPin(p);
+        renderCategoryUI();
+        syncSearchCategoryDropdown();
+        renderAdminCategoryChips();
+        renderAdminColorInputs();
+          renderAdminOrders();
+          renderAdminCustomers();
+          renderAnalytics();
+          renderDiscountsList();
+          loadCentralSettings();
+          renderAdminDeliverySettings();
+          openModal('adminModal');
+        } else if (p !== null) {
+          alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+        }
       }
     }
-  }
 
     function switchAdminTab(tId, btn) {
       document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
@@ -7887,18 +7857,12 @@ function closeModal(id) {
       if (!lastSubmittedOrder) return;
       const o = lastSubmittedOrder;
       const txt = `🛍 TOLIMOLI MYANMAR ORDER
-` +
-        `အော်ဒါအမှတ်: ${o.id}
-` +
-        `ဝယ်သူအမည်: ${o.customer}
-` +
-        `ဖုန်းနံပါတ်: ${o.phone}
-` +
-        `လိပ်စာ: ${o.address} (${o.township})
-` +
-        `ကျသင့်ငွေ: ${Number(o.total).toLocaleString()} MMK (${o.payment})
-` +
-        `ပစ္စည်းများ: ${(o.items||[]).map(i => i.name + ' x' + i.qty).join(', ')}`;
+အော်ဒါအမှတ်: ${o.id}
+ဝယ်သူအမည်: ${o.customer}
+ဖုန်းနံပါတ်: ${o.phone}
+လိပ်စာ: ${o.address} (${o.township})
+ကျသင့်ငွေ: ${Number(o.total).toLocaleString()} MMK (${o.payment})
+ပစ္စည်းများ: ${(o.items||[]).map(i => i.name + ' x' + i.qty).join(', ')}`;
       
       copyTextToClipboard(txt, 'အော်ဒါအချက်အလက်အားလုံး ကူးယူပြီးပါပြီ!');
     }
@@ -10307,610 +10271,392 @@ addFocGiftItem = function() {
 
     // သီးသန့်လက်ဆောင် (Custom Gift With Photo) တင်ခြင်း
     async function addCustomManualFocGiftWithMedia() {
-      const name = (document.getElementById('customFocGiftName')?.value || '').trim();
+      const name = document.getElementById('customFocGiftName')?.value.trim();
       const tier = Number(document.getElementById('customFocGiftTier')?.value) || 1;
-      const urlInput = (document.getElementById('customFocGiftUrl')?.value || '').trim();
       const file = document.getElementById('customFocGiftFile')?.files[0];
+      const directUrl = document.getElementById('customFocGiftUrl')?.value.trim();
       const btn = document.getElementById('btnAddCustomFocGift');
 
-      if (!name) return alert('ကျေးဇူးပြု၍ လက်ဆောင်အမည် ရိုက်ထည့်ပါခင်ဗျာ');
+      if (!name) return alert('လက်ဆောင်ပစ္စည်းအမည် ရိုက်ထည့်ပေးပါခင်ဗျာ');
 
-      if (btn) { btn.disabled = true; btn.innerText = 'ပုံတင်နေပါသည်...'; }
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ပုံတင်နေပါသည်...';
 
-      let finalImg = urlInput || 'logo.png';
+      let finalImg = directUrl || 'logo.png';
       if (file) {
-        try {
-          const up = await uploadToImgBB(file);
-          if (up) finalImg = up;
-        } catch(e) {
-          console.warn('Gift image upload note:', e);
-        }
+        const up = await uploadToImgBB(file);
+        if (up) finalImg = up;
       }
 
       if (!Array.isArray(focConfig.selectedGifts)) focConfig.selectedGifts = [];
       focConfig.selectedGifts.push({
         id: 'gift_' + Date.now(),
         name: name,
-        sku: 'GIFT-' + Math.floor(100 + Math.random()*900),
         image: finalImg,
-        price: 0,
         tier: tier,
+        price: 0,
         isManualGift: true
       });
 
       renderFocSelectedGiftChips();
-      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-gift"></i> သီးသန့်လက်ဆောင်ပစ္စည်း ထည့်သွင်းမည်'; }
-      document.getElementById('customFocGiftName').value = '';
-      document.getElementById('customFocGiftUrl').value = '';
-      if (document.getElementById('customFocGiftFile')) document.getElementById('customFocGiftFile').value = '';
-
-      localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('foc_campaign_settings').set(focConfig).catch(err => console.warn(err));
-      }
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-gift"></i> သီးသန့်လက်ဆောင်ပစ္စည်း ထည့်သွင်းမည်';
+      alert(`[ ${name} ] ကို လက်ဆောင်စာရင်းထဲ ထည့်သွင်းပြီးပါပြီ! သိမ်းဆည်းရန် "FOC အချက်အလက်များ သိမ်းဆည်းမည် (Cloud Sync)" ကို နှိပ်ပေးပါခင်ဗျာ။`);
     }
 
-    function renderFocSelectedGiftChips() {
+    // လက်ဆောင် Chips ကတ်ပြားများ ပြသခြင်း
+    renderFocSelectedGiftChips = function() {
       const box = document.getElementById('cfgFocSelectedItemsContainer');
       if (!box) return;
-      if (!focConfig.selectedGifts || focConfig.selectedGifts.length === 0) {
-        box.innerHTML = '<div style="color:var(--text-muted); font-size:11px; text-align:center; padding:6px;">လက်ဆောင်ပစ္စည်း မရွေးရသေးပါ</div>';
+      if (!Array.isArray(focConfig.selectedGifts) || focConfig.selectedGifts.length === 0) {
+        box.innerHTML = '<span style="color:#64748b; font-size:0.75rem;">လက်ဆောင်ပစ္စည်း မရွေးရသေးပါ</span>';
         return;
       }
       box.innerHTML = focConfig.selectedGifts.map((g, idx) => `
-        <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.04); border:1px solid #334155; border-radius:6px; padding:4px 8px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.04); border:1px solid var(--gold); border-radius:6px; padding:6px 10px; margin-bottom:4px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${g.image || 'logo.png'}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;">
+            <img src="${g.image || 'logo.png'}" style="width:36px; height:36px; border-radius:4px; object-fit:cover;">
             <div>
-              <b style="color:#fff; font-size:11.5px;">${g.name}</b>
-              <span style="font-size:9.5px; color:#fde047; margin-left:6px;">(အဆင့် ${g.tier || 1})</span>
+              <b style="font-size:0.78rem; color:#fff;">🎁 ${g.name}</b>
+              <span style="font-size:0.68rem; color:#38bdf8; display:block;">Tier ${g.tier || 1} • ${g.isManualGift ? 'သီးသန့်လက်ဆောင်' : 'ဆိုင်တွင်းပစ္စည်း'}</span>
             </div>
           </div>
-          <button type="button" class="btn-row-del" onclick="removeFocGiftItem(${idx})" style="width:22px; height:22px; font-size:10px;">
-            <i class="fas fa-times"></i>
-          </button>
+          <button type="button" onclick="focConfig.selectedGifts.splice(${idx},1); renderFocSelectedGiftChips();" class="btn-row-del" style="background:#ef4444; border:none; color:#fff; border-radius:4px; padding:4px 8px; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
         </div>
       `).join('');
-    }
+    };
 
-    function removeFocGiftItem(idx) {
-      if (!Array.isArray(focConfig.selectedGifts)) return;
-      focConfig.selectedGifts.splice(idx, 1);
-      renderFocSelectedGiftChips();
-      localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('foc_campaign_settings').set(focConfig).catch(err => console.warn(err));
-      }
-    }
-
-    function toggleFocCampaignState(state) {
+    window.toggleFocCampaignState = function(state) {
       focConfig.enabled = state;
-      const lbl = document.getElementById('cfgFocStatusLabel');
-      if (lbl) {
-        lbl.textContent = state ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
-        lbl.style.color = state ? '#10b981' : '#ef4444';
+      const statusLabel = document.getElementById('cfgFocStatusLabel');
+      if (statusLabel) {
+        statusLabel.innerText = state ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+        statusLabel.style.color = state ? '#10b981' : '#ef4444';
       }
-    }
+    };
 
-    function saveFocCampaignSettings() {
-      focConfig.enabled = !!document.getElementById('cfgFocEnabled')?.checked;
-      focConfig.mode = document.getElementById('cfgFocMode')?.value || 'auto';
-      focConfig.minAmount = Number(document.getElementById('cfgFocMinAmount')?.value) || 0;
-      focConfig.tier2Amount = Number(document.getElementById('cfgFocTier2Amount')?.value) || 0;
-      focConfig.title = (document.getElementById('cfgFocTitle')?.value || '').trim() || 'အထူးလက်ဆောင်';
+    // Firebase Cloud သို့ အပြီးတိုင် သိမ်းဆည်းခြင်း
+saveFocCampaignSettings = function() {
+  if (typeof fbDb === 'undefined') return alert('Firebase ချိတ်ဆက်မထားပါ');
 
-      localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('foc_campaign_settings').set(focConfig).then(() => {
-          alert('FOC Settings များကို Cloud သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!');
-        }).catch(e => alert('သိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်ခဲ့ပါသည်: ' + e.message));
-      } else {
-        alert('FOC Settings သိမ်းဆည်းပြီးပါပြီ!');
-      }
-    }
-
-    function renderCheckoutFocSection() {
-      const container = document.getElementById('checkoutFocContainer');
-      if (!container) return;
-      if (!focConfig.enabled || !focConfig.selectedGifts || focConfig.selectedGifts.length === 0) {
-        container.innerHTML = '';
-        currentCustomerSelectedFocGift = null;
-        return;
-      }
-
-      const subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-      const min1 = Number(focConfig.minAmount) || 0;
-      const min2 = Number(focConfig.tier2Amount) || 0;
-
-      if (subTotal < min1) {
-        container.innerHTML = `
-          <div style="background:rgba(212,175,55,0.06); border:1px dashed var(--gold); border-radius:8px; padding:8px; margin:6px 0; font-size:11px; text-align:center;">
-            🎁 နောက်ထပ် <b>${(min1 - subTotal).toLocaleString()} Ks</b> ဖိုး ထပ်ဝယ်ပါက <b>${focConfig.title}</b> ရရှိပါမည်!
-          </div>
-        `;
-        currentCustomerSelectedFocGift = null;
-        return;
-      }
-
-      let availableGifts = focConfig.selectedGifts;
-      if (min2 > 0 && subTotal >= min2) {
-        availableGifts = focConfig.selectedGifts;
-      } else {
-        availableGifts = focConfig.selectedGifts.filter(g => (g.tier || 1) === 1);
-      }
-
-      if (focConfig.mode === 'auto') {
-        currentCustomerSelectedFocGift = availableGifts[0] || null;
-        if (currentCustomerSelectedFocGift) {
-          container.innerHTML = `
-            <div style="background:rgba(16,185,129,0.1); border:1px solid #10b981; border-radius:8px; padding:8px; margin:6px 0; display:flex; align-items:center; gap:8px;">
-              <img src="${currentCustomerSelectedFocGift.image}" style="width:36px; height:36px; border-radius:6px; object-fit:cover;">
-              <div>
-                <span style="background:#10b981; color:#fff; font-size:9px; padding:1px 5px; border-radius:4px; font-weight:bold;">FREE GIFT</span>
-                <div style="font-size:11.5px; color:#fff; font-weight:600; margin-top:2px;">${currentCustomerSelectedFocGift.name}</div>
-              </div>
-            </div>
-          `;
-        }
-      } else {
-        container.innerHTML = `
-          <div style="background:rgba(212,175,55,0.08); border:1px solid var(--gold); border-radius:8px; padding:8px; margin:6px 0;">
-            <span style="color:var(--gold); font-size:11px; font-weight:bold;"><i class="fas fa-gift"></i> အထူးလက်ဆောင် ရွေးချယ်ပါ -</span>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
-              ${availableGifts.map((g, i) => `
-                <div onclick="selectCustomerFocGift(${i})" style="cursor:pointer; border:1px solid ${currentCustomerSelectedFocGift?.id === g.id ? '#10b981' : '#334155'}; background:${currentCustomerSelectedFocGift?.id === g.id ? 'rgba(16,185,129,0.2)' : 'rgba(0,0,0,0.3)'}; border-radius:6px; padding:6px; text-align:center;">
-                  <img src="${g.image}" style="width:40px; height:40px; border-radius:4px; object-fit:cover; margin:0 auto 4px;">
-                  <div style="font-size:10px; color:#fff; font-weight:600;">${g.name}</div>
-                </div>
-              `).join('')}
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    function selectCustomerFocGift(idx) {
-      if (focConfig.selectedGifts && focConfig.selectedGifts[idx]) {
-        currentCustomerSelectedFocGift = focConfig.selectedGifts[idx];
-        renderCheckoutFocSection();
-      }
-    }
-
-    // --- CATEGORY UI RENDERER & SHEET POPUP ---
-    function renderCategoryUI() {
-      const container = document.getElementById('categoryContainer');
-      if (!container) return;
-      let html = `<button type="button" class="cat-pill-btn ${selectedCategory === 'All' ? 'active' : ''}" onclick="selectCategory('All')">အားလုံး</button>`;
-      categories.forEach(cat => {
-        html += `<button type="button" class="cat-pill-btn ${selectedCategory === cat ? 'active' : ''}" onclick="selectCategory('${cat}')">${cat}</button>`;
-      });
-      container.innerHTML = html;
-      syncSearchCategoryDropdown();
-    }
-
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      renderCategoryUI();
-      renderCatalog();
-    }
-
-    function openCategorySheet() {
-      const m = document.getElementById('categorySheetModal');
-      if (m) m.classList.add('active');
-    }
-
-    function closeCategorySheet() {
-      const m = document.getElementById('categorySheetModal');
-      if (m) m.classList.remove('active');
-    }
-
-    function syncSearchCategoryDropdown() {
-      const sel = document.getElementById('adminProductCategoryFilterSelect');
-      if (!sel) return;
-      sel.innerHTML = '<option value="All">📂 အမျိုးအစား အားလုံး</option>' + 
-        categories.map(c => `<option value="${c}">${c}</option>`).join('');
-    }
-
-    // --- DYNAMIC STATIONS / GATES MANAGEMENT & EDIT/SEARCH LOGIC ---
-    var defaultDeliveryStations = [
-      { id: 'st_1', type: 'bus', name: 'မန္တလာမင်း (မန္တလေးဂိတ်)', phone: '09420011223, 09970011223', address: 'မန္တလေး ကျွဲဆည်ကန် ကားကြီးဝင်း၊ အမှတ် (၃၅) ဂိတ်' },
-      { id: 'st_2', type: 'royal', name: 'Royal Express ရုံးခွဲ (မန္တလေး)', phone: '09777123456', address: '၇၈ လမ်း၊ ၃၁ x ၃၂ ကြား၊ မန္တလေးမြို့' }
-    ];
-    var deliveryStations = defaultDeliveryStations;
-    try {
-      const sStations = JSON.parse(localStorage.getItem('tm_delivery_stations'));
-      if (Array.isArray(sStations) && sStations.length > 0) deliveryStations = sStations;
-    } catch(e) {}
-
-    var stationTypesList = [
-      { id: 'bus', title: 'အဝေးပြေးကားဂိတ်', prefix: 'ဂိတ်' },
-      { id: 'royal', title: 'Royal Express ရုံးခွဲ', prefix: 'Royal' },
-      { id: 'deli', title: 'အခြား Deli ရုံးခွဲ', prefix: 'Deli' }
-    ];
-
-    var stationPhoneList = [''];
-    var editingStationIdx = null;
-
-    function renderStationPhoneInputs() {
-      const container = document.getElementById('stationPhoneInputsContainer');
-      if (!container) return;
-      if (!stationPhoneList || stationPhoneList.length === 0) stationPhoneList = [''];
-
-      container.innerHTML = stationPhoneList.map((ph, idx) => `
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 10.5px; color: #94a3b8; min-width: 14px;">#${idx + 1}</span>
-          <input 
-            type="tel" 
-            value="${(ph || '').replace(/"/g, '&quot;')}" 
-            placeholder="ဖုန်းနံပါတ် (ဥပမာ- 09xxxxxxxxx)..." 
-            oninput="stationPhoneList[${idx}] = this.value" 
-            style="flex: 1; padding: 7px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;"
-          >
-          ${stationPhoneList.length > 1 ? `
-            <button 
-              type="button" 
-              onclick="removeStationPhoneField(${idx})" 
-              style="width: 28px; height: 28px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"
-              title="ဖျက်မည်"
-            >
-              <i class="fas fa-times"></i>
-            </button>
-          ` : ''}
-        </div>
-      `).join('');
-    }
-
-    function addStationPhoneField(val = '') {
-      stationPhoneList.push(val);
-      renderStationPhoneInputs();
-    }
-
-    function removeStationPhoneField(idx) {
-      if (stationPhoneList.length > 1) {
-        stationPhoneList.splice(idx, 1);
-        renderStationPhoneInputs();
-      }
-    }
-
-    function renderAdminStationsDirectory() {
-      const container = document.getElementById('adminStationsDirectoryListContainer');
-      if (!container) return;
-
-      const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
-
-      if (!Array.isArray(deliveryStations) || deliveryStations.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:8px;">ဂိတ် / ရုံးခွဲ စာရင်း မရှိသေးပါ</p>';
-        return;
-      }
-
-      const filtered = deliveryStations.map((st, idx) => ({ ...st, originalIdx: idx })).filter(st => {
-        const nameMatch = (st.name || '').toLowerCase().includes(searchVal);
-        const phoneMatch = (st.phone || '').toLowerCase().includes(searchVal);
-        const addrMatch = (st.address || '').toLowerCase().includes(searchVal);
-        return nameMatch || phoneMatch || addrMatch;
-      });
-
-      if (filtered.length === 0) {
-        container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:8px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ကားဂိတ် မတွေ့ရှိပါ</p>';
-        return;
-      }
-
-      container.innerHTML = filtered.map(st => `
-        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:6px; padding:6px 8px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
-          <div style="flex:1; padding-right:8px;">
-            <div>
-              <span class="station-type-badge ${st.type === 'bus' ? 'badge-type-bus' : st.type === 'royal' ? 'badge-type-royal' : 'badge-type-deli'}">${(st.type || 'STATION').toUpperCase()}</span>
-              <b style="color:#fff; font-size:11.5px;">${st.name}</b>
-            </div>
-            <div style="color:#10b981; font-size:10px; margin-top:2px;">📞 ${st.phone || '-'}</div>
-            <div style="color:#94a3b8; font-size:10px;">📍 ${st.address || '-'}</div>
-          </div>
-          <div style="display:flex; gap:4px; flex-shrink:0;">
-            <button type="button" class="action-badge" style="background:#0284c7; color:#fff;" onclick="editDeliveryStation(${st.originalIdx})" title="ပြင်ဆင်မည်">
-              <i class="fas fa-edit"></i> ပြင်
-            </button>
-            <button type="button" class="action-badge" style="background:#ef4444; color:#fff;" onclick="deleteDeliveryStation(${st.originalIdx})" title="ဖျက်မည်">
-              <i class="fas fa-trash"></i>
-            </button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function editDeliveryStation(idx) {
-      const st = deliveryStations[idx];
-      if (!st) return;
-
-      editingStationIdx = idx;
-
-      const typeSel = document.getElementById('newStationTypeSelect');
-      if (typeSel && st.type) typeSel.value = st.type;
-
-      const nameInp = document.getElementById('newStationNameInput');
-      if (nameInp) nameInp.value = st.name || '';
-
-      const addrInp = document.getElementById('newStationAddressInput');
-      if (addrInp) addrInp.value = st.address || '';
-
-      if (st.phone) {
-        const phones = String(st.phone).split(',').map(p => p.trim()).filter(Boolean);
-        stationPhoneList = phones.length > 0 ? phones : [''];
-      } else {
-        stationPhoneList = [''];
-      }
-      renderStationPhoneInputs();
-
-      const btnSave = document.getElementById('btnSaveStationSubmit');
-      if (btnSave) {
-        btnSave.innerHTML = '<i class="fas fa-sync-alt"></i> ပြင်ဆင်ချက် သိမ်းဆည်းမည်';
-        btnSave.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
-        btnSave.style.color = '#fff';
-      }
-      const btnCancel = document.getElementById('btnCancelStationEdit');
-      if (btnCancel) btnCancel.style.display = 'block';
-
-      document.getElementById('newStationNameInput')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function cancelStationEdit() {
-      editingStationIdx = null;
-      const nameInp = document.getElementById('newStationNameInput');
-      if (nameInp) nameInp.value = '';
-      const addrInp = document.getElementById('newStationAddressInput');
-      if (addrInp) addrInp.value = '';
-      stationPhoneList = [''];
-      renderStationPhoneInputs();
-
-      const btnSave = document.getElementById('btnSaveStationSubmit');
-      if (btnSave) {
-        btnSave.innerHTML = '<i class="fas fa-save"></i> ဂိတ် / ရုံးခွဲ စာရင်း သိမ်းဆည်းမည်';
-        btnSave.style.background = '';
-        btnSave.style.color = '';
-      }
-      const btnCancel = document.getElementById('btnCancelStationEdit');
-      if (btnCancel) btnCancel.style.display = 'none';
-    }
-
-    function saveNewDeliveryStationFromAdmin() {
-      const type = document.getElementById('newStationTypeSelect')?.value || 'bus';
-      const name = document.getElementById('newStationNameInput')?.value.trim();
-      const phone = stationPhoneList.map(p => p.trim()).filter(Boolean).join(', ');
-      const address = document.getElementById('newStationAddressInput')?.value.trim();
-
-      if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ပြည့်စုံစွာ ဖြည့်သွင်းပါခင်ဗျာ');
-
-      if (editingStationIdx !== null && deliveryStations[editingStationIdx]) {
-        deliveryStations[editingStationIdx].type = type;
-        deliveryStations[editingStationIdx].name = name;
-        deliveryStations[editingStationIdx].phone = phone;
-        deliveryStations[editingStationIdx].address = address;
-        alert(`[ ${name} ] ၏ အချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!`);
-      } else {
-        deliveryStations.push({
-          id: 'st_' + Date.now(),
-          type, name, phone, address
-        });
-        alert(`[ ${name} ] ကို ဂိတ်/ရုံးခွဲ စာရင်းထဲ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!`);
-      }
-
-      localStorage.setItem('tm_delivery_stations', JSON.stringify(deliveryStations));
-      if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_stations').set(deliveryStations);
-
-      renderAdminStationTypesUI();
-      renderAdminStationsDirectory();
-      populateStationSelectOptions();
-
-      cancelStationEdit();
-    }
-
-    function deleteDeliveryStation(idx) {
-      if (confirm('ဤဂိတ်/ရုံးခွဲကို စာရင်းမှ ဖျက်ရန် သေချာပါသလား?')) {
-        deliveryStations.splice(idx, 1);
-        localStorage.setItem('tm_delivery_stations', JSON.stringify(deliveryStations));
-        if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_stations').set(deliveryStations);
-        renderAdminStationsDirectory();
-        populateStationSelectOptions();
-      }
-    }
-
-    function renderAdminStationTypesUI() {
-      const select = document.getElementById('newStationTypeSelect');
-      const chipsBox = document.getElementById('adminStationTypesChipsContainer');
-      if (select) {
-        select.innerHTML = stationTypesList.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
-      }
-      if (chipsBox) {
-        chipsBox.innerHTML = stationTypesList.map(t => `
-          <span style="background:rgba(255,255,255,0.06); border:1px solid #334155; color:#cbd5e1; padding:3px 8px; border-radius:12px; font-size:10.5px;">
-            ${t.title} [Tag: ${t.prefix}]
-          </span>
-        `).join('');
-      }
-    }
-
-    function populateStationSelectOptions() {
-      const dl = document.getElementById('dtlStationDataList');
-      if (!dl) return;
-      dl.innerHTML = (deliveryStations || []).map(st => `<option value="${st.name}">${st.phone || ''} - ${st.address || ''}</option>`).join('');
-    }
-
-    function handleStationSelectAutoFill(val) {
-      const st = deliveryStations.find(x => x.name === val || val.includes(x.name));
-      if (st) {
-        if (document.getElementById('dtlBusLine')) document.getElementById('dtlBusLine').value = st.name;
-        if (document.getElementById('dtlStationPhone')) document.getElementById('dtlStationPhone').value = st.phone || '';
-        if (document.getElementById('dtlStationAddress')) document.getElementById('dtlStationAddress').value = st.address || '';
-      }
-    }
-
-    // ဝယ်သူများအတွက် Deli & ကားဂိတ် ရုံးခွဲစာရင်း ဖွင့်ပေးခြင်း
-function openPublicDeliveryModal() {
-  renderPublicStationsDirectory();
-  openModal('publicDeliveryModal');
-}
-
-function renderPublicStationsDirectory() {
-  const container = document.getElementById('publicStationsDirectoryList');
-  if (!container) return;
-
-  const searchVal = (document.getElementById('publicStationSearchInput')?.value || '').toLowerCase().trim();
-
-  if (!Array.isArray(deliveryStations) || deliveryStations.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:12px;">ရုံးခွဲ/ကားဂိတ် စာရင်း မရှိသေးပါခင်ဗျာ</p>';
-    return;
+  focConfig.enabled = document.getElementById('cfgFocEnabled')?.checked || false;
+  focConfig.mode = document.getElementById('cfgFocMode')?.value || 'auto';
+  focConfig.minAmount = Number(document.getElementById('cfgFocMinAmount')?.value) || 0;
+  focConfig.tier2Amount = Number(document.getElementById('cfgFocTier2Amount')?.value) || 0;
+  focConfig.title = (document.getElementById('cfgFocTitle')?.value || '').trim();
+  if (!Array.isArray(focConfig.selectedGifts)) {
+    focConfig.selectedGifts = [];
   }
 
-  const filtered = deliveryStations.filter(st => {
-    const nameMatch = (st.name || '').toLowerCase().includes(searchVal);
-    const phoneMatch = (st.phone || '').toLowerCase().includes(searchVal);
-    const addrMatch = (st.address || '').toLowerCase().includes(searchVal);
-    const typeMatch = (st.type || '').toLowerCase().includes(searchVal);
-    return nameMatch || phoneMatch || addrMatch || typeMatch;
+  // LocalStorage ရော Firebase Cloud ပါ လက်ဆောင်ပစ္စည်းစာရင်း (selectedGifts) ကို အပြည့်အစုံ သိမ်းဆည်းပေးခြင်း
+  localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
+
+  fbDb.ref('foc_campaign_settings').set(focConfig).then(() => {
+    alert('🎁 FOC အချက်အလက်များနှင့် လက်ဆောင်စာရင်းများကို Firebase Cloud ပေါ်သို့ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!');
+  }).catch(err => {
+    alert('Firebase သိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်ပါသည်: ' + err.message);
   });
+};
+    
+    // --- CATEGORY BOTTOM SHEET MODAL LOGIC ---
+function openCategorySheet() {
+  const modal = document.getElementById('categorySheetModal');
+  const container = document.getElementById('catSheetGridContainer');
+  if (!modal || !container) return;
 
-  if (filtered.length === 0) {
-    container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:12px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ကားဂိတ် မတွေ့ရှိပါ</p>';
-    return;
+  // လက်ရှိ Product များအားလုံးထဲမှ Category အမည်များကို စုစည်းထုတ်ယူခြင်း
+  let allCats = ['All', 'Promotion'];
+  if (Array.isArray(window.products)) {
+    window.products.forEach(p => {
+      if (Array.isArray(p.categories)) {
+        p.categories.forEach(c => { if (c && !allCats.includes(c)) allCats.push(c); });
+      } else if (p.category && !allCats.includes(p.category)) {
+        allCats.push(p.category);
+      }
+    });
   }
 
-  container.innerHTML = filtered.map(st => {
-    const phones = String(st.phone || '').split(',').map(p => p.trim()).filter(Boolean);
-    const firstPhone = phones.length > 0 ? phones[0].replace(/[^0-9]/g, '') : '';
+  // Category အကွက်များ ရေးဆွဲပြသခြင်း
+  container.innerHTML = allCats.map(cat => {
+    const isSel = (window.selectedCategory === cat);
+    let label = cat;
+    let icon = '🏷️';
+    
+    if (cat === 'All') { label = 'ပစ္စည်းအားလုံး'; icon = '🔥'; }
+    else if (cat === 'Promotion') { label = 'ပရိုမိုးရှင်းပစ္စည်းများ'; icon = '⚡'; }
+    else if (cat.includes('ငွေချေမရ') || cat.includes('COD')) { icon = '💳'; }
+    else if (cat.includes('အထည်') || cat.includes('ဝတ်')) { icon = '👙'; }
+    else if (cat.includes('တုန်စက်')) { icon = '⚡'; }
+    else if (cat.includes('ဂျယ်') || cat.includes('ဆေး')) { icon = '🧴'; }
 
     return `
-      <div style="background:rgba(255,255,255,0.04); border:1px solid #334155; border-radius:8px; padding:8px 10px;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div>
-            <span class="station-type-badge ${st.type === 'bus' ? 'badge-type-bus' : st.type === 'royal' ? 'badge-type-royal' : 'badge-type-deli'}">${(st.type || 'STATION').toUpperCase()}</span>
-            <b style="color:#fde047; font-size:12px;">${st.name}</b>
-          </div>
-          ${firstPhone ? `
-            <a href="tel:${firstPhone}" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:10.5px; font-weight:bold; padding:3px 8px; border-radius:6px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
-              <i class="fas fa-phone-alt"></i> ခေါ်မည်
-            </a>
-          ` : ''}
-        </div>
-        <div style="color:#10b981; font-size:11px; margin-top:4px;">
-          📞 <b>ဖုန်း:</b> ${st.phone || '-'}
-        </div>
-        <div style="color:#cbd5e1; font-size:11px; margin-top:2px; line-height:1.35;">
-          📍 <b>လိပ်စာ:</b> ${st.address || '-'}
-        </div>
+      <div class="cat-grid-item ${isSel ? 'active' : ''}" onclick="selectCategoryFromSheet('${cat}')">
+        ${icon} ${label}
+      </div>
+    `;
+  }).join('');
+
+  modal.classList.add('active');
+}
+
+function closeCategorySheet() {
+  const modal = document.getElementById('categorySheetModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function selectCategoryFromSheet(cat) {
+  closeCategorySheet();
+  if (typeof selectCategoryByName === 'function') {
+    selectCategoryByName(cat);
+  } else {
+    selectedCategory = cat;
+    if (typeof renderCategoryUI === 'function') renderCategoryUI();
+    if (typeof renderCatalog === 'function') renderCatalog();
+  }
+}
+
+// --- FULLSCREEN LIGHTBOX & SWIPE LOGIC ---
+var currentLightboxImages = [];
+var currentLightboxIndex = 0;
+var touchStartX = 0;
+var touchEndX = 0;
+
+// ပုံကို နှိပ်လိုက်သည့်အခါ မျက်နှာပြင်ပြည့် ဖွင့်ပေးခြင်း
+function openImageLightbox(index) {
+  if (!currentDetailProduct) return;
+  const rawImgs = currentDetailProduct.images;
+  currentLightboxImages = (Array.isArray(rawImgs) && rawImgs.length > 0) 
+    ? rawImgs 
+    : [currentDetailProduct.image || 'logo.png'];
+  
+  currentLightboxIndex = (index >= 0 && index < currentLightboxImages.length) ? index : 0;
+  updateLightboxView();
+  document.getElementById('imageLightboxModal').classList.add('active');
+}
+
+function closeImageLightbox() {
+  document.getElementById('imageLightboxModal').classList.remove('active');
+}
+
+function updateLightboxView() {
+  const imgEl = document.getElementById('lightboxActiveImg');
+  const countEl = document.getElementById('lightboxCounter');
+  if (imgEl && currentLightboxImages[currentLightboxIndex]) {
+    imgEl.src = currentLightboxImages[currentLightboxIndex];
+  }
+  if (countEl) {
+    countEl.textContent = `${currentLightboxIndex + 1} / ${currentLightboxImages.length}`;
+  }
+}
+
+function lightboxNextImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex + 1) % currentLightboxImages.length;
+  updateLightboxView();
+}
+
+function lightboxPrevImage() {
+  if (currentLightboxImages.length <= 1) return;
+  currentLightboxIndex = (currentLightboxIndex - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+  updateLightboxView();
+}
+
+// ဖုန်းတွင် လက်ဖြင့် ဘယ်/ညာ ပွတ်ဆွဲ (Touch Swipe) ဖတ်သည့် စနစ်
+document.addEventListener('DOMContentLoaded', function() {
+  const touchArea = document.getElementById('lightboxTouchArea');
+  if (!touchArea) return;
+
+  touchArea.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  touchArea.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    handleLightboxSwipe();
+  }, { passive: true });
+});
+
+function handleLightboxSwipe() {
+  const swipeThreshold = 45; // ၄၅ px ထက်ပိုဆွဲလျှင် ပုံပြောင်းမည်
+  if (touchEndX < touchStartX - swipeThreshold) {
+    lightboxNextImage(); // ဘယ်သို့ဆွဲပါက နောက်တစ်ပုံပြမည်
+  } else if (touchEndX > touchStartX + swipeThreshold) {
+    lightboxPrevImage(); // ညာသို့ဆွဲပါက ရှေ့တစ်ပုံပြမည်
+  }
+}
+
+// ၁။ Chat Speed Dial ဖွင့်/ပိတ် ထိန်းချုပ်မှု
+function toggleFabDial() {
+  const dial = document.getElementById('fabSpeedDial');
+  const btn = document.getElementById('fabMainBtn');
+  if (dial && btn) {
+    dial.classList.toggle('open');
+    btn.classList.toggle('active');
+  }
+}
+
+// အပြင်နေရာတစ်ခုခုကို နှိပ်လိုက်ပါက Speed Dial ကို အလိုအလျောက် ပြန်ပိတ်ပေးခြင်း
+document.addEventListener('click', function(e) {
+  const dial = document.getElementById('fabSpeedDial');
+  const btn = document.getElementById('fabMainBtn');
+  if (dial && dial.classList.contains('open') && !dial.contains(e.target)) {
+    dial.classList.remove('open');
+    if (btn) btn.classList.remove('active');
+  }
+});
+
+// ၂။ Compact Sticky Header Scroll စနစ်
+window.addEventListener('scroll', function() {
+  const header = document.querySelector('header');
+  if (header) {
+    if (window.scrollY > 120) {
+      header.classList.add('sticky-scrolled');
+    } else {
+      header.classList.remove('sticky-scrolled');
+    }
+  }
+});
+
+// ၃။ ကတ်ပေါ်မှ တိုက်ရိုက် ခြင်းထဲထည့်သည့် Quick Add-to-Cart Function
+function quickAddToCart(productId, event) {
+  if (event) event.stopPropagation(); // ကတ်အသေးစိတ် popup မပွင့်သွားစေရန် တားဆီးခြင်း
+  
+  if (typeof addToCart === 'function') {
+    addToCart(productId);
+  } else {
+    console.log('Added product to cart:', productId);
+  }
+}
+  </script>
+
+  <!-- Category Selector Bottom Sheet Modal -->
+<div id="categorySheetModal" onclick="if(event.target===this) closeCategorySheet();">
+  <div class="cat-sheet-content">
+    <div class="cat-sheet-header">
+      <div class="cat-sheet-title">
+        <i class="fas fa-th-large"></i> အမျိုးအစားအားလုံး ရွေးချယ်ရန်
+      </div>
+      <button class="cat-sheet-close" onclick="closeCategorySheet()">✕</button>
+    </div>
+    <div class="cat-grid-list" id="catSheetGridContainer">
+      <!-- Categories will be rendered here dynamically -->
+    </div>
+  </div>
+</div>
+
+<!-- Fullscreen Swipeable Image Lightbox -->
+<div id="imageLightboxModal">
+  <button class="lightbox-btn-close" onclick="closeImageLightbox()">✕</button>
+  <button class="lightbox-nav-btn lightbox-nav-prev" onclick="lightboxPrevImage()">❮</button>
+  <button class="lightbox-nav-btn lightbox-nav-next" onclick="lightboxNextImage()">❯</button>
+  <div class="lightbox-img-wrap" id="lightboxTouchArea">
+    <img id="lightboxActiveImg" src="" alt="Zoomed Product">
+  </div>
+  <div class="lightbox-counter" id="lightboxCounter">1 / 1</div>
+</div>
+
+<!-- FLOATING EMERGENCY BUTTON & CHAT SPEED DIAL -->
+  <div class="floating-action-container">
+    <div class="fab-speed-dial" id="fabSpeedDial">
+      <div class="fab-options" id="fabOptions">
+    
+        <!-- Group Chat -->
+<button type="button" class="fab-item fab-community" onclick="toggleFabDial(); openModal('communityModal');" style="cursor:pointer;" title="Community Chat">
+  <span class="fab-label" style="pointer-events:none;">Group Chat</span>
+  <i class="fas fa-users" style="pointer-events:none;"></i>
+</button>
+
+        <!-- Admin Chat -->
+        <button type="button" class="fab-item fab-admin" onclick="openModal('liveChatModal')" style="cursor:pointer;" title="Admin နှင့် ပြောမည်">
+          <span class="fab-label" style="pointer-events:none;">Admin နှင့် ပြောမည်</span>
+          <i class="fas fa-headset" style="pointer-events:none;"></i>
+        </button>
+
+        <!-- Lucky Wheel -->
+        <button type="button" class="fab-item fab-spin" onclick="openModal('spinWheelModal')" style="cursor:pointer;" title="ကံစမ်းမဲ လှည့်မည်">
+          <span class="fab-label" style="pointer-events:none;">ကံစမ်းမဲ လှည့်မည်</span>
+          <i class="fas fa-dharmachakra" style="pointer-events:none;"></i>
+        </button>
+      </div>
+
+      <button type="button" class="fab-main-btn" id="fabMainBtn" onclick="toggleFabDial()" title="စကားပြောရန်">
+        <i class="fas fa-comments" id="fabIcon" style="pointer-events:none;"></i>
+      </button>
+    </div>
+
+    <button type="button" class="fab-quick-exit" onclick="quickExit()" title="🚨 အရေးပေါ် ထွက်ရန်">
+      <span class="pulse-ring"></span>
+      <span class="exit-icon" style="pointer-events:none;">🚨</span>
+    </button>
+  </div>
+
+  <!-- Public Delivery Stations Directory Modal -->
+<div id="publicDeliveryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); z-index: 10005; align-items: center; justify-content: center; padding: 15px;">
+  <div style="background: #111827; border: 1px solid #374151; border-radius: 12px; width: 100%; max-width: 440px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);">
+    
+    <!-- Modal Header -->
+    <div style="padding: 12px 16px; background: #1f2937; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #374151;">
+      <h4 style="margin: 0; font-size: 14px; color: #fff;">🚚 ပို့ဆောင်ရေး ရုံးခွဲနှင့် ကားဂိတ်များ</h4>
+      <span onclick="closePublicDeliveryModal()" style="color: #9ca3af; font-size: 22px; cursor: pointer; font-weight: bold; line-height: 1;">&times;</span>
+    </div>
+
+    <!-- Search Input -->
+    <div style="padding: 10px 15px; background: #111827;">
+      <input type="text" id="publicDeliSearch" placeholder="🔍 မြို့နယ် သို့မဟုတ် ဂိတ်အမည် ရိုက်ရှာပါ..." oninput="filterPublicDeliveryList(this.value)" style="width: 100%; padding: 8px 12px; border-radius: 6px; background: #0b0f19; border: 1px solid #38bdf8; color: #fff; font-size: 12px; outline: none;">
+    </div>
+
+    <!-- Stations List Area -->
+    <div id="publicDeliveryListContainer" style="padding: 10px 15px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px;">
+      <!-- JS မှ စာရင်းများကို အလိုအလျောက် ပြသပေးမည် -->
+    </div>
+
+  </div>
+</div>
+
+<script>
+function openPublicDeliveryModal() {
+  const modal = document.getElementById('publicDeliveryModal');
+  if (modal) modal.style.display = 'flex';
+  const searchInput = document.getElementById('publicDeliSearch');
+  if (searchInput) searchInput.value = '';
+  renderPublicDeliveryList(typeof deliveryStations !== 'undefined' ? deliveryStations : []);
+}
+
+function closePublicDeliveryModal() {
+  const modal = document.getElementById('publicDeliveryModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function renderPublicDeliveryList(list) {
+  const container = document.getElementById('publicDeliveryListContainer');
+  if (!container) return;
+
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div style="color: #9ca3af; font-size: 12px; text-align: center; padding: 20px;">စာရင်းမရှိသေးပါခင်ဗျာ။</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(st => {
+    const meta = typeof getStationTypeMeta === 'function' ? getStationTypeMeta(st.type) : { prefix: 'ဂိတ်' };
+    return `
+      <div style="background: #1e293b; padding: 10px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
+        <div style="font-weight: bold; font-size: 13px; color: #f87171;">[${meta.prefix}] ${st.name || ''}</div>
+        <div style="font-size: 11.5px; color: #cbd5e1; margin: 4px 0;">📍 ${st.address || 'လိပ်စာ အသေးစိတ် မဖော်ပြထားပါ'}</div>
+        ${st.phone ? `<a href="tel:${st.phone}" style="display: inline-block; font-size: 11px; background: #ef4444; color: #fff; padding: 3px 8px; border-radius: 4px; text-decoration: none; margin-top: 4px;">📞 ${st.phone} သို့ ဖုန်းခေါ်မည်</a>` : ''}
       </div>
     `;
   }).join('');
 }
 
-    // --- TRIGGER ADMIN PIN PAD / LOGIN SYSTEM ---
-    var adminEnteredPin = '';
-    function triggerAdminPinPad() {
-      adminClicks++;
-      clearTimeout(adminTimer);
-      adminTimer = setTimeout(() => { adminClicks = 0; }, 1200);
-      if (adminClicks >= 3) {
-        adminClicks = 0;
-        adminEnteredPin = '';
-        updatePinCircles();
-        openModal('customAdminPinModal');
-      }
-    }
-
-    function pressPinDigit(digit) {
-      if (adminEnteredPin.length < 4) {
-        adminEnteredPin += digit;
-        updatePinCircles();
-      }
-      if (adminEnteredPin.length === 4) {
-        setTimeout(verifyAdminPinInput, 150);
-      }
-    }
-
-    function deleteLastPinDigit() {
-      adminEnteredPin = adminEnteredPin.slice(0, -1);
-      updatePinCircles();
-    }
-
-    function clearPinDigits() {
-      adminEnteredPin = '';
-      updatePinCircles();
-    }
-
-    function updatePinCircles() {
-      for (let i = 0; i < 4; i++) {
-        const dot = document.getElementById('pDot_' + i);
-        if (dot) {
-          if (i < adminEnteredPin.length) dot.classList.add('active');
-          else dot.classList.remove('active');
-        }
-      }
-    }
-
-    function verifyAdminPinInput() {
-      const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-      if (adminEnteredPin === validPin) {
-        closeModal('customAdminPinModal');
-        fetchAdminOrdersWithPin(validPin);
-        renderCategoryUI();
-        syncSearchCategoryDropdown();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-        renderAdminOrders();
-        renderAdminCustomers();
-        renderAnalytics();
-        renderDiscountsList();
-        loadCentralSettings();
-        renderAdminStationTypesUI();
-        renderAdminStationsDirectory();
-        populateStationSelectOptions();
-        openModal('adminModal');
-      } else {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
-        clearPinDigits();
-      }
-    }
-
-    async function uploadToImgBB(file) {
-      const apiKey = botConfig.imgbbKey || '7c7a6d549b070dd0cc7f0f3098c64d74';
-      const formData = new FormData();
-      formData.append('image', file);
-      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data && data.data && data.data.url) return data.data.url;
-      throw new Error('Upload Failed');
-    }
-
-    function isProductPromo(p) {
-      return !!p.isPromo || (Number(p.originalPrice) > Number(p.price));
-    }
-
-    function updateAdminPromoCountBadge() {
-      const allBadge = document.getElementById('adminAllCountBadge');
-      const inBadge = document.getElementById('adminInStockCountBadge');
-      const outBadge = document.getElementById('adminOutStockCountBadge');
-      const promoBadge = document.getElementById('adminPromoCountBadge');
-
-      if (!Array.isArray(products)) return;
-      if (allBadge) allBadge.textContent = products.length;
-      if (inBadge) inBadge.textContent = products.filter(p => (Number(p.stock) || 0) > 0 && !p.isHidden).length;
-      if (outBadge) outBadge.textContent = products.filter(p => (Number(p.stock) || 0) <= 0 || p.isHidden).length;
-      if (promoBadge) promoBadge.textContent = products.filter(p => isProductPromo(p)).length;
-    }
-
-    // --- WINDOW INITIALIZATION ---
-    window.addEventListener('DOMContentLoaded', () => {
-      initTownshipDatalist();
-      applyDiscreetMaskUI();
-      renderCategoryUI();
-      renderCatalog();
-      updateCartBadge();
-      updateWishlistBadges();
-      applyCentralSettingsUI();
-      initFocSettingsListener();
-      renderAdminStationTypesUI();
-      renderStationPhoneInputs();
-      renderAdminStationsDirectory();
-      populateStationSelectOptions();
-    });
-  </script>
+function filterPublicDeliveryList(query) {
+  if (typeof deliveryStations === 'undefined') return;
+  const q = query.trim().toLowerCase();
+  const filtered = deliveryStations.filter(st => 
+    (st.name && st.name.toLowerCase().includes(q)) || 
+    (st.address && st.address.toLowerCase().includes(q))
+  );
+  renderPublicDeliveryList(filtered);
+}
+</script>
 </body>
 </html>
