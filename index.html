@@ -196,21 +196,7 @@
     .panic-quick-exit:hover { background: #ee3545; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 14px; }
-    .modal-overlay.active { 
-  display: flex !important; 
-  visibility: visible !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  z-index: 2147483647 !important;
-}
-
-#customAdminPinModal.active,
-#adminModal.active {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  z-index: 2147483647 !important;
-}
+    .modal-overlay.active { display: flex !important; }
     .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 18px; position: relative; }
     .modal-close { position: absolute !important; top: 12px !important; right: 12px !important; background: #ff4757 !important; color: #ffffff !important; width: 30px !important; height: 30px !important; border-radius: 50% !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 16px !important; font-weight: bold !important; border: 2px solid #ffffff !important; cursor: pointer !important; z-index: 9999 !important; }
 
@@ -1764,6 +1750,29 @@ body.modal-open {
   overflow: hidden !important;
 }
 
+body:has([id*="Modal"].active) header,
+body:has([id*="modal"].active) .category-bar-wrapper,
+body:has([id*="modal"].active) .category-wrapper,
+body:has([id*="modal"].active) .mobile-bottom-bar,
+body:has([id*="modal"].active) .fixed-social-call-tier,
+body:has([id*="modal"].active) .floating-action-container,
+body:has(#cartModal.active) header,
+body:has(#cartModal.active) .category-bar-wrapper,
+body:has(#cartModal.active) .category-wrapper,
+body:has(#cartModal.active) .mobile-bottom-bar,
+body:has(#cartModal.active) .fixed-social-call-tier,
+body:has(#cartModal.active) .floating-action-container,
+body.modal-open header,
+body.modal-open .category-bar-wrapper,
+body.modal-open .category-wrapper,
+body.modal-open .mobile-bottom-bar,
+body.modal-open .fixed-social-call-tier,
+body.modal-open .floating-action-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 #adminOrderDetailModal,
 #orderEditModal {
   z-index: 2147483647 !important;
@@ -1794,7 +1803,7 @@ body.modal-open {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="handleDirectAdminTrigger()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="triggerAdminPinPad()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
         <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -3339,6 +3348,7 @@ function scrollCategories(amount) {
     မပြင်တော့ပါ
   </button>
 </div>
+</div>
 
 <!-- ကားဂိတ်နှင့် ရုံးခွဲများ ရှာဖွေရေးဘား -->
 <div style="margin: 8px 0 4px 0;">
@@ -3399,15 +3409,16 @@ function scrollCategories(amount) {
     </div>
   </div>
 
-  <!-- LUXURY ADMIN PIN PAD MODAL -->
-  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 2147483647 !important;">
-    <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px; background:#18132d; border:1px solid var(--gold); border-radius:16px;">
+  
+  <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
+  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 10009;">
+    <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
       <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
       <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
       <h3 style="color:var(--gold); font-size:1.05rem; margin-bottom:2px;">Admin Management</h3>
       <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:6px;">လုံခြုံရေး PIN နံပါတ် ၄ လုံး ရိုက်ထည့်ပါ</p>
       
-      <div class="pin-circle-display" style="display:flex; justify-content:center; gap:12px; margin:14px 0 18px;">
+      <div class="pin-circle-display">
         <div class="pin-circle-item" id="pDot_0"></div>
         <div class="pin-circle-item" id="pDot_1"></div>
         <div class="pin-circle-item" id="pDot_2"></div>
@@ -6646,30 +6657,26 @@ orders = deduplicateOrders(raw);
       document.getElementById('cfgNewPin').value = '';
     }
 
-   function openModal(id) {
+    function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
     m.classList.add('active');
     m.style.display = 'flex';
-    m.style.setProperty('display', 'flex', 'important');
-    m.style.setProperty('z-index', '2147483647', 'important');
+    m.style.zIndex = '2147483647';
   }
   document.body.classList.add('modal-open');
 
-  // PIN Pad ပွင့်ချိန် Header ကို မဖျောက်ဘဲ အခြား Modal များ ပွင့်ချိန်မှသာ ဖျောက်ပေးခြင်း
-  if (id !== 'customAdminPinModal') {
-    const topHeader = document.querySelector('header');
-    if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
+  const topHeader = document.querySelector('header');
+  if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
 
-    const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
-    if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
+  const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
+  if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
 
-    const bottomBar = document.querySelector('.mobile-bottom-bar');
-    if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+  const bottomBar = document.querySelector('.mobile-bottom-bar');
+  if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
 
-    const socialTier = document.querySelector('.fixed-social-call-tier');
-    if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
-  }
+  const socialTier = document.querySelector('.fixed-social-call-tier');
+  if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
 
   const floatContainer = document.querySelector('.floating-action-container');
   if (floatContainer) floatContainer.style.setProperty('display', 'none', 'important');
@@ -7850,12 +7857,18 @@ function closeModal(id) {
       if (!lastSubmittedOrder) return;
       const o = lastSubmittedOrder;
       const txt = `🛍 TOLIMOLI MYANMAR ORDER
-အော်ဒါအမှတ်: ${o.id}
-ဝယ်သူအမည်: ${o.customer}
-ဖုန်းနံပါတ်: ${o.phone}
-လိပ်စာ: ${o.address} (${o.township})
-ကျသင့်ငွေ: ${Number(o.total).toLocaleString()} MMK (${o.payment})
-ပစ္စည်းများ: ${(o.items||[]).map(i => i.name + ' x' + i.qty).join(', ')}`;
+` +
+        `အော်ဒါအမှတ်: ${o.id}
+` +
+        `ဝယ်သူအမည်: ${o.customer}
+` +
+        `ဖုန်းနံပါတ်: ${o.phone}
+` +
+        `လိပ်စာ: ${o.address} (${o.township})
+` +
+        `ကျသင့်ငွေ: ${Number(o.total).toLocaleString()} MMK (${o.payment})
+` +
+        `ပစ္စည်းများ: ${(o.items||[]).map(i => i.name + ' x' + i.qty).join(', ')}`;
       
       copyTextToClipboard(txt, 'အော်ဒါအချက်အလက်အားလုံး ကူးယူပြီးပါပြီ!');
     }
@@ -7880,31 +7893,19 @@ function closeModal(id) {
       const tgUrl = `https://t.me/tolimolimyanmarchannel`;
       window.open(tgUrl, '_blank');
     }
-    // --- ADMIN LOGO 3-CLICKS & LUXURY PIN PAD SYSTEM ---
-    var adminLogoClicks = 0;
+var adminLogoClicks = 0;
     var adminLogoTimer = null;
-
-    function handleDirectAdminTrigger() {
+    function triggerAdminPinPad() {
       adminLogoClicks++;
       clearTimeout(adminLogoTimer);
-      adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1400);
-
+      adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1200);
       if (adminLogoClicks >= 3) {
         adminLogoClicks = 0;
-        const pinModal = document.getElementById('customAdminPinModal');
-        if (pinModal) {
-          pinModal.classList.add('active');
-          pinModal.style.setProperty('display', 'flex', 'important');
-          pinModal.style.setProperty('visibility', 'visible', 'important');
-          pinModal.style.setProperty('z-index', '2147483647', 'important');
-        }
-        document.body.classList.add('modal-open');
-        clearPinDigits();
+        openCustomPinModal();
       }
     }
-
+    // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
     var enteredPin = '';
-
     function openCustomPinModal() {
       enteredPin = '';
       updatePinDisplayDots();
@@ -7916,7 +7917,7 @@ function closeModal(id) {
         enteredPin += digit;
         updatePinDisplayDots();
         if (enteredPin.length === 4) {
-          setTimeout(verifyCustomPinInput, 200);
+          setTimeout(verifyCustomPinInput, 150);
         }
       }
     }
@@ -7937,11 +7938,8 @@ function closeModal(id) {
       for (let i = 0; i < 4; i++) {
         const dot = document.getElementById(`pDot_${i}`);
         if (dot) {
-          if (i < enteredPin.length) {
-            dot.classList.add('active');
-          } else {
-            dot.classList.remove('active');
-          }
+          if (i < enteredPin.length) dot.classList.add('active');
+          else dot.classList.remove('active');
         }
       }
     }
@@ -7963,39 +7961,35 @@ function closeModal(id) {
       if (!validPin) validPin = '1234';
 
       if (enteredPin === validPin) {
+        // Firebase Cloud မှ Discounts နှင့် FOC ဒေတာများ တိုက်ရိုက်ဆွဲယူခြင်း
+        fetchCloudDiscountsAndFoc();
         closeModal('customAdminPinModal');
-        clearPinDigits();
-
-        // Admin Dashboard အတွက် လိုအပ်သော Data များကို ဆွဲယူပြသခြင်း
-        if (typeof fetchCloudDiscountsAndFoc === 'function') fetchCloudDiscountsAndFoc();
-        if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(validPin);
-        if (typeof renderCategoryUI === 'function') renderCategoryUI();
-        if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
-        if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
-        if (typeof renderAdminImageInputs === 'function') renderAdminImageInputs();
-        if (typeof renderAdminProducts === 'function') renderAdminProducts();
-        if (typeof renderStockTable === 'function') renderStockTable();
-        if (typeof renderAdminOrders === 'function') renderAdminOrders();
-        if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-        if (typeof renderAnalytics === 'function') renderAnalytics();
-        if (typeof renderDiscountsList === 'function') renderDiscountsList();
-        if (typeof renderAdminFlashSales === 'function') renderAdminFlashSales();
-        if (typeof renderAdminNewsList === 'function') renderAdminNewsList();
-        if (typeof renderAdminMysteryBoxes === 'function') renderAdminMysteryBoxes();
-        if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts();
-        if (typeof loadCentralSettings === 'function') loadCentralSettings();
-        if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
-        if (typeof checkAndRenderExpiryAlerts === 'function') checkAndRenderExpiryAlerts();
-        if (typeof renderAdminDiscountReasonChips === 'function') renderAdminDiscountReasonChips();
-        if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
-        if (typeof renderAdminBotConfigUI === 'function') renderAdminBotConfigUI();
-        if (typeof renderAdminStationTypesUI === 'function') renderAdminStationTypesUI();
-        if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory();
-
-        // Admin Dashboard Modal ကို အပေါ်ဆုံးသို့ ဆွဲတင်ပြသခြင်း
+        fetchAdminOrdersWithPin(enteredPin);
+        renderCategoryUI();
+        renderAdminCategoryChips();
+        renderAdminColorInputs();
+        renderAdminImageInputs();
+        renderAdminProducts();
+        renderStockTable();
+        renderAdminOrders();
+        renderAdminCustomers();
+        renderAnalytics();
+        renderDiscountsList();
+        renderAdminFlashSales();
+        renderAdminNewsList();
+        renderAdminMysteryBoxes();
+        renderAdminCommunityPosts();
+        loadCentralSettings();
+        renderAdminDeliverySettings();
+        checkAndRenderExpiryAlerts();
+        renderAdminDiscountReasonChips();
+        renderAdminChatSessionsList();
+        renderAdminBotConfigUI();
+        renderAdminStationTypesUI();
+      renderAdminStationsDirectory();
         openModal('adminModal');
       } else {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်! (Default PIN: 1234)');
+        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
         clearPinDigits();
       }
     }
@@ -9389,41 +9383,6 @@ function closeModal(id) {
       if (Array.isArray(sStations) && sStations.length > 0) deliveryStations = sStations;
     } catch(e) {}
 
-    // --- DYNAMIC PHONE NUMBERS STATE & HELPER (REQUIRED) ---
-var stationPhoneList = [''];
-
-function renderStationPhoneInputs() {
-  const container = document.getElementById('stationPhoneInputsContainer');
-  if (!container) return;
-  if (!stationPhoneList || stationPhoneList.length === 0) stationPhoneList = [''];
-
-  container.innerHTML = stationPhoneList.map((ph, idx) => `
-    <div style="display: flex; gap: 6px; align-items: center;">
-      <input type="text" value="${(ph || '').replace(/"/g, '&quot;')}" 
-             placeholder="09xxxxxxxxx" 
-             oninput="stationPhoneList[${idx}] = this.value;"
-             style="flex: 1; padding: 6px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;">
-      ${stationPhoneList.length > 1 ? `
-        <button type="button" onclick="removeStationPhoneField(${idx})" 
-                style="background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      ` : ''}
-    </div>
-  `).join('');
-}
-
-function addStationPhoneField() {
-  stationPhoneList.push('');
-  renderStationPhoneInputs();
-}
-
-function removeStationPhoneField(idx) {
-  if (stationPhoneList.length > 1) {
-    stationPhoneList.splice(idx, 1);
-    renderStationPhoneInputs();
-  }
-}
     var editingStationIdx = null;
 
 function renderAdminStationsDirectory() {
@@ -10404,7 +10363,25 @@ saveFocCampaignSettings = function() {
     alert('Firebase သိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်ပါသည်: ' + err.message);
   });
 };
-    
+    // Missing Helper Functions
+
+    function trackOrderAccountFree() {
+      trackOrder();
+    }
+
+    function notifyCustomerOrderStatusChange(order) {
+      console.log('Order status updated:', order.id, order.status);
+    }
+
+    function closeInAppMediaViewer() {
+      closeModal('inAppMediaModal');
+    }
+
+    function inquireProductInLiveChat() {
+      closeModal('productDetailModal');
+      openModal('liveChatModal');
+    }
+
     // --- CATEGORY BOTTOM SHEET MODAL LOGIC ---
 function openCategorySheet() {
   const modal = document.getElementById('categorySheetModal');
@@ -10453,11 +10430,11 @@ function closeCategorySheet() {
 
 function selectCategoryFromSheet(cat) {
   closeCategorySheet();
-  if (typeof selectCategoryByName === 'function') {
-    selectCategoryByName(cat);
+  // မူလ Category ရွေးချယ်သည့် Function ကို လှမ်းခေါ်ခြင်း
+  if (typeof selectCategory === 'function') {
+    selectCategory(cat);
   } else {
-    selectedCategory = cat;
-    if (typeof renderCategoryUI === 'function') renderCategoryUI();
+    window.selectedCategory = cat;
     if (typeof renderCatalog === 'function') renderCatalog();
   }
 }
