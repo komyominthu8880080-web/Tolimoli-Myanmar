@@ -1812,7 +1812,7 @@ body.modal-open .floating-action-container {
       </div>
 
       <div class="header-actions-group">
-        
+
         <!-- DIRECT ADMIN LOGIN KEY -->
         <button type="button" class="btn-sound-toggle" onclick="openCustomPinModal()" title="Admin PIN Pad" style="border-color: var(--gold); color: var(--gold); z-index: 999999 !important; cursor: pointer;">
           <i class="fas fa-key"></i>
@@ -3413,7 +3413,7 @@ function scrollCategories(amount) {
 
   
   <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
-  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 10009;">
+  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 2147483647 !important; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);"></div>
     <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
       <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
       <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
@@ -7909,10 +7909,15 @@ var adminLogoClicks = 0;
     // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
     var enteredPin = '';
     function openCustomPinModal() {
-      enteredPin = '';
-      updatePinDisplayDots();
-      openModal('customAdminPinModal');
-    }
+  enteredPin = '';
+  updatePinDisplayDots();
+  const m = document.getElementById('customAdminPinModal');
+  if (m) {
+    m.classList.add('active');
+    m.style.setProperty('display', 'flex', 'important');
+    m.style.setProperty('z-index', '2147483647', 'important');
+  }
+}
 
     function pressPinDigit(digit) {
       if (enteredPin.length < 4) {
@@ -10642,7 +10647,11 @@ function quickAddToCart(productId, event) {
 <script>
 function openPublicDeliveryModal() {
   const modal = document.getElementById('publicDeliveryModal');
-  if (modal) modal.style.display = 'flex';
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.setProperty('display', 'flex', 'important');
+    modal.style.setProperty('z-index', '2147483647', 'important');
+  }
   const searchInput = document.getElementById('publicDeliSearch');
   if (searchInput) searchInput.value = '';
   renderPublicDeliveryList(typeof deliveryStations !== 'undefined' ? deliveryStations : []);
