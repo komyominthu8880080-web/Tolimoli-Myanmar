@@ -10729,6 +10729,57 @@ function filterPublicDeliveryList(query) {
   );
   renderPublicDeliveryList(filtered);
 }
+// ==========================================
+// SECRET ADMIN ACCESS SHORTCUTS (WineLay1542)
+// ==========================================
+
+// (၁) Keyboard Shortcut (Mac တွင် Cmd+Shift+A / Windows တွင် Ctrl+Shift+A)
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+    e.preventDefault();
+    if (typeof openCustomPinModal === 'function') {
+      openCustomPinModal();
+    }
+  }
+});
+
+// (၂) URL Parameter ဖြင့် တိုက်ရိုက်ဝင်ခြင်း (?WineLay1542 သို့မဟုတ် ?admin=WineLay1542)
+window.addEventListener('DOMContentLoaded', function() {
+  const currentUrl = window.location.href;
+  if (currentUrl.includes('WineLay1542')) {
+    setTimeout(function() {
+      if (typeof openCustomPinModal === 'function') {
+        openCustomPinModal();
+      }
+    }, 400);
+  }
+});
+
+// (၃) Search Bar ထဲတွင် WineLay1542 ရိုက်ထည့်၍ ရှာပါက ပွင့်စေသည့်စနစ်
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInputs = document.querySelectorAll('input[type="search"], input[type="text"]');
+  searchInputs.forEach(input => {
+    input.addEventListener('input', function() {
+      if (this.value.trim() === 'WineLay1542') {
+        this.value = '';
+        this.blur();
+        if (typeof openCustomPinModal === 'function') {
+          openCustomPinModal();
+        }
+      }
+    });
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.value.trim() === 'WineLay1542') {
+        e.preventDefault();
+        this.value = '';
+        this.blur();
+        if (typeof openCustomPinModal === 'function') {
+          openCustomPinModal();
+        }
+      }
+    });
+  });
+});
 </script>
 </body>
 </html>
