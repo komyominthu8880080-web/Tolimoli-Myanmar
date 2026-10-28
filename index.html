@@ -1857,6 +1857,8 @@ body.modal-open .floating-action-container {
     <div class="search-input-box" style="flex: 1; position: relative;">
       <i class="fas fa-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--gold);"></i>
       <input type="text" id="searchInput" placeholder="ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="handleSearch()" style="width: 100%; padding: 8px 10px 8px 32px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; color: #fff; font-size: 0.82rem;">
+    <!-- SMART SEARCH SUGGESTIONS DROPDOWN -->
+  <div id="searchSuggestionsBox" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: #1e1b4b; border: 1px solid #4f46e5; border-radius: 10px; max-height: 320px; overflow-y: auto; z-index: 99999; box-shadow: 0 10px 25px rgba(0,0,0,0.5); padding: 6px;"></div>
     </div>
     <button type="button" class="btn-track-compact-custom" onclick="openTrackModal()">
       <i class="fas fa-truck"></i> အော်ဒါစစ်
@@ -4256,6 +4258,80 @@ function startFlashSaleCountdown() {
     window.flashSaleInterval = setInterval(updateClocks, 1000);
   }
 }
+// ==========================================
+// SMART SEARCH & FILTER SUGGESTIONS LOGIC
+// ==========================================
+function renderSearchSuggestions(query) {
+  const box = document.getElementById('searchSuggestionsBox');
+  if (!box) return;
+
+  const q = (query || '').trim().toLowerCase();
+  if (!q || q.length < 1) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  // ရိုက်ထည့်ထားသော စာလုံးနှင့် ကိုက်ညီသည့် ပစ္စည်းများ ရှာဖွေခြင်း (အများဆုံး ၆ ခု ပြသမည်)
+  const matches = (typeof products !== 'undefined' ? products : []).filter(p => {
+    if (p.isHidden) return false;
+    const nameMatch = (p.name || '').toLowerCase().includes(q);
+    const skuMatch = (p.sku || '').toLowerCase().includes(q);
+    return nameMatch || skuMatch;
+  }).slice(0, 6);
+
+  if (matches.length === 0) {
+    box.innerHTML = `<div style="padding: 10px; font-size: 11px; color: #94a3b8; text-align: center;">ရှာမတွေ့ပါခင်ဗျာ</div>`;
+    box.style.display = 'block';
+    return;
+  }
+
+  box.innerHTML = matches.map(p => {
+    const imgUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+    const priceFormatted = Number(p.price || 0).toLocaleString();
+    const isOut = Number(p.stock !== undefined ? p.stock : 10) <= 0;
+
+    return `
+      <div onclick="selectSearchSuggestion('${p.id}')" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='transparent'">
+        <img src="${imgUrl}" style="width: 34px; height: 34px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='logo.png'">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 11px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name || ''}</div>
+          <div style="font-size: 10px; color: #fbbf24; font-weight: bold;">${priceFormatted} MMK ${isOut ? '<span style="color:#ef4444; margin-left:4px;">(ကုန်ပြီ)</span>' : ''}</div>
+        </div>
+        <i class="fas fa-chevron-right" style="color: #64748b; font-size: 10px;"></i>
+      </div>
+    `;
+  }).join('');
+
+  box.style.display = 'block';
+}
+
+function selectSearchSuggestion(productId) {
+  const box = document.getElementById('searchSuggestionsBox');
+  if (box) box.style.display = 'none';
+  if (typeof openProductDetail === 'function') {
+    openProductDetail(productId);
+  }
+}
+
+// Search input တွင် စာရိုက်တိုင်း suggestions စစ်ဆေးပြသခြင်း
+document.addEventListener('DOMContentLoaded', () => {
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderSearchSuggestions(e.target.value);
+    });
+  }
+
+  // အပြင်ဘက်ကို ကလစ်နှိပ်ပါက suggestion box ကို ပိတ်ပေးခြင်း
+  document.addEventListener('click', (e) => {
+    const box = document.getElementById('searchSuggestionsBox');
+    const searchInput = document.getElementById('searchInput');
+    if (box && searchInput && !searchInput.contains(e.target) && !box.contains(e.target)) {
+      box.style.display = 'none';
+    }
+  });
+});
     // ==========================================
 // PRODUCT COMPARISON TOOL LOGIC
 // ==========================================
