@@ -10830,6 +10830,47 @@ function triggerAdminPinPad() {
     openCustomPinModal();
   }
 }
+// ==========================================
+// PHASE 2: DISCREET SHOPPING & PRIVACY SUITE
+// ==========================================
+
+// (၁) Fake Tab Title & Favicon စနစ်
+(function setupDiscreetTab() {
+  const originalTitle = document.title || 'Tolimoli Myanmar';
+  let originalFavicon = '';
+  
+  const link = document.querySelector("link[rel*='icon']");
+  if (link) originalFavicon = link.href;
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      document.title = 'Google Search';
+      if (link) link.href = 'https://www.google.com/favicon.ico';
+    } else {
+      document.title = originalTitle;
+      if (link && originalFavicon) link.href = originalFavicon;
+    }
+  });
+})();
+
+// (၂) ခြင်းတောင်းနှင့် ရှာဖွေမှုမှတ်တမ်း အပြီးဖျက်ပေးသည့် စနစ် (Clear All Traces)
+function clearAllCustomerTraces() {
+  if (confirm('သင့်ဖုန်းထဲရှိ ခြင်းတောင်းမှတ်တမ်းနှင့် ရှာဖွေထားသော အချက်အလက်အားလုံးကို အပြီးတိုင် ဖျက်ပစ်ပါမည်လား?')) {
+    try {
+      // LocalStorage မှတ်တမ်းများ ရှင်းထုတ်ခြင်း
+      localStorage.removeItem('cart');
+      localStorage.removeItem('user_cart');
+      localStorage.removeItem('search_history');
+      sessionStorage.clear();
+
+      alert('မှတ်တမ်းအားလုံးကို လျှို့ဝှက်စွာ ရှင်းလင်းပြီးပါပြီခင်ဗျာ။');
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+      window.location.reload();
+    }
+  }
+}
 </script>
 </body>
 </html>
