@@ -5274,23 +5274,22 @@ function add1ClickBundleToCart(id1, id2) {
       document.querySelectorAll('#detailGalleryThumbs img').forEach(img => img.classList.remove('active'));
       if (el) el.classList.add('active');
     }
-
-    function addToCart(productId, chosenColor) {
-      const p = products.find(x => x.id === productId);
-      if (!p || (Number(p.stock) || 0) <= 0) return alert('ပစ္စည်းလက်ကျန် မရှိတော့ပါခင်ဗျာ');
-      const cartKey = productId + (chosenColor ? ('_' + chosenColor) : '');
-      const exist = cart.find(c => c.cartKey === cartKey);
-      const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
-      if (exist) {
-        if (exist.qty >= p.stock) return alert('လက်ကျန်ထက်ကျော်လွန်၍ မရနိုင်ပါ');
-        exist.qty++;
-      } else {
-        cart.push({ cartKey, id: p.id, sku: p.sku || '', name: p.name, color: chosenColor || '', price: p.price, cost: p.cost || 0, image: thumb, qty: 1 });
-      }
-      saveCart();
+function addToCart(productId, chosenColor) {
+  const p = products.find(x => x.id === productId);
+  if (!p || (Number(p.stock) || 0) <= 0) return showToast('ပစ္စည်းလက်ကျန် မရှိတော့ပါခင်ဗျာ', 'error');
+  const cartKey = productId + (chosenColor ? ('_' + chosenColor) : '');
+  const exist = cart.find(c => c.cartKey === cartKey);
+  const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+  if (exist) {
+    if (exist.qty >= p.stock) return showToast('လက်ကျန်ထက်ကျော်လွန်၍ မရနိုင်ပါ', 'warning');
+    exist.qty++;
+  } else {
+    cart.push({ cartKey, id: p.id, sku: p.sku || '', name: p.name, color: chosenColor || '', price: p.price, cost: p.cost || 0, thumb, qty: 1 });
+  }
+  saveCart();
   localStorage.setItem('tm_cart_last_activity', Date.now().toString());
-  alert(p.name + ' ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!');
-    }
+  showToast(p.name + ' ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ', 'success');
+}
 
     function openCartModal() { 
       checkVipBenefitsOnPhoneInput();
