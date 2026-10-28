@@ -1,7 +1,54 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(200).send('OK');
+  // CORS Headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const update = req.body;
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(200).send('OK');
+  }
+
+  const chatBotToken = '8900618964:AAF-CceJIWtn3in19vLP4-kOxBzZyrfYJUY';
+  const body = req.body || {};
+
+  // -------------------------------------------------------------
+  // ၁။ FRONTEND မှ အော်ဒါအသစ် အသိပေးချက် ပေးပို့ခြင်း (OUTBOUND ORDER)
+  // -------------------------------------------------------------
+  if (body.action === 'sendOrderNotification') {
+    const { chatId, topicId, messageText } = body;
+    if (!chatId || !messageText) {
+      return res.status(400).json({ error: 'Missing chatId or messageText' });
+    }
+
+    try {
+      const payload = {
+        chat_id: chatId,
+        text: messageText,
+        parse_mode: 'HTML'
+      };
+      if (topicId) payload.message_thread_id = topicId;
+
+      const tgRes = await fetch(`https://api.telegram.org/bot${chatBotToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const tgData = await tgRes.json();
+      return res.status(200).json({ success: true, tgResponse: tgData });
+    } catch (err) {
+      console.error('Telegram Send Order Error:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // -------------------------------------------------------------
+  // ၂။ TELEGRAM မှ ဝင်လာသော INBOUND SUPPORT CHAT WEBHOOK
+  // -------------------------------------------------------------
+  const update = body;
   if (!update || !update.message) return res.status(200).send('OK');
 
   const msg = update.message;
@@ -10,7 +57,6 @@ export default async function handler(req, res) {
 
   // Telegram Group Topic ID
   const threadId = msg.message_thread_id;
-  const chatBotToken = '8900618964:AAF-CceJIWtm3in19vLP4-kOxBzZyrfYJUY';
 
   // စာသား သို့မဟုတ် Caption ကို ရယူခြင်း
   let text = msg.text || msg.caption || '';
@@ -18,13 +64,13 @@ export default async function handler(req, res) {
   let mediaType = '';
   let fileId = null;
 
-  // ၁။ ဓာတ်ပုံ ပို့လာပါက စစ်ဆေးခြင်း
+  // ဓာတ်ပုံ ပို့လာပါက စစ်ဆေးခြင်း
   if (msg.photo && Array.isArray(msg.photo) && msg.photo.length > 0) {
     const highestResPhoto = msg.photo[msg.photo.length - 1];
     fileId = highestResPhoto.file_id;
     mediaType = 'image';
-  } 
-  // ၂။ ဗီဒီယို ပို့လာပါက စစ်ဆေးခြင်း (Video & Video Note)
+  }
+  // ဗီဒီယို ပို့လာပါက စစ်ဆေးခြင်း
   else if (msg.video) {
     fileId = msg.video.file_id;
     mediaType = 'video';
@@ -38,7 +84,6 @@ export default async function handler(req, res) {
     try {
       const fileInfoRes = await fetch(`https://api.telegram.org/bot${chatBotToken}/getFile?file_id=${fileId}`);
       const fileInfo = await fileInfoRes.json();
-
       if (fileInfo.ok && fileInfo.result && fileInfo.result.file_path) {
         mediaUrl = `https://api.telegram.org/file/bot${chatBotToken}/${fileInfo.result.file_path}`;
       }
@@ -95,12 +140,12 @@ export default async function handler(req, res) {
           body: JSON.stringify(adminMsgPayload)
         });
 
-        // နောက်ဆုံးစာတို မွမ်းမံခြင်း
+        // နောက်ဆုံးစာကို မွမ်းမံခြင်း
         await fetch(`${firebaseUrl}/support_chats/${targetSessionId}.json`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            lastMessage: `Admin: ${text || (mediaType === 'video' ? '🎥 ဗီဒီယို' : '📷 ဓာတ်ပုံ')}`,
+            lastMessage: `Admin: ${text || (mediaType === 'video' ? '📹 ဗီဒီယို' : '📷 ဓာတ်ပုံ')}`,
             lastSender: 'admin',
             lastUpdate: Date.now()
           })

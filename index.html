@@ -4921,41 +4921,49 @@ orders = deduplicateOrders(raw);
     }
 
     function sendTelegramNotificationWithExactTime(o) {
-      if (!botConfig.tgToken || !botConfig.tgChatId) return;
-      let itemsTxt = (o.items || []).map(i => `• <b>${i.name}</b> ${i.color ? `[🎨 ${i.color}]` : ''} (SKU: ${i.sku||'-'}) x${i.qty} - ${(i.price*i.qty).toLocaleString()} Ks`).join('\n');
-      
-      const msg = `🛍 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n` +
-        `🆔 <b>Order ID:</b> <code>${o.id}</code>\n` +
-        `📅 <b>ရက်စွဲနှင့် အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `👤 <b>ဝယ်သူ:</b> ${o.customer}\n` +
-        `📱 <b>ဖုန်း:</b> ${o.phone}\n` +
-        `📍 <b>လိပ်စာ:</b> ${o.address} (${o.township})\n` +
-        (o.specialNote ? `📝 <b>အထူးမှာကြားချက်:</b> <mark>${o.specialNote}</mark>\n` : '') +
-        `🚚 <b>ပို့ဆောင်ရေး:</b> ${o.deliveryService}\n` +
-        `💳 <b>ငွေပေးချေမှု:</b> ${o.payment}\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `📦 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsTxt}\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${(o.subTotal||o.total).toLocaleString()} Ks\n` +
-        `🏷 <b>လျှော့ဈေး:</b> -${(o.discountAmount||0).toLocaleString()} Ks\n` +
-        `🚚 <b>ပို့ဆောင်ခ:</b> ${(o.deliveryFee||0).toLocaleString()} Ks\n` +
-        `💵 <b>စုစုပေါင်း:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n` +
-        (o.slipUrl ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : '');
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
+  const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+  let itemsTxt = (o.items || []).map(i => `  • <b>${i.name}</b> ${i.color ? `[🎨 ${i.color}]` : ''} (SKU: ${i.sku || '-'}) x${i.qty} = ${Number(i.price * i.qty).toLocaleString()} Ks`).join('\n');
 
-      fetch(`https://api.telegram.org/bot${botConfig.tgToken.trim()}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: botConfig.tgChatId.trim(), text: msg, parse_mode: 'HTML' }),
-        signal: controller.signal
-      }).then(() => clearTimeout(timeoutId)).catch(e => {
-        clearTimeout(timeoutId);
-        console.warn('Telegram notice note (ISP bypass fallback):', e);
-      });
-    }
+  const msg = `⚡ <b>အော်ဒါသစ် ရောက်ရှိပါပြီ!</b> ⚡\n` +
+    `🆔 <b>Order ID:</b> <code>${o.id}</code>\n` +
+    `📅 <b>ရက်စွဲနှင့် အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}\n` +
+    `──────────────────\n` +
+    `👤 <b>ဝယ်သူ:</b> ${o.customer}\n` +
+    `📞 <b>ဖုန်း:</b> ${o.phone}\n` +
+    `📍 <b>လိပ်စာ:</b> ${o.address} (${o.township})\n` +
+    (o.specialNote ? `📝 <b>အထူးမှာကြားချက်:</b> <mark>${o.specialNote}</mark>\n` : '') +
+    `🚚 <b>ပို့ဆောင်ရေး:</b> ${o.deliveryService}\n` +
+    `💳 <b>ငွေပေးချေမှု:</b> ${o.payment}\n` +
+    `──────────────────\n` +
+    `📦 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsTxt}\n` +
+    `──────────────────\n` +
+    `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${(o.subTotal || o.total).toLocaleString()} Ks\n` +
+    (o.discountAmount ? `🏷️ <b>လျှော့ဈေး:</b> -${Number(o.discountAmount).toLocaleString()} Ks\n` : '') +
+    `🛵 <b>ပို့ဆောင်ခ:</b> ${(o.deliveryFee || 0).toLocaleString()} Ks\n` +
+    `💵 <b>စုစုပေါင်းကျသင့်ငွေ:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n` +
+    (o.slipUrl ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">👉 ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : '');
+
+  // Backend Webhook API သို့ လုံခြုံစွာ လွှဲပြောင်းပေးပို့ခြင်း
+  fetch('/api/telegram-webhook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'sendOrderNotification',
+      chatId: targetChatId,
+      topicId: targetTopicId,
+      messageText: msg
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    console.log('Order notification sent via backend webhook:', data);
+  })
+  .catch(err => {
+    console.error('Failed to send order notification:', err);
+  });
+}
 
     var currentAdjProductId = null;
 
