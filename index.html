@@ -4816,6 +4816,16 @@ function renderRecentlyViewedSection() {
 setTimeout(() => {
   renderRecentlyViewedSection();
 }, 1500);
+// Open Product from Shared URL Parameter (?product=ID)
+window.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sharedPid = urlParams.get('product');
+  if (sharedPid) {
+    setTimeout(() => {
+      if (typeof openProductDetail === 'function') openProductDetail(sharedPid);
+    }, 800);
+  }
+});
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
       if (!p) return;
@@ -4902,14 +4912,33 @@ setTimeout(() => {
       }
 
       const socBox = document.getElementById('detailSocialLinks');
-      if (socBox) {
-        socBox.innerHTML = `
-          <a href="${p.youtube || 'https://youtube.com/@tolimolimyanmar'}" target="_blank" class="detail-social-btn" style="background:#FF0000;"><i class="fab fa-youtube"></i> YouTube</a>
-          <a href="${p.facebook || 'https://www.facebook.com/@adulttoysshopmyanmar'}" target="_blank" class="detail-social-btn" style="background:#1877F2;"><i class="fab fa-facebook"></i> Facebook</a>
-          <a href="${p.telegram || 'http://t.me/tolimolimyanmarchannel'}" target="_blank" class="detail-social-btn" style="background:#229ED9;"><i class="fab fa-telegram"></i> Telegram</a>
-          <a href="${p.tiktok || 'http://tiktok.com/@tolimolimyanmar'}" target="_blank" class="detail-social-btn" style="background:#000; border:1px solid #444;"><i class="fab fa-tiktok"></i> TikTok</a>
-        `;
-      }
+if (socBox) {
+  const currentUrl = window.location.origin + window.location.pathname + '?product=' + encodeURIComponent(p.id);
+  const shareTitle = encodeURIComponent(`${p.name} - ${Number(p.price || 0).toLocaleString()} MMK`);
+  const encodedUrl = encodeURIComponent(currentUrl);
+
+  socBox.innerHTML = `
+    <div style="width:100%; margin-top:8px;">
+      <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+        <i class="fas fa-share-alt"></i> ပစ္စည်းမျှဝေရန် (Share):
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <a href="https://t.me/share/url?url=${encodedUrl}&text=${shareTitle}" target="_blank" style="flex:1; min-width:70px; background:#229ED9; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
+          <i class="fab fa-telegram-plane"></i> Telegram
+        </a>
+        <a href="viber://forward?text=${shareTitle}%20${encodedUrl}" target="_blank" style="flex:1; min-width:70px; background:#7360f2; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
+          <i class="fab fa-viber"></i> Viber
+        </a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="flex:1; min-width:70px; background:#1877f2; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
+          <i class="fab fa-facebook-f"></i> Share
+        </a>
+        <button type="button" onclick="navigator.clipboard.writeText('${currentUrl}').then(()=>alert('ပစ္စည်း Link ကို Copy ကူးပြီးပါပြီ!'))" style="flex:1; min-width:70px; background:#334155; border:1px solid #475569; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
+          <i class="fas fa-copy"></i> Copy Link
+        </button>
+      </div>
+    </div>
+  `;
+}
 
       document.getElementById('detailDescription').textContent = p.description || 'အချက်အလက် မရှိသေးပါ';
       
