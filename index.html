@@ -2466,13 +2466,16 @@ function scrollCategories(amount) {
       </div>
 
       <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <button onclick="printThermalInvoice()" class="btn-secondary" style="flex:1; background:#059669; border:none; padding:7px;">
-          <i class="fas fa-print"></i> Printer ထုတ်မည်
-        </button>
-        <button onclick="downloadInvoiceAsPNG()" class="btn-secondary" style="flex:1; background:#2563eb; border:none; padding:7px;">
-          <i class="fas fa-image"></i> PNG သိမ်းမည်
-        </button>
-      </div>
+  <button type="button" onclick="printOrderWaybill(currentActiveOrderForDetail ? currentActiveOrderForDetail.id : null)" class="btn-secondary" style="flex:1.2; background:#d97706; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; font-weight:bold; cursor:pointer;">
+    <i class="fas fa-shipping-fast"></i> Waybill ထုတ်မည်
+  </button>
+  <button type="button" onclick="printThermalInvoice()" class="btn-secondary" style="flex:1; background:#059669; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">
+    <i class="fas fa-print"></i> ဘောင်ချာ Print
+  </button>
+  <button type="button" onclick="downloadInvoiceAsPNG()" class="btn-secondary" style="flex:0.9; background:#2563eb; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">
+    <i class="fas fa-image"></i> PNG
+  </button>
+</div>
 
       <div style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #334155; margin-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -5530,7 +5533,73 @@ orders = deduplicateOrders(raw);
       // NOTIFY CUSTOMER REALTIME ON STATUS CHANGE
       notifyCustomerOrderStatusChange(currentActiveOrderForDetail);
     }
+    // ==========================================
+// ONE-CLICK DISCREET WAYBILL / SHIPPING LABEL PRINT
+// ==========================================
+function printOrderWaybill(orderId) {
+  const o = (typeof orders !== 'undefined') ? orders.find(x => x.id === orderId) : null;
+  if (!o) return alert('အော်ဒါဒေတာ ရှာမတွေ့ပါခင်ဗျာ');
 
+  const printDate = o.createdAtFormatted || (typeof formatExactDateTime === 'function' ? formatExactDateTime(o.date) : o.date);
+  const isCod = (o.payment && o.payment.toLowerCase().includes('cod')) || (o.payment && o.payment.includes('ပစ္စည်းရောက်ငွေချေ'));
+  const codBadge = isCod ? `<div style="border: 2px solid #000; padding: 6px; margin-top: 6px; font-weight: bold; font-size: 16px; text-align: center;">💰 COD ကောက်ခံရန်ငွေ: ${Number(o.total).toLocaleString()} MMK</div>` : `<div style="border: 1px dashed #666; padding: 4px; margin-top: 6px; font-size: 12px; text-align: center;">✅ ငွေချေပြီး (Prepaid - Do Not Collect)</div>`;
+
+  const waybillHtml = `
+    <html>
+      <head>
+        <title>Waybill - ${o.id}</title>
+        <style>
+          @page { size: 80mm auto; margin: 3mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; width: 74mm; margin: 0 auto; padding: 4px; color: #000; }
+          .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 5px; margin-bottom: 8px; }
+          .title { font-size: 16px; font-weight: 800; letter-spacing: 1px; }
+          .sec { margin-bottom: 8px; font-size: 12px; line-height: 1.4; }
+          .lbl { font-weight: bold; }
+          .box { border: 1.5px solid #000; border-radius: 6px; padding: 6px; margin: 6px 0; }
+          .footer { font-size: 10px; text-align: center; border-top: 1px dashed #888; padding-top: 5px; margin-top: 8px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">TOLIMOLI MYANMAR</div>
+          <div style="font-size: 10px;">DELIVERY WAYBILL / SHIPPING LABEL</div>
+        </div>
+
+        <div class="sec">
+          <div><span class="lbl">ORDER ID:</span> <b>${o.id}</b></div>
+          <div><span class="lbl">ရက်စွဲ:</span> ${printDate}</div>
+        </div>
+
+        <div class="box">
+          <div style="font-size: 11px; color: #333; margin-bottom: 2px;">ပို့ဆောင်ရမည့်လိပ်စာ (RECIPIENT)</div>
+          <div style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">👤 ${o.customer}</div>
+          <div style="font-size: 15px; font-weight: bold; margin-bottom: 3px;">📞 ${o.phone}</div>
+          <div style="font-size: 12.5px;">📍 ${o.address}</div>
+          <div style="font-size: 13px; font-weight: bold; color: #000; margin-top: 2px;">🚩 မြို့နယ်/ဂိတ်: ${o.township}</div>
+          ${o.specialNote ? `<div style="font-size: 11px; margin-top: 4px; background: #eee; padding: 2px 4px;">📝 မှတ်ချက်: ${o.specialNote}</div>` : ''}
+        </div>
+
+        <div class="sec" style="font-size: 11.5px;">
+          <div><span class="lbl">🚚 Delivery:</span> ${o.deliveryService || 'Standard Delivery'}</div>
+          <div><span class="lbl">📦 ပစ္စည်းအမျိုးအစား:</span> <b>အထွေထွေ အလှကုန် (Cosmetics & Personal Care)</b></div>
+        </div>
+
+        ${codBadge}
+
+        <div class="footer">
+          ကျေးဇူးတင်ပါသည် • Tolimoli Myanmar<br>
+          အရေးပေါ်ဖုန်း: 09768124433
+        </div>
+      </body>
+    </html>
+  `;
+
+  const w = window.open('', '_blank', 'height=650,width=440');
+  w.document.write(waybillHtml);
+  w.document.close();
+  w.focus();
+  setTimeout(() => { w.print(); w.close(); }, 350);
+}
     function printThermalInvoice() {
       const printContents = document.getElementById('printableInvoiceCard').innerHTML;
       const win = window.open('', '', 'height=600,width=400');
