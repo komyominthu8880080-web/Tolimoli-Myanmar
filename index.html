@@ -1989,7 +1989,23 @@ function scrollCategories(amount) {
   <div class="modal-overlay" id="productDetailModal">
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal('productDetailModal')"><i class="fas fa-times"></i></button>
-      
+
+      <!-- FLOATING QUICK BUY / STICKY BAR -->
+  <div id="detailStickyBar" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-top: 1px solid rgba(99, 102, 241, 0.3); padding: 8px 12px; z-index: 9999; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+        <img id="stickyBarImg" src="logo.png" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
+        <div style="min-width: 0;">
+          <div id="stickyBarTitle" style="font-size: 11px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">-</div>
+          <div id="stickyBarPrice" style="font-size: 11px; color: #fbbf24; font-weight: bold;">-</div>
+        </div>
+      </div>
+      <button type="button" id="stickyBarAddBtn" onclick="const b = document.getElementById('detailAddToCartBtn'); if(b && !b.disabled) b.click();" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border: none; padding: 7px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(79,70,229,0.4);">
+        <i class="fas fa-cart-plus"></i> ခြင်းတောင်းထဲထည့်မည်
+      </button>
+    </div>
+  </div>
+
       <!-- STICKY TOP IMAGE SECTION -->
     <div class="detail-sticky-top" onclick="openImageLightbox(0)" style="cursor: pointer;" title="ပုံကြီးကြည့်ရန် နှိပ်ပါ">
       <div id="detailMediaContainer" class="detail-media"></div>
@@ -4839,7 +4855,44 @@ window.addEventListener('DOMContentLoaded', () => {
       const stockNum = Number(p.stock !== undefined ? p.stock : 10);
       const isOutOfStock = stockNum <= 0;
       const isLowStock = stockNum > 0 && stockNum <= 3;
+      
+      // Update Sticky Quick Buy Bar Data
+  const stickyBar = document.getElementById('detailStickyBar');
+  const stickyImg = document.getElementById('stickyBarImg');
+  const stickyTitle = document.getElementById('stickyBarTitle');
+  const stickyPrice = document.getElementById('stickyBarPrice');
+  const stickyAddBtn = document.getElementById('stickyBarAddBtn');
 
+  if (stickyBar) {
+    stickyBar.style.display = 'none'; // စဖွင့်ချိန်တွင် ဖျောက်ထားမည်
+    if (stickyTitle) stickyTitle.textContent = p.name || '';
+    if (stickyPrice) stickyPrice.textContent = Number(p.price || 0).toLocaleString() + ' MMK';
+    if (stickyImg) {
+      const sImg = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+      stickyImg.src = sImg;
+    }
+    if (stickyAddBtn) {
+      stickyAddBtn.disabled = isOutOfStock;
+      stickyAddBtn.style.opacity = isOutOfStock ? '0.5' : '1';
+      stickyAddBtn.innerHTML = isOutOfStock ? '<i class="fas fa-ban"></i> ပစ္စည်းကုန်ပြီ' : '<i class="fas fa-cart-plus"></i> ခြင်းတောင်းထဲထည့်မည်';
+    }
+  }
+
+  // Scroll ဆွဲချိန် အလိုအလျောက် ပေါ်/ပျောက် ပြုလုပ်ခြင်း
+  if (modalContentBox) {
+    modalContentBox.onscroll = () => {
+      const addBtn = document.getElementById('detailAddToCartBtn');
+      if (stickyBar && addBtn) {
+        const btnRect = addBtn.getBoundingClientRect();
+        // မူလ Add-to-cart ခလုတ် မျက်နှာပြင်မှ လွတ်သွားပါက Sticky Bar ပေါ်လာမည်
+        if (btnRect.bottom < 120 || btnRect.top > window.innerHeight) {
+          stickyBar.style.display = 'block';
+        } else {
+          stickyBar.style.display = 'none';
+        }
+      }
+    };
+  }
       document.getElementById('detailTitle').textContent = isDiscreetMaskActive ? getDiscreetMaskName(p.name) : p.name;
       renderProductReviews(p);
       document.getElementById('detailSku').textContent = 'SKU: ' + (p.sku || 'N/A');
