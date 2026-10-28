@@ -4737,11 +4737,90 @@ function submitVerifiedReview(productId) {
   const prod = (typeof products !== 'undefined') ? products.find(x => x.id === productId) : null;
   renderProductReviews(prod || { id: productId });
 }
+  // ==========================================
+// RECENTLY VIEWED PRODUCTS ENGINE
+// ==========================================
+function trackRecentlyViewed(productId) {
+  try {
+    let recent = JSON.parse(localStorage.getItem('tm_recent_views') || '[]');
+    recent = recent.filter(id => id !== productId);
+    recent.unshift(productId);
+    if (recent.length > 10) recent = recent.slice(0, 10);
+    localStorage.setItem('tm_recent_views', JSON.stringify(recent));
+    renderRecentlyViewedSection();
+  } catch (e) {
+    console.log('Recent view track error:', e);
+  }
+}
 
+function renderRecentlyViewedSection() {
+  try {
+    let container = document.getElementById('tmRecentlyViewedWrapper');
+    const grid = document.getElementById('productGrid');
+    if (!grid) return;
+
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'tmRecentlyViewedWrapper';
+      container.style.marginTop = '24px';
+      container.style.marginBottom = '20px';
+      container.style.padding = '0 10px';
+      grid.parentNode.insertBefore(container, grid.nextSibling);
+    }
+
+    const recentIds = JSON.parse(localStorage.getItem('tm_recent_views') || '[]');
+    if (!Array.isArray(recentIds) || recentIds.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const recentProducts = recentIds
+      .map(id => (typeof products !== 'undefined' ? products : []).find(p => p.id === id))
+      .filter(p => p && !p.isHidden);
+
+    if (recentProducts.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+    container.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div style="font-size:13px; font-weight:bold; color:#f8fafc; display:flex; align-items:center; gap:6px;">
+          <i class="fas fa-history" style="color:#6366f1;"></i> မကြာသေးမီက သင်ကြည့်ရှုခဲ့သည်များ
+        </div>
+        <button type="button" onclick="localStorage.removeItem('tm_recent_views'); renderRecentlyViewedSection();" style="background:none; border:none; color:#94a3b8; font-size:11px; cursor:pointer;">
+          ရှင်းလင်းမည်
+        </button>
+      </div>
+      <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none;">
+        ${recentProducts.map(p => {
+          const img = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+          const priceStr = Number(p.price || 0).toLocaleString();
+          return `
+            <div onclick="if(typeof openProductDetail==='function') openProductDetail('${p.id}')" style="flex:0 0 110px; background:#1e1b4b; border:1px solid rgba(99,102,241,0.25); border-radius:10px; padding:8px; cursor:pointer; text-align:center; transition:transform 0.2s;">
+              <img src="${img}" style="width:100%; height:75px; object-fit:cover; border-radius:6px; margin-bottom:6px;" onerror="this.src='logo.png'">
+              <div style="font-size:11px; font-weight:bold; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name || ''}</div>
+              <div style="font-size:10px; color:#fbbf24; font-weight:bold; margin-top:2px;">${priceStr} MMK</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  } catch (err) {
+    console.log('Render recent views error:', err);
+  }
+}
+
+// စာမျက်နှာ စဖွင့်ချိန်တွင် အလိုအလျောက် စစ်ဆေးပြသခြင်း
+setTimeout(() => {
+  renderRecentlyViewedSection();
+}, 1500);
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
       if (!p) return;
       currentDetailProduct = p;
+      if (typeof trackRecentlyViewed === 'function') trackRecentlyViewed(id);
 
       // Modal ပွင့်တိုင်း အပေါ်ဆုံးမှ အမြဲ စတင်ပြသစေရန်
       const modalContentBox = document.querySelector('#productDetailModal .modal-content');
