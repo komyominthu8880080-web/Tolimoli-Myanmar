@@ -2217,7 +2217,7 @@ function scrollCategories(amount) {
             <div class="pay-acc-name">ပစ္စည်းရောက်မှငွေချေ</div>
           </div>
         </div>
-        
+
         <!-- DYNAMIC QR CODE DISPLAY AREA -->
 <div id="dynamicQrDisplayArea" style="margin-bottom: 12px;"></div>
 
@@ -10965,46 +10965,48 @@ function renderDynamicPaymentQR(paymentType, totalAmount) {
   const qrContainer = document.getElementById('dynamicQrDisplayArea');
   if (!qrContainer) return;
 
-  // ဆိုင်၏ လက်ခံငွေစာရင်း အချက်အလက်များ
-  const kpayPhone = '09768124433';
-  const wavePhone = '09768124433';
-  const accountName = 'Tolimoli Myanmar';
-
+  const type = String(paymentType).toLowerCase();
   let qrPayload = '';
   let badgeColor = '';
   let title = '';
+  let accName = '';
+  const phone = '09768124433';
 
-  if (paymentType === 'kpay') {
+  // KBZPay / kpay စစ်ဆေးခြင်း
+  if (type.includes('kbz') || type.includes('kpay')) {
     title = 'KBZPay ဖြင့် ငွေပေးချေရန်';
     badgeColor = '#10529e';
-    // KPay Format Payload
-    qrPayload = `kpay://transfer?phone=${kpayPhone}&amount=${totalAmount}&name=${encodeURIComponent(accountName)}`;
-  } else if (paymentType === 'wave') {
+    accName = 'Ma Win Win Myint';
+    qrPayload = `kpay://transfer?phone=${phone}&amount=${totalAmount}&name=${encodeURIComponent(accName)}`;
+  } 
+  // WavePay / wave စစ်ဆေးခြင်း
+  else if (type.includes('wave')) {
     title = 'WavePay ဖြင့် ငွေပေးချေရန်';
     badgeColor = '#ffd000';
-    // WavePay Format Payload
-    qrPayload = `wavepay://transfer?phone=${wavePhone}&amount=${totalAmount}&name=${encodeURIComponent(accountName)}`;
+    accName = 'Nu Nu Htwe';
+    qrPayload = `wavepay://transfer?phone=${phone}&amount=${totalAmount}&name=${encodeURIComponent(accName)}`;
   } else {
+    // Banking သို့မဟုတ် COD ဖြစ်ပါက QR ရှင်းလင်းထားမည်
     qrContainer.innerHTML = '';
     return;
   }
 
-  // QR Code Image API (Google Chart QR API အား အသုံးပြု၍ Dynamic QR ထုတ်လုပ်ခြင်း)
+  // QR Code Image API
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
 
   qrContainer.innerHTML = `
-    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center; margin-top: 10px;">
-      <div style="font-weight: 600; font-size: 13px; color: ${badgeColor === '#ffd000' ? '#ffd000' : '#60a5fa'}; margin-bottom: 8px;">
+    <div style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; text-align: center; margin-top: 10px;">
+      <div style="font-weight: 700; font-size: 13px; color: ${badgeColor === '#ffd000' ? '#ffd000' : '#60a5fa'}; margin-bottom: 8px;">
         ${title}
       </div>
       <div style="background: #ffffff; padding: 8px; border-radius: 8px; display: inline-block;">
         <img src="${qrImageUrl}" alt="Payment QR" style="width: 140px; height: 140px; display: block;" />
       </div>
-      <div style="font-size: 11px; margin-top: 8px; color: #cbd5e1;">
-        လွှဲရမည့်ပမာဏ: <b style="color: #f59e0b; font-size: 13px;">${Number(totalAmount).toLocaleString()} MMK</b>
+      <div style="font-size: 11.5px; margin-top: 8px; color: #cbd5e1;">
+        လွှဲရမည့်ပမာဏ: <b style="color: #f59e0b; font-size: 13.5px;">${Number(totalAmount).toLocaleString()} MMK</b>
       </div>
-      <div style="font-size: 10.5px; color: #94a3b8; margin-top: 2px;">
-        ဖုန်းနံပါတ်: <b>09768124433</b> (${accountName})
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 3px;">
+        ဖုန်းနံပါတ်: <b style="color:#ffffff;">${phone}</b> (${accName})
       </div>
     </div>
   `;
