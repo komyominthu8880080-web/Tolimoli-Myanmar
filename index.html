@@ -4085,13 +4085,10 @@ orders = deduplicateOrders(raw);
         }
         const matchSearch = (p.name || '').toLowerCase().includes(searchVal) || (p.sku || '').toLowerCase().includes(searchVal);
         
-        // Auto-Hide Out of Stock & Hidden Products from Customers
-        const stockNum = Number(p.stock !== undefined ? p.stock : 10);
-        const isOutOfStock = stockNum <= 0;
-        if (botConfig.autoHideOutOfStock && isOutOfStock) return false;
-        if (p.isHidden) return false;
+        // Admin က လက်ဖြင့် မျက်လုံးပိတ် (ဖျောက်ထား) သော ပစ္စည်းများကိုသာ Customers ထံမှ ဖျောက်ခြင်း
+    if (p.isHidden) return false;
 
-        return matchCat && matchSearch;
+    return matchCat && matchSearch;
       });
 
       if (sortVal === 'price_high') {
@@ -4112,11 +4109,14 @@ orders = deduplicateOrders(raw);
         });
       }
 
-      filtered.sort((a, b) => {
-        const aOut = (Number(a.stock) || 0) <= 0 ? 1 : 0;
-        const bOut = (Number(b.stock) || 0) <= 0 ? 1 : 0;
-        return aOut - bOut;
-      });
+      // စတော့ခ်ရှိသော ပစ္စည်းများကို အပေါ်တင်ပြီး ကုန်သွားသော ပစ္စည်းများကို အောက်ဆုံးသို့ အလိုအလျောက် ပို့ပေးခြင်း
+  filtered.sort((a, b) => {
+    const aStock = Number(a.stock !== undefined ? a.stock : 10);
+    const bStock = Number(b.stock !== undefined ? b.stock : 10);
+    const aOut = aStock <= 0 ? 1 : 0;
+    const bOut = bStock <= 0 ? 1 : 0;
+    return aOut - bOut;
+  });
 
       if (filtered.length === 0) {
         grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:35px; color:var(--text-muted); font-size:0.85rem;">ပစ္စည်း မတွေ့ရှိပါ</div>';
