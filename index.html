@@ -35,7 +35,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     function downloadFullDatabaseBackup() {
       const backupData = {
@@ -6000,7 +6000,121 @@ function printOrderWaybill(orderId) {
             </div>
           `).join('');
       }
+      // ==========================================
+  // CHART.JS SALES VISUAL CHARTS (DAILY TREND & TOP SELLERS)
+  // ==========================================
+  renderVisualSalesCharts(orders);
     }
+
+    // Global chart instances tracking (re-render တိုင်း destroy လုပ်ပေးရန်)
+var dailySalesChartInstance = null;
+var topSellersChartInstance = null;
+
+function renderVisualSalesCharts(orderList) {
+  if (typeof Chart === 'undefined') return;
+
+  let chartWrapper = document.getElementById('salesChartsContainer');
+  if (!chartWrapper) {
+    const parent = document.getElementById('analyticsOrdersBreakdown')?.parentNode;
+    if (!parent) return;
+    chartWrapper = document.createElement('div');
+    chartWrapper.id = 'salesChartsContainer';
+    chartWrapper.style.marginTop = '15px';
+    chartWrapper.innerHTML = `
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid #334155; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+        <h4 style="color:var(--gold); font-size:12.5px; margin:0 0 10px 0;"><i class="fas fa-chart-line"></i> နေ့စဉ် ရောင်းအား အတက်အကျ (Daily Sales Trend)</h4>
+        <div style="position:relative; height:180px;"><canvas id="dailySalesChart"></canvas></div>
+      </div>
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid #334155; border-radius: 10px; padding: 12px;">
+        <h4 style="color:var(--gold); font-size:12.5px; margin:0 0 10px 0;"><i class="fas fa-crown"></i> အရောင်းရဆုံး ပစ္စည်း ထိပ်တန်း ၅ မျိုး (Top 5 Best Sellers)</h4>
+        <div style="position:relative; height:180px;"><canvas id="topSellersChart"></canvas></div>
+      </div>
+    `;
+    parent.appendChild(chartWrapper);
+  }
+
+  // ၁။ နေ့စဉ် ရောင်းအား စာရင်း အနှစ်ချုပ် (Daily Trend Data)
+  const dailyMap = {};
+  const itemMap = {};
+
+  (orderList || []).forEach(o => {
+    if (!o || String(o.status).includes('Cancelled') || String(o.status).includes('Returned')) return;
+    const dStr = o.date ? String(o.date).slice(0, 10) : 'Other';
+    dailyMap[dStr] = (dailyMap[dStr] || 0) + (Number(o.total) || 0);
+
+    if (Array.isArray(o.items)) {
+      o.items.forEach(it => {
+        const name = it.name || 'Unknown Item';
+        itemMap[name] = (itemMap[name] || 0) + (Number(it.qty) || 1);
+      });
+    }
+  });
+
+  const sortedDates = Object.keys(dailyMap).sort().slice(-7); // နောက်ဆုံး ၇ ရက်
+  const dailyAmounts = sortedDates.map(d => dailyMap[d]);
+
+  // Chart 1: Line Chart (Daily Trend)
+  const ctxDaily = document.getElementById('dailySalesChart');
+  if (ctxDaily) {
+    if (dailySalesChartInstance) dailySalesChartInstance.destroy();
+    dailySalesChartInstance = new Chart(ctxDaily, {
+      type: 'line',
+      data: {
+        labels: sortedDates.map(d => d.slice(5)), // MM-DD
+        datasets: [{
+          label: 'ဝင်ငွေ (MMK)',
+          data: dailyAmounts,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.15)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: '#f59e0b'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+          y: { ticks: { color: '#94a3b8', font: { size: 9 }, callback: v => (v >= 1000 ? (v/1000) + 'k' : v) }, grid: { color: 'rgba(255,255,255,0.06)' } }
+        }
+      }
+    });
+  }
+
+  // ၂။ အကောင်းဆုံး ရောင်းရသော ပစ္စည်း ၅ မျိုး (Top 5 Sellers Data)
+  const topItems = Object.keys(itemMap).map(k => ({ name: k, qty: itemMap[k] }))
+    .sort((a, b) => b.qty - a.qty).slice(0, 5);
+
+  const ctxTop = document.getElementById('topSellersChart');
+  if (ctxTop) {
+    if (topSellersChartInstance) topSellersChartInstance.destroy();
+    topSellersChartInstance = new Chart(ctxTop, {
+      type: 'bar',
+      data: {
+        labels: topItems.map(i => i.name.length > 12 ? i.name.slice(0, 11) + '..' : i.name),
+        datasets: [{
+          label: 'ရောင်းရအရေအတွက်',
+          data: topItems.map(i => i.qty),
+          backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'],
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8', font: { size: 9.5 } }, grid: { display: false } },
+          y: { ticks: { color: '#94a3b8', font: { size: 9.5 }, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.06)' } }
+        }
+      }
+    });
+  }
+}
 
     function sendDailySalesSummaryTelegram() {
       if (!botConfig.tgToken || !botConfig.tgChatId) {
