@@ -4777,7 +4777,8 @@ function submitVerifiedReview(productId) {
       // 1-Click Bundle Deal ကို Display လုပ်ပေးခြင်း
   if (typeof render1ClickBundleDeal === 'function') {
     render1ClickBundleDeal(p);
-   openModal('productDetailModal');
+    }
+  openModal('productDetailModal');
 }
 
 // ==========================================
@@ -4809,7 +4810,7 @@ function renderBackInStockNotifyUI(prod) {
     </div>
     <div style="display:flex; gap:6px;">
       <input type="tel" id="backInStockPhoneInput" placeholder="ဆက်သွယ်ရမည့် ဖုန်းနံပါတ် (09...)" style="flex:1; background:#0f172a; border:1px solid #334155; color:#fff; font-size:11px; padding:6px 8px; border-radius:6px; outline:none;">
-      <button type="button" onclick="submitBackInStockAlert('${prod.id}', '${prod.name.replace(/'/g, "\\'")}')" style="background:#f59e0b; border:none; color:#000; font-size:11px; font-weight:bold; padding:6px 12px; border-radius:6px; cursor:pointer; white-space:nowrap;">
+      <button type="button" onclick="submitBackInStockAlert('${prod ? prod.id : ''}', '${(prod && prod.name ? prod.name : '').replace(/'/g, "\\'")}')" style="background:#f59e0b; border:none; color:#000; font-size:11px; font-weight:bold; padding:6px 12px; border-radius:6px; cursor:pointer; white-space:nowrap;">
         မှတ်သားမည်
       </button>
     </div>
