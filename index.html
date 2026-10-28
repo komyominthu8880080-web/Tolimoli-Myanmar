@@ -10699,7 +10699,22 @@ function renderPublicDeliveryList(list) {
       <div style="background: #1e293b; padding: 10px 12px; border-radius: 8px; border-left: 3px solid #ef4444;">
         <div style="font-weight: bold; font-size: 13px; color: #f87171;">[${meta.prefix}] ${st.name || ''}</div>
         <div style="font-size: 11.5px; color: #cbd5e1; margin: 4px 0;">📍 ${st.address || 'လိပ်စာ အသေးစိတ် မဖော်ပြထားပါ'}</div>
-        ${st.phone ? `<a href="tel:${st.phone}" style="display: inline-block; font-size: 11px; background: #ef4444; color: #fff; padding: 3px 8px; border-radius: 4px; text-decoration: none; margin-top: 4px;">📞 ${st.phone} သို့ ဖုန်းခေါ်မည်</a>` : ''}
+        ${(() => {
+            if (!st.phone) return '';
+            const pList = String(st.phone).split(/[,/]+/).map(p => p.trim()).filter(Boolean);
+            return `
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                ${pList.map(p => {
+                  const cleanTel = p.replace(/[^0-9+]/g, '');
+                  return `
+                    <a href="tel:${cleanTel}" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #ef4444; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11.5px; font-weight: bold; text-decoration: none;">
+                      <i class="fas fa-phone-alt"></i> 📞 ${p} သို့ ဖုန်းခေါ်မည်
+                    </a>
+                  `;
+                }).join('')}
+              </div>
+            `;
+          })()}
       </div>
     `;
   }).join('');
