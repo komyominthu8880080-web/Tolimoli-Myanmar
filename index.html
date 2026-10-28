@@ -4158,7 +4158,7 @@ orders = deduplicateOrders(raw);
         const displayName = isDiscreetMaskActive ? getDiscreetMaskName(p.name) : p.name;
 
         return `
-          <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}" onclick="${isOutOfStock ? '' : `openProductDetail('${p.id}')`}">
+          <div class="product-card ${isOutOfStock ? 'out-of-stock' : ''}" onclick="openProductDetail('${p.id}')" style="cursor: pointer;">
             ${isOutOfStock ? '<div class="out-of-stock-banner">❌ ပစ္စည်းကုန်ပါပြီ</div>' : ''}
             <button class="btn-card-wishlist ${isWishlisted ? 'active' : ''}" onclick="event.stopPropagation(); toggleWishlist('${p.id}')" title="အသဲပုံ (Wishlist)">
               <i class="${isWishlisted ? 'fas' : 'far'} fa-heart"></i>
@@ -4198,7 +4198,7 @@ orders = deduplicateOrders(raw);
   <!-- အောက်တန်း - ဘေးချင်းယှဉ် ၂ ခု -->
   <div class="product-card-actions-sub">
     <!-- ၂။ အသေးစိတ် -->
-    <button type="button" class="btn-view-detail" onclick="event.stopPropagation(); if(typeof openProductDetail==='function') openProductDetail(${p.id})">
+    <button type="button" class="btn-view-detail" onclick="event.stopPropagation(); if(typeof openProductDetail==='function') openProductDetail('${p.id}');" style="pointer-events: auto !important; cursor: pointer;">
       <i class="fas fa-eye"></i> အသေးစိတ်
     </button>
     <!-- ၃။ Viber -->
