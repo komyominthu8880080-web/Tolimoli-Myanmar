@@ -4510,9 +4510,95 @@ orders = deduplicateOrders(raw);
         addBtn.disabled = false; addBtn.innerHTML = '<i class="fas fa-cart-plus"></i> ခြင်းတောင်းထဲထည့်မည်';
         addBtn.onclick = () => { addSelectedVariantsToCart(p.id); };
       }
+      
+      // 1-Click Bundle Deal ကို Display လုပ်ပေးခြင်း
+  if (typeof render1ClickBundleDeal === 'function') {
+    render1ClickBundleDeal(p);
+  }
 
-      openModal('productDetailModal');
-    }
+  openModal('productDetailModal');
+}
+
+// ==========================================
+// 1-CLICK BUNDLE / COMBO DEALS LOGIC
+// ==========================================
+function render1ClickBundleDeal(currentProd) {
+  const container = document.getElementById('detailCrossSellBox');
+  if (!container || !currentProd || typeof products === 'undefined') return;
+
+  const bundlePartner = products.find(p => p.id !== currentProd.id && (p.stock === undefined || Number(p.stock) > 0));
+  if (!bundlePartner) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const p1Price = Number(currentProd.price) || 0;
+  const p2Price = Number(bundlePartner.price) || 0;
+  const originalComboTotal = p1Price + p2Price;
+  const discountedComboTotal = Math.round(originalComboTotal * 0.90);
+  const saveAmount = originalComboTotal - discountedComboTotal;
+
+  const p1Img = (Array.isArray(currentProd.images) && currentProd.images[0]) ? currentProd.images[0] : (currentProd.image || 'logo.png');
+  const p2Img = (Array.isArray(bundlePartner.images) && bundlePartner.images[0]) ? bundlePartner.images[0] : (bundlePartner.image || 'logo.png');
+
+  container.innerHTML = `
+    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(16,185,129,0.12)); border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 12px; margin-top: 15px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-weight:bold; font-size:13px; color:#f59e0b;"><i class="fas fa-tags"></i> အထူးတွဲဖက် လျှော့ဈေး (Combo Deal)</span>
+        <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:4px;">10% OFF</span>
+      </div>
+      
+      <div style="display:flex; align-items:center; justify-content:space-around; gap:6px; margin: 10px 0;">
+        <div style="text-align:center; flex:1;">
+          <img src="${p1Img}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #444;" onerror="this.src='logo.png'">
+          <div style="font-size:10.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; margin-top:3px;">${currentProd.name}</div>
+        </div>
+        <div style="font-size:18px; font-weight:bold; color:#f59e0b;">+</div>
+        <div style="text-align:center; flex:1;">
+          <img src="${p2Img}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #444;" onerror="this.src='logo.png'">
+          <div style="font-size:10.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; margin-top:3px;">${bundlePartner.name}</div>
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-bottom:8px;">
+        <span style="text-decoration:line-through; color:#94a3b8; font-size:12px;">${originalComboTotal.toLocaleString()} Ks</span>
+        <span style="font-size:15px; font-weight:bold; color:#10b981; margin-left:6px;">${discountedComboTotal.toLocaleString()} MMK</span>
+        <div style="font-size:10.5px; color:#34d399;">(သီးသန့်ဝယ်တာထက် ${saveAmount.toLocaleString()} Ks သက်သာမည်)</div>
+      </div>
+
+      <button type="button" onclick="add1ClickBundleToCart('${currentProd.id}', '${bundlePartner.id}')" style="width:100%; background:linear-gradient(to right, #f59e0b, #d97706); border:none; color:#fff; font-weight:bold; font-size:12.5px; padding:9px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 3px 8px rgba(245,158,11,0.3);">
+        <i class="fas fa-cart-plus"></i> ၂ မျိုးလုံးကို Combo ဈေးဖြင့် ဝယ်မည်
+      </button>
+    </div>
+  `;
+  container.style.display = 'block';
+}
+
+function add1ClickBundleToCart(id1, id2) {
+  if (typeof products === 'undefined' || typeof cart === 'undefined') return;
+  const p1 = products.find(x => x.id === id1);
+  const p2 = products.find(x => x.id === id2);
+  if (!p1 || !p2) return;
+
+  const p1Discounted = Math.round(Number(p1.price) * 0.90);
+  const p2Discounted = Math.round(Number(p2.price) * 0.90);
+
+  const existing1 = cart.find(i => i.id === p1.id);
+  if (existing1) { existing1.qty += 1; } else {
+    cart.push({ id: p1.id, name: p1.name, price: p1Discounted, qty: 1, sku: p1.sku || '-', color: (p1.colors && p1.colors[0]) || '' });
+  }
+
+  const existing2 = cart.find(i => i.id === p2.id);
+  if (existing2) { existing2.qty += 1; } else {
+    cart.push({ id: p2.id, name: p2.name, price: p2Discounted, qty: 1, sku: p2.sku || '-', color: (p2.colors && p2.colors[0]) || '' });
+  }
+
+  if (typeof saveCart === 'function') saveCart();
+  if (typeof updateCartBadge === 'function') updateCartBadge();
+  if (typeof renderCartUI === 'function') renderCartUI();
+
+  alert(`🎉 Combo Deal အောင်မြင်ပါသည်!\n"${p1.name}" နှင့် "${p2.name}" တို့ကို 10% လျှော့ဈေးဖြင့် ခြင်းတောင်းထဲ ထည့်သွင်းပြီးပါပြီခင်ဗျာ။`);
+}
 
     function selectDetailGalleryImage(src, el) {
       const main = document.getElementById('detailMainImgView');
@@ -4792,7 +4878,11 @@ orders = deduplicateOrders(raw);
 
       // ✈️ Telegram သို့ စလစ်ဓာတ်ပုံ တိုက်ရိုက်ပို့ခြင်း
       sendTelegramNotificationWithExactTime(newOrder);
-
+      
+      // ပစ္စည်းလက်ကျန်နည်းပါက Telegram သို့ သတိပေးချက်ပို့ခြင်း
+if (typeof checkAndTriggerLowStockAlert === 'function') {
+  checkAndTriggerLowStockAlert(newOrder.items);
+}
       // Voucher ဓာတ်ပုံ Auto-Download ပြုလုပ်ခြင်း
       autoDownloadVoucherCapture(newOrder);
 
@@ -4934,7 +5024,47 @@ orders = deduplicateOrders(raw);
         closeModal('orderSuccessModal');
       });
     }
+    // ==========================================
+// LOW-STOCK ALERT VIA TELEGRAM BOT
+// ==========================================
+function checkAndTriggerLowStockAlert(purchasedItems) {
+  if (!Array.isArray(purchasedItems) || typeof products === 'undefined') return;
 
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
+  const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
+
+  purchasedItems.forEach(item => {
+    // လက်ရှိ ပစ္စည်းစာရင်းထဲတွင် အဆိုပါ ပစ္စည်း၏ Stock ကို ရှာဖွေခြင်း
+    const prod = products.find(p => p.id === item.id || p.name === item.name);
+    if (!prod) return;
+
+    // အော်ဒါတက်သွားပြီးနောက် လက်ကျန် Stock (၃ ခု သို့မဟုတ် ၃ ခုအောက် ဖြစ်ပါက Alert ပို့မည်)
+    const currentStock = (typeof prod.stock !== 'undefined') ? Number(prod.stock) : 0;
+    const remainingStock = Math.max(0, currentStock - (Number(item.qty) || 1));
+
+    if (remainingStock <= 3) {
+      const alertMsg = `⚠️ <b>[LOW-STOCK ALERT] ပစ္စည်းလက်ကျန် နည်းနေပါပြီ!</b> ⚠️\n` +
+        `──────────────────\n` +
+        `📦 <b>ပစ္စည်းအမည်:</b> ${prod.name}\n` +
+        `🏷️ <b>SKU:</b> <code>${prod.sku || item.sku || '-'}</code>\n` +
+        `🚨 <b>လက်ကျန်အရေအတွက်:</b> <b style="color:red;">${remainingStock} ခုသာ ကျန်ပါတော့သည်</b>\n` +
+        `──────────────────\n` +
+        `💡 <i>ပစ္စည်းပြတ်လပ်မှု မဖြစ်စေရန် ကျေးဇူးပြု၍ Stock ပြန်လည်ဖြည့်တင်းပေးပါခင်ဗျာ။</i>`;
+
+      // Backend Telegram Webhook API သို့ လှမ်းပို့ခြင်း
+      fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sendOrderNotification',
+          chatId: targetChatId,
+          topicId: targetTopicId,
+          messageText: alertMsg
+        })
+      }).catch(err => console.warn('Low-stock alert error:', err));
+    }
+  });
+}
     function sendTelegramNotificationWithExactTime(o) {
   const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
   const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
