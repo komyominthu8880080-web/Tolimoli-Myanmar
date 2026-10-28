@@ -2112,6 +2112,16 @@ function scrollCategories(amount) {
       <button type="button" class="btn-secondary" onclick="inquireProductInLiveChat()" style="width:100%; margin-top:6px; background:linear-gradient(135deg, #00ff88, #059669); color:#12091f; font-weight:700; padding:8px; border:none; border-radius:8px; font-size:0.78rem; cursor:pointer;">
         <i class="fas fa-comments"></i> 📦 ဤပစ္စည်းအကြောင်း ဆိုင်ရှင်ထံ တိုက်ရိုက်မေးမည် (Ask via Chat)
       </button>
+      <!-- SMART PRODUCT RECOMMENDATION ENGINE -->
+      <div id="detailRecommendedContainer" style="margin-top: 18px; border-top: 1px dashed rgba(255,255,255,0.15); padding-top: 12px; display: none;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+          <h4 style="font-size: 0.85rem; color: var(--gold); margin: 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-magic"></i> သင် နှစ်သက်နိုင်သည့် ပစ္စည်းများ
+          </h4>
+          <span style="font-size: 0.65rem; color: #888;">ဆက်စပ်ပစ္စည်းများ</span>
+        </div>
+        <div id="detailRecommendedList" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: thin;"></div>
+      </div>
     </div>
     </div>
   </div>
@@ -4894,6 +4904,33 @@ window.addEventListener('DOMContentLoaded', () => {
     }, 800);
   }
 });
+// --- SMART PRODUCT RECOMMENDATION ENGINE ---
+function renderRecommendedProducts(currentProduct) {
+  const container = document.getElementById('detailRecommendedContainer');
+  const list = document.getElementById('detailRecommendedList');
+  if (!container || !list || !currentProduct) return;
+
+  // အမျိုးအစားတူပြီး လက်ရှိပစ္စည်းမဟုတ်သော အခြားပစ္စည်းများကို ရှာဖွေခြင်း
+  const related = (products || []).filter(p => p.id !== currentProduct.id && p.category === currentProduct.category);
+
+  if (related.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  list.innerHTML = related.slice(0, 6).map(item => {
+    const thumb = (Array.isArray(item.images) && item.images[0]) || item.image || 'logo.png';
+    const priceFormatted = Number(item.price || 0).toLocaleString() + ' MMK';
+    return `
+      <div onclick="openProductDetail('${item.id}')" style="min-width: 105px; max-width: 105px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 6px; cursor: pointer; text-align: center; flex-shrink: 0; transition: transform 0.2s ease;">
+        <img src="${thumb}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 4px;" onerror="this.src='logo.png'">
+        <div style="font-size: 10px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${item.name}</div>
+        <div style="font-size: 10px; color: var(--gold); font-weight: bold;">${priceFormatted}</div>
+      </div>
+    `;
+  }).join('');
+}
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
       if (!p) return;
@@ -5108,6 +5145,8 @@ if (socBox) {
   if (typeof render1ClickBundleDeal === 'function') {
     render1ClickBundleDeal(p);
     }
+    // Smart Product Recommendations တွက်ချက်ပြသခြင်း
+  renderRecommendedProducts(p);
   openModal('productDetailModal');
 }
 
