@@ -4180,7 +4180,19 @@ orders = deduplicateOrders(raw);
                 ${p.weight ? `<span class="spec-mini-tag">⚖️ ${p.weight}</span>` : ''}
                 ${p.length ? `<span class="spec-mini-tag">📏 ${p.length}</span>` : ''}
               </div>
-              
+
+              <!-- FLASH SALE COUNTDOWN TIMER (FOR DISCOUNTED ITEMS) -->
+    ${(Number(p.originalPrice) > Number(p.price) || (p.discountReason && !isOutOfStock)) ? `
+      <div class="flash-sale-timer-wrap" style="background:linear-gradient(90deg, rgba(239,68,68,0.15), rgba(245,158,11,0.15)); border:1px solid rgba(239,68,68,0.3); border-radius:6px; padding:4px 8px; margin:6px 0; display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:10px; font-weight:bold; color:#ef4444; display:flex; align-items:center; gap:4px;">
+          <i class="fas fa-bolt fa-fade"></i> FLASH SALE
+        </span>
+        <span class="flash-sale-clock" style="font-size:10px; font-weight:bold; font-family:monospace; color:#fbbf24; background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; letter-spacing:0.5px;">
+          --:--:--
+        </span>
+      </div>
+    ` : ''}
+
               <!-- PRICE DISPLAY WITH STRIKETHROUGH ORIGINAL PRICE -->
               <div class="price-container-row">
                 <span class="product-price-current">${Number(p.price).toLocaleString()} MMK</span>
@@ -4215,7 +4227,35 @@ orders = deduplicateOrders(raw);
           </div>
         `;
       }).join('');
-    }
+    if (typeof startFlashSaleCountdown === 'function') startFlashSaleCountdown();
+  }
+
+    // ==========================================
+// FLASH SALE COUNTDOWN TICKER ENGINE
+// ==========================================
+function startFlashSaleCountdown() {
+  function updateClocks() {
+    const now = new Date();
+    // ညသန်းခေါင် (Midnight 23:59:59) အထိ ကျန်ရှိသော အချိန်ကို တွက်ချက်ခြင်း
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    let diff = Math.max(0, Math.floor((midnight - now) / 1000));
+
+    const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
+    diff %= 3600;
+    const minutes = String(Math.floor(diff / 60)).padStart(2, '0');
+    const seconds = String(diff % 60).padStart(2, '0');
+    const timeStr = `${hours}:${minutes}:${seconds}`;
+
+    document.querySelectorAll('.flash-sale-clock').forEach(clock => {
+      clock.textContent = timeStr;
+    });
+  }
+
+  updateClocks();
+  if (!window.flashSaleInterval) {
+    window.flashSaleInterval = setInterval(updateClocks, 1000);
+  }
+}
     // ==========================================
 // PRODUCT COMPARISON TOOL LOGIC
 // ==========================================
