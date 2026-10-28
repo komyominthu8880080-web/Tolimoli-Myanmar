@@ -4958,7 +4958,8 @@ function add1ClickBundleToCart(id1, id2) {
         cart.push({ cartKey, id: p.id, sku: p.sku || '', name: p.name, color: chosenColor || '', price: p.price, cost: p.cost || 0, image: thumb, qty: 1 });
       }
       saveCart();
-      alert(p.name + ' ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!');
+  localStorage.setItem('tm_cart_last_activity', Date.now().toString());
+  alert(p.name + ' ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!');
     }
 
     function openCartModal() { 
@@ -4966,6 +4967,83 @@ function add1ClickBundleToCart(id1, id2) {
       renderCartUI(); 
       openModal('cartModal'); 
     }
+    // ==========================================
+// ABANDONED CART RECOVERY SYSTEM
+// ==========================================
+function checkAbandonedCartRecovery() {
+  try {
+    const rawCart = localStorage.getItem('cart') || localStorage.getItem('tm_cart');
+    const currentCart = rawCart ? JSON.parse(rawCart) : (typeof cart !== 'undefined' ? cart : []);
+
+    if (!Array.isArray(currentCart) || currentCart.length === 0) {
+      dismissAbandonedCartBar();
+      return;
+    }
+
+    const totalQty = currentCart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
+
+    // ခြင်းတောင်းထဲ ပစ္စည်းကျန်ရှိနေပါက အောက်ခြေတွင် Banner လေး ပြသပေးခြင်း
+    showAbandonedCartBar(totalQty);
+  } catch (err) {
+    console.log('Abandoned Cart Check Error:', err);
+  }
+}
+
+function showAbandonedCartBar(itemCount) {
+  let bar = document.getElementById('tmAbandonedCartBar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'tmAbandonedCartBar';
+    document.body.appendChild(bar);
+  }
+
+  bar.style.position = 'fixed';
+  bar.style.bottom = '75px';
+  bar.style.left = '50%';
+  bar.style.transform = 'translateX(-50%)';
+  bar.style.zIndex = '9998';
+  bar.style.width = '92%';
+  bar.style.maxWidth = '460px';
+  bar.style.background = 'linear-gradient(135deg, #1e1b4b, #0f172a)';
+  bar.style.border = '1px solid #6366f1';
+  bar.style.borderRadius = '12px';
+  bar.style.padding = '10px 14px';
+  bar.style.boxShadow = '0 10px 25px -5px rgba(99, 102, 241, 0.4)';
+  bar.style.display = 'flex';
+  bar.style.alignItems = 'center';
+  bar.style.justifyContent = 'space-between';
+  bar.style.gap = '10px';
+
+  bar.innerHTML = `
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:36px; height:36px; border-radius:50%; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; color:#818cf8; font-size:16px;">
+        <i class="fas fa-shopping-basket"></i>
+      </div>
+      <div>
+        <div style="font-size:12px; font-weight:bold; color:#fff;">ခြင်းတောင်းထဲတွင် ပစ္စည်း (${itemCount}) ခု ကျန်ရှိနေပါသည်</div>
+        <div style="font-size:10px; color:#cbd5e1;">ပစ္စည်းမပြတ်မီ အော်ဒါကို ဆက်လက်ဖြည့်စွက်ပါ</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <button type="button" onclick="if(typeof openCartModal==='function') openCartModal(); dismissAbandonedCartBar();" style="background:#6366f1; border:none; color:#fff; font-size:11px; font-weight:bold; padding:7px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">
+        ဝယ်မည်
+      </button>
+      <button type="button" onclick="dismissAbandonedCartBar()" style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer; padding:4px;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  `;
+}
+
+function dismissAbandonedCartBar() {
+  const bar = document.getElementById('tmAbandonedCartBar');
+  if (bar) bar.style.display = 'none';
+}
+
+// Page load ပြီးနောက် ၂ စက္ကန့်အကြာတွင် စစ်ဆေးပြသခြင်း
+setTimeout(() => {
+  checkAbandonedCartRecovery();
+}, 2000);
 
     function checkVipBenefitsOnPhoneInput() {
       const pInput = document.getElementById('custPhone');
