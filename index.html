@@ -10780,6 +10780,56 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 });
+// ==========================================
+// PHASE 1: CORE HELPERS & ESSENTIAL FIXES
+// ==========================================
+
+// ၁။ ပုံဖိုင်ကို Base64 အဖြစ် ဖတ်ရှုပေးသည့် Helper
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve('');
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+// ၂။ ImgBB / Image Upload Fallback Helper
+async function uploadToImgBB(file) {
+  try {
+    if (!file) return '';
+    return await readFileAsBase64(file);
+  } catch (err) {
+    console.warn('Image upload error:', err);
+    return '';
+  }
+}
+
+// ၃။ အသံသတိပေးချက် ဖွင့်/ပိတ် Helper
+let isGlobalSoundActive = true;
+function toggleGlobalSoundNotification() {
+  isGlobalSoundActive = !isGlobalSoundActive;
+  const msg = isGlobalSoundActive ? '🔔 အသံသတိပေးချက် ဖွင့်ထားပါသည်' : '🔕 အသံသတိပေးချက် ပိတ်ထားပါသည်';
+  if (typeof showToast === 'function') {
+    showToast(msg);
+  } else {
+    alert(msg);
+  }
+}
+
+// ၄။ Search Category Dropdown Sync Helper
+function syncSearchCategoryDropdown() {
+  const catSelect = document.getElementById('searchCategorySelect');
+  if (!catSelect) return;
+}
+
+// ၅။ Trigger Admin PIN Pad Helper
+function triggerAdminPinPad() {
+  if (typeof openCustomPinModal === 'function') {
+    openCustomPinModal();
+  }
+}
 </script>
 </body>
 </html>
