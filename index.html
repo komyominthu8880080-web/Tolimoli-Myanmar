@@ -4167,6 +4167,11 @@ orders = deduplicateOrders(raw);
   <button type="button" class="btn-quick-add-cart" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); quickAddToCart('${p.id}', event)">
     <i class="fas fa-cart-plus"></i> ${isOutOfStock ? 'ကုန်ပြီ' : 'ခြင်းထဲထည့်'}
   </button>
+  
+  <!-- ၃။ Viber ဖြင့် တိုက်ရိုက်မှာယူမည့် ခလုတ် (ခရမ်းရောင်) -->
+<button type="button" class="btn-viber-direct-order" onclick="event.stopPropagation(); orderViaViberDirect('${p.name}', ${p.price})" style="background: #7360f2; color: #ffffff; border: none; border-radius: 8px; padding: 8px 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap; flex: 1;">
+  <i class="fab fa-viber"></i> Viber မှာမည်
+</button>
 </div>
             </div>
           </div>
@@ -10884,6 +10889,26 @@ function triggerQuickPanicExit() {
     console.error(err);
   }
   window.location.replace('https://www.google.com');
+}
+// ==========================================
+// VIBER DIRECT ORDER FUNCTION
+// ==========================================
+function orderViaViberDirect(productName, price) {
+  const shopViberPhone = '959768124433'; // ဆိုင်၏ Viber ဖုန်းနံပါတ် (Country code 95 ဖြင့်)
+  const currentUrl = window.location.href.split('?')[0];
+  
+  // Viber သို့ ပို့မည့် စာသားပုံစံ
+  const messageText = `မင်္ဂလာပါ Tolimoli Myanmar၊\n\nကျွန်တော်/ကျွန်မ အောက်ပါပစ္စည်းကို တိုက်ရိုက်မှာယူလိုပါသည်ခင်ဗျာ -\n\n📦 ပစ္စည်း: ${productName}\n💰 ဈေးနှုန်း: ${Number(price).toLocaleString()} MMK\n🔗 လင့်ခ်: ${currentUrl}\n\nပစ္စည်းပို့ဆောင်မည့် အသေးစိတ်ပြောပြပေးပါခင်ဗျာ။`;
+  
+  // Viber URL Scheme ဖြင့် တိုက်ရိုက်ဖွင့်လှစ်ခြင်း
+  const viberDeepLink = `viber://chat?number=%2B${shopViberPhone}&draft=${encodeURIComponent(messageText)}`;
+  const viberWebLink = `https://msng.link/o/?${shopViberPhone}=vi`;
+
+  // ဖုန်းတွင် Viber App ပွင့်စေပြီး မရပါက Web Link သို့ လွှဲပြောင်းပေးခြင်း
+  window.location.href = viberDeepLink;
+  setTimeout(() => {
+    // App မပွင့်ပါက Fallback
+  }, 1000);
 }
 </script>
 
