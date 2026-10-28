@@ -4344,24 +4344,124 @@ orders = deduplicateOrders(raw);
       openModal('newsModal');
     }
 
-    function renderProductReviews(p) {
-      const container = document.getElementById('detailReviewsContainer');
-      if (!container) return;
-      const sampleReviews = [
-        { name: 'K*** M***', rating: 5, date: 'မနေ့က', text: 'ထုပ်ပိုးမှု ၁၀၀% လျှို့ဝှက်သေသပ်တယ်၊ အပြင်က ကြည့်ရင် အလှကုန်လိုပဲ။ အရမ်းသဘောကျပါတယ်။' },
-        { name: 'A*** Z***', rating: 5, date: '၃ ရက်ခန့်က', text: 'ပစ္စည်း Original အစစ် ရောက်ပါတယ်၊ Deli လည်း မြန်တယ်ဗျာ။' }
-      ];
-      container.innerHTML = sampleReviews.map(r => `
-        <div class="review-item-card">
-          <div class="review-user-name">
-            <span>👤 ${r.name} (Verified Buyer)</span>
-            <span style="color:#fbbf24; font-size:0.7rem;">★ ★ ★ ★ ★</span>
+    // ==========================================
+// VERIFIED BUYER REVIEW SYSTEM
+// ==========================================
+function renderProductReviews(p) {
+  const container = document.getElementById('detailReviewsContainer');
+  if (!container) return;
+
+  // LocalStorage မှ သိမ်းဆည်းထားသော အမှန်တကယ် User Reviews များကို ဆွဲယူခြင်း
+  const allReviewsKey = 'tm_product_reviews_' + (p ? p.id : 'default');
+  let savedReviews = [];
+  try {
+    savedReviews = JSON.parse(localStorage.getItem(allReviewsKey)) || [];
+  } catch(e) { savedReviews = []; }
+
+  // မူလ default reviews များနှင့် ပေါင်းစပ်ပြသခြင်း
+  const defaultReviews = [
+    { name: 'K*** M***', isVerified: true, rating: 5, date: 'မနေ့က', text: 'ထုပ်ပိုးမှု ၁၀၀% လျှို့ဝှက်သေသပ်တယ်၊ အပြင်က ကြည့်ရင် အလှကုန်လိုပဲ။ အရမ်းသဘောကျလို့ ထပ်မှာဦးမယ်။' },
+    { name: 'A*** Z***', isVerified: true, rating: 5, date: '၃ ရက်ခန့်က', text: 'ပစ္စည်း Original အစစ် ရောက်ပါတယ်။ Deli လည်း မြန်တယ်ဗျာ။' }
+  ];
+
+  const displayList = [...savedReviews, ...defaultReviews];
+
+  const reviewsHtml = displayList.map(r => `
+    <div class="review-item-card" style="background:rgba(255,255,255,0.02); border:1px solid #334155; border-radius:8px; padding:8px 10px; margin-bottom:8px;">
+      <div class="review-user-name" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-weight:bold; font-size:12px; color:#fff;">
+          👤 ${r.name} 
+          ${r.isVerified ? '<span style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid #10b981; font-size:9.5px; padding:1px 5px; border-radius:10px; margin-left:4px;"><i class="fas fa-check-circle"></i> ဝယ်ယူအားပေးထားသူ</span>' : '<span style="background:#334155; color:#94a3b8; font-size:9.5px; padding:1px 5px; border-radius:10px; margin-left:4px;">ဧည့်သည်</span>'}
+        </span>
+        <span style="color:#fbbf24; font-size:11px;">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</span>
+      </div>
+      <div style="color:#cbd5e1; font-size:11.5px; line-height:1.4; margin-bottom:4px;">${r.text}</div>
+      <span style="color:var(--text-muted); font-size:10px; display:block;">📅 ${r.date}</span>
+    </div>
+  `).join('');
+
+  // Review Form & Verified Check UI
+  container.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <h4 style="margin:0; font-size:13px; color:var(--gold);"><i class="fas fa-comments"></i> သုံးသပ်ချက်များ (${displayList.length})</h4>
+        <button type="button" onclick="document.getElementById('writeReviewBox').style.display = document.getElementById('writeReviewBox').style.display === 'none' ? 'block' : 'none'" style="background:none; border:1px solid #3b82f6; color:#60a5fa; font-size:10.5px; padding:3px 8px; border-radius:6px; cursor:pointer;">
+          <i class="fas fa-pen"></i> Review ရေးမည်
+        </button>
+      </div>
+
+      <!-- Review Form Box -->
+      <div id="writeReviewBox" style="display:none; background:rgba(255,255,255,0.03); border:1px dashed #475569; border-radius:8px; padding:10px; margin-bottom:10px;">
+        <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px;">အော်ဒါတင်ဖူးသော ဖုန်းနံပါတ်ဖြင့် Verified Buyer အဖြစ် Review ရေးပါ -</div>
+        <input type="tel" id="reviewPhoneVerify" placeholder="အော်ဒါတင်ခဲ့သော ဖုန်းနံပါတ် (09...)" style="width:100%; box-sizing:border-box; background:#0f172a; border:1px solid #334155; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; margin-bottom:6px;">
+        <input type="text" id="reviewUserName" placeholder="ပြသမည့်အမည် (သို့မဟုတ် ကလောင်အမည်)" style="width:100%; box-sizing:border-box; background:#0f172a; border:1px solid #334155; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; margin-bottom:6px;">
+        <textarea id="reviewUserText" rows="2" placeholder="ပစ္စည်းအပေါ် သင်၏ စစ်မှန်သော သုံးသပ်ချက်..." style="width:100%; box-sizing:border-box; background:#0f172a; border:1px solid #334155; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; margin-bottom:6px;"></textarea>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:4px; font-size:11px; color:#fbbf24;">
+            <span>အဆင့်:</span>
+            <select id="reviewRatingSelect" style="background:#0f172a; border:1px solid #334155; color:#fbbf24; border-radius:4px; font-size:11px; padding:2px;">
+              <option value="5">★★★★★ (၅ ပွင့်)</option>
+              <option value="4">★★★★☆ (၄ ပွင့်)</option>
+              <option value="3">★★★☆☆ (၃ ပွင့်)</option>
+            </select>
           </div>
-          <div style="color:#cbd5e1; margin-top:2px; font-size:0.72rem;">${r.text}</div>
-          <span style="color:var(--text-muted); font-size:0.62rem; display:block; margin-top:2px;">📅 ${r.date}</span>
+          <button type="button" onclick="submitVerifiedReview('${p ? p.id : ''}')" style="background:#10b981; border:none; color:#fff; font-size:11px; font-weight:bold; padding:5px 12px; border-radius:6px; cursor:pointer;">
+            တင်သွင်းမည်
+          </button>
         </div>
-      `).join('');
-    }
+      </div>
+
+      <!-- Reviews List Container -->
+      <div id="reviewsListItems">${reviewsHtml}</div>
+    </div>
+  `;
+}
+
+// Review တင်သွင်းခြင်းနှင့် ဖုန်းနံပါတ် စစ်ဆေးခြင်း Logic
+function submitVerifiedReview(productId) {
+  const phone = document.getElementById('reviewPhoneVerify')?.value.trim();
+  const name = document.getElementById('reviewUserName')?.value.trim();
+  const text = document.getElementById('reviewUserText')?.value.trim();
+  const rating = Number(document.getElementById('reviewRatingSelect')?.value || 5);
+
+  if (!phone || phone.length < 8) return alert('ကျေးဇူးပြု၍ စစ်မှန်သော ဖုန်းနံပါတ် ရိုက်ထည့်ပေးပါခင်ဗျာ။');
+  if (!name) return alert('ကျေးဇူးပြု၍ သင်၏ အမည် ရိုက်ထည့်ပေးပါခင်ဗျာ။');
+  if (!text) return alert('ကျေးဇူးပြု၍ သုံးသပ်ချက် စာသား ရေးသားပေးပါခင်ဗျာ။');
+
+  // ဆိုင်တွင် အမှန်တကယ် အော်ဒါတင်ဖူးခြင်း ရှိ/မရှိ orders array ထဲတွင် စစ်ဆေးခြင်း
+  const cleanPhone = phone.replace(/[^0-9]/g, '');
+  const hasPurchased = (typeof orders !== 'undefined') && orders.some(o => {
+    const oPhone = String(o.phone || '').replace(/[^0-9]/g, '');
+    return oPhone && (oPhone.includes(cleanPhone) || cleanPhone.includes(oPhone));
+  });
+
+  const newRev = {
+    name: name.slice(0, 1) + '*** ' + (name.length > 2 ? name.slice(-1) + '***' : '***'),
+    isVerified: hasPurchased,
+    rating: rating,
+    date: 'ယခုလေးတင်',
+    text: text
+  };
+
+  const key = 'tm_product_reviews_' + (productId || 'default');
+  let currentList = [];
+  try {
+    currentList = JSON.parse(localStorage.getItem(key)) || [];
+  } catch(e) { currentList = []; }
+
+  currentList.unshift(newRev);
+  localStorage.setItem(key, JSON.stringify(currentList));
+
+  if (hasPurchased) {
+    alert('🎉 ကျေးဇူးတင်ပါသည်! သင်သည် စစ်မှန်သော ဝယ်ယူအားပေးသူ (Verified Buyer) အဖြစ် သတ်မှတ်အတည်ပြုပြီး Review တင်ပေးလိုက်ပါပြီခင်ဗျာ။');
+  } else {
+    alert('✅ သုံးသပ်ချက် ပေးပို့မှုအတွက် ကျေးဇူးတင်ပါသည်ခင်ဗျာ။');
+  }
+
+  const prod = (typeof products !== 'undefined') ? products.find(x => x.id === productId) : null;
+  renderProductReviews(prod || { id: productId });
+}
 
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
