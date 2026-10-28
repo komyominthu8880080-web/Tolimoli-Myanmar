@@ -2163,9 +2163,12 @@ function scrollCategories(amount) {
         </div>
 
         <div class="form-group" style="margin-bottom:6px;">
-          <label>ပို့ဆောင်မည့် မြို့နယ် / ဒေသ (စာရိုက်ရှာပါ) *</label>
-          <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" placeholder="မြို့နယ်အမည် ရိုက်ရှာပါ (ဥပမာ- စမ်းချောင်း၊ မန္တလေး)..." required autocomplete="off" style="padding:6px;">
-          <datalist id="townshipList"></datalist>
+  <label style="display:flex; justify-content:space-between; align-items:center;">
+    <span><i class="fas fa-map-marker-alt" style="color:#f59e0b;"></i> ပို့ဆောင်မည့် မြို့နယ် / ကားဂိတ် *</span>
+    <span style="font-size:10px; color:#94a3b8; font-weight:normal;">စာရိုက်၍ ရွေးချယ်ပါ</span>
+  </label>
+  <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" onfocus="if(typeof initTownshipDatalist==='function') initTownshipDatalist()" placeholder="ဥပမာ- လှိုင်၊ မန္တလေး၊ အောင်မင်္ဂလာဂိတ်..." autocomplete="off" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:#fff; font-size:12.5px;">
+  <datalist id="townshipList"></datalist>
           
           <!-- DYNAMIC DELIVERY SERVICES CARDS FOR MATCHED TOWNSHIP -->
           <div id="dynamicDeliOptionsContainer" style="margin-top:6px; display:none;">
@@ -3746,18 +3749,27 @@ function scrollCategories(amount) {
     var currentSelectedTownship = "", currentDeliveryService = "", currentDeliveryFee = 0, currentEstimatedDays = "";
 
     function initTownshipDatalist() {
-      const dl = document.getElementById('townshipList');
-      if (!dl) return;
-      dl.innerHTML = '';
-      const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
-      comps.forEach(comp => {
-        const compName = comp.name || 'Deli';
-        (comp.townships || []).forEach(t => {
-          const optVal = `${t} (${compName})`;
-          dl.appendChild(new Option(optVal, optVal));
-        });
-      });
-    }
+  const dl = document.getElementById('townshipList');
+  if (!dl) return;
+  dl.innerHTML = '';
+  
+  const comps = (typeof deliveryConfig !== 'undefined' && deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
+  const addedSet = new Set();
+
+  comps.forEach(comp => {
+    const compName = comp.name || 'Deli';
+    (comp.townships || []).forEach(t => {
+      const trimmed = String(t).trim();
+      if (trimmed && !addedSet.has(trimmed)) {
+        addedSet.add(trimmed);
+        const opt = document.createElement('option');
+        opt.value = trimmed;
+        opt.label = `${trimmed} - ${compName} (${Number(comp.fee || 0).toLocaleString()} Ks)`;
+        dl.appendChild(opt);
+      }
+    });
+  });
+}
 
     function handleTownshipSelect() {
       const input = document.getElementById('custTownshipInput');
