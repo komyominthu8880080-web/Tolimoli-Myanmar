@@ -5336,7 +5336,7 @@ function addToCart(productId, chosenColor) {
       openModal('cartModal'); 
     }
     // ==========================================
-// ABANDONED CART RECOVERY SYSTEM
+// ABANDONED CART RECOVERY WITH VOUCHER POPUP
 // ==========================================
 function checkAbandonedCartRecovery() {
   try {
@@ -5350,8 +5350,17 @@ function checkAbandonedCartRecovery() {
 
     const totalQty = currentCart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
 
-    // ခြင်းတောင်းထဲ ပစ္စည်းကျန်ရှိနေပါက အောက်ခြေတွင် Banner လေး ပြသပေးခြင်း
+    // အောက်ခြေ Sticky Bar ပြသခြင်း
     showAbandonedCartBar(totalQty);
+
+    // နောက်ဆုံး လှုပ်ရှားမှု အချိန်ကို စစ်ဆေးပြီး ၁ မိနစ်ထက်ကျော်ပါက Voucher Popup ပြသခြင်း
+    const lastActivity = Number(localStorage.getItem('tm_cart_last_activity') || 0);
+    const popupShown = sessionStorage.getItem('tm_cart_voucher_shown');
+    const now = Date.now();
+
+    if (!popupShown && lastActivity > 0 && (now - lastActivity > 60 * 1000)) {
+      showAbandonedCartVoucherModal();
+    }
   } catch (err) {
     console.log('Abandoned Cart Check Error:', err);
   }
@@ -5362,50 +5371,91 @@ function showAbandonedCartBar(itemCount) {
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'tmAbandonedCartBar';
+    bar.style.position = 'fixed';
+    bar.style.bottom = '16px';
+    bar.style.left = '50%';
+    bar.style.transform = 'translateX(-50%)';
+    bar.style.zIndex = '9998';
+    bar.style.background = '#1a1f2c';
+    bar.style.border = '1px solid var(--gold, #d4af37)';
+    bar.style.borderRadius = '30px';
+    bar.style.padding = '8px 16px';
+    bar.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+    bar.style.display = 'flex';
+    bar.style.alignItems = 'center';
+    bar.style.gap = '10px';
     document.body.appendChild(bar);
   }
 
-  bar.style.position = 'fixed';
-  bar.style.bottom = '75px';
-  bar.style.left = '50%';
-  bar.style.transform = 'translateX(-50%)';
-  bar.style.zIndex = '9998';
-  bar.style.width = '92%';
-  bar.style.maxWidth = '460px';
-  bar.style.background = 'linear-gradient(135deg, #1e1b4b, #0f172a)';
-  bar.style.border = '1px solid #6366f1';
-  bar.style.borderRadius = '12px';
-  bar.style.padding = '10px 14px';
-  bar.style.boxShadow = '0 10px 25px -5px rgba(99, 102, 241, 0.4)';
-  bar.style.display = 'flex';
-  bar.style.alignItems = 'center';
-  bar.style.justifyContent = 'space-between';
-  bar.style.gap = '10px';
-
   bar.innerHTML = `
-    <div style="display:flex; align-items:center; gap:10px;">
-      <div style="width:36px; height:36px; border-radius:50%; background:rgba(99,102,241,0.2); display:flex; align-items:center; justify-content:center; color:#818cf8; font-size:16px;">
-        <i class="fas fa-shopping-basket"></i>
-      </div>
-      <div>
-        <div style="font-size:12px; font-weight:bold; color:#fff;">ခြင်းတောင်းထဲတွင် ပစ္စည်း (${itemCount}) ခု ကျန်ရှိနေပါသည်</div>
-        <div style="font-size:10px; color:#cbd5e1;">ပစ္စည်းမပြတ်မီ အော်ဒါကို ဆက်လက်ဖြည့်စွက်ပါ</div>
-      </div>
-    </div>
-    <div style="display:flex; align-items:center; gap:6px;">
-      <button type="button" onclick="if(typeof openCartModal==='function') openCartModal(); dismissAbandonedCartBar();" style="background:#6366f1; border:none; color:#fff; font-size:11px; font-weight:bold; padding:7px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">
-        ဝယ်မည်
-      </button>
-      <button type="button" onclick="dismissAbandonedCartBar()" style="background:none; border:none; color:#94a3b8; font-size:14px; cursor:pointer; padding:4px;">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
+    <span style="color:#fff; font-size:12px; font-weight:500;">🛒 ခြင်းတောင်းထဲ ပစ္စည်း (${itemCount}) ခု ကျန်ရှိနေပါသည်</span>
+    <button type="button" onclick="openCartModal()" style="background:var(--gold, #d4af37); color:#000; border:none; border-radius:20px; padding:4px 12px; font-size:11px; font-weight:bold; cursor:pointer;">အော်ဒါတင်မည်</button>
+    <button type="button" onclick="dismissAbandonedCartBar()" style="background:transparent; color:#888; border:none; font-size:14px; cursor:pointer; padding:0 4px;">&times;</button>
   `;
+  bar.style.display = 'flex';
 }
 
 function dismissAbandonedCartBar() {
   const bar = document.getElementById('tmAbandonedCartBar');
   if (bar) bar.style.display = 'none';
+}
+
+// --- ABANDONED CART VOUCHER MODAL ---
+function showAbandonedCartVoucherModal() {
+  sessionStorage.setItem('tm_cart_voucher_shown', 'true');
+  let modal = document.getElementById('tmCartVoucherModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'tmCartVoucherModal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.background = 'rgba(0,0,0,0.7)';
+    modal.style.zIndex = '10005';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.padding = '15px';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="background:#1e2433; border:2px solid var(--gold, #d4af37); border-radius:14px; max-width:380px; width:100%; padding:20px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.6); position:relative;">
+      <button type="button" onclick="closeCartVoucherModal()" style="position:absolute; top:8px; right:12px; background:none; border:none; color:#bbb; font-size:20px; cursor:pointer;">&times;</button>
+      <div style="font-size:36px; margin-bottom:8px;">🎁</div>
+      <h3 style="color:var(--gold, #d4af37); font-size:1.15rem; margin-bottom:8px;">အထူးလက်ဆောင် ကူပွန်!</h3>
+      <p style="color:#ddd; font-size:12px; line-height:1.5; margin-bottom:14px;">
+        ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက <strong>5% သီးသန့် လျှော့ဈေး</strong> ရရှိမည့် ကူပွန်ကုဒ် လက်ဆောင်ပေးထားပါသည်ခင်ဗျာ။
+      </p>
+      <div style="background:rgba(212,175,55,0.15); border:1px dashed var(--gold, #d4af37); border-radius:8px; padding:10px; margin-bottom:15px;">
+        <span style="font-size:16px; font-weight:bold; letter-spacing:1px; color:var(--gold, #d4af37);">COMEBACK5</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" onclick="applyCartVoucherAndCheckout('COMEBACK5')" style="flex:1; background:var(--gold, #d4af37); color:#000; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:bold; cursor:pointer;">ကူပွန်ယူပြီး Checkout ဆင်းမည်</button>
+      </div>
+    </div>
+  `;
+  modal.style.display = 'flex';
+}
+
+function closeCartVoucherModal() {
+  const modal = document.getElementById('tmCartVoucherModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function applyCartVoucherAndCheckout(code) {
+  closeCartVoucherModal();
+  if (typeof openCartModal === 'function') openCartModal();
+  const couponInput = document.getElementById('couponCodeInput') || document.querySelector('input[placeholder*="ကူပွန်"]');
+  if (couponInput) {
+    couponInput.value = code;
+    if (typeof applyCoupon === 'function') applyCoupon();
+  }
+  if (typeof showToast === 'function') {
+    showToast('ကူပွန် ' + code + ' ကို အသုံးပြုလိုက်ပါပြီခင်ဗျာ!', 'success');
+  }
 }
 
 // Page load ပြီးနောက် ၂ စက္ကန့်အကြာတွင် စစ်ဆေးပြသခြင်း
