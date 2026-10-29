@@ -3193,7 +3193,37 @@ function scrollCategories(amount) {
       <!-- Tab 7: Settings & Delivery -->
       <div class="admin-tab" id="settingsTab">
         <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">စနစ်ဆိုင်ရာ ပြင်ဆင်ချက်များ & Delivery Settings</h4>
-
+        <!-- ABANDONED CART RECOVERY VOUCHER SETTINGS -->
+      <div style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-shopping-basket" style="color:var(--gold);"></i> Abandoned Cart Voucher Recovery စနစ်
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer;">
+            <input type="checkbox" id="cfgAbandonedCartEnabled" style="width:16px; height:16px; accent-color:var(--gold);">
+            <span id="cfgAbandonedCartStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
+          </label>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+          <div>
+            <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Voucher Code (ကူပွန်ကုဒ်)</label>
+            <input type="text" id="cfgAbandonedVoucherCode" placeholder="ဥပမာ - COMEBACK5" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem; font-weight:bold; letter-spacing:1px;">
+          </div>
+          <div>
+            <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">လျှော့ဈေး ရာခိုင်နှုန်း (%)</label>
+            <input type="number" id="cfgAbandonedDiscountPercent" placeholder="ဥပမာ - 5" min="1" max="100" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
+          </div>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Popup တွင် ပြသမည့် စာသား</label>
+          <input type="text" id="cfgAbandonedVoucherMsg" placeholder="ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်။" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
+        </div>
+        <div style="text-align:right;">
+          <button type="button" class="btn-gold" onclick="saveAbandonedCartVoucherConfig()" style="padding:6px 14px; font-size:0.75rem; border-radius:6px;">
+            <i class="fas fa-save"></i> Voucher Setting သိမ်းမည်
+          </button>
+        </div>
+      </div>
         <!-- SMART FOC & GIFT CAMPAIGN SUITE -->
         <!-- SMART TIERED FOC & MANUAL GIFTS SUITE (UPDATED) -->
         <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:12px;">
@@ -5400,8 +5430,70 @@ function dismissAbandonedCartBar() {
   if (bar) bar.style.display = 'none';
 }
 
-// --- ABANDONED CART VOUCHER MODAL ---
+// --- DYNAMIC ABANDONED CART RECOVERY VOUCHER SYSTEM ---
+function getAbandonedCartVoucherConfig() {
+  try {
+    const saved = localStorage.getItem('tm_cfg_abandoned_voucher');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return {
+    enabled: true,
+    code: 'COMEBACK5',
+    percent: 5,
+    message: 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်ခင်ဗျာ။'
+  };
+}
+
+function initAbandonedCartVoucherAdminUI() {
+  const cfg = getAbandonedCartVoucherConfig();
+  const chk = document.getElementById('cfgAbandonedCartEnabled');
+  const lbl = document.getElementById('cfgAbandonedCartStatusLabel');
+  const codeInp = document.getElementById('cfgAbandonedVoucherCode');
+  const pctInp = document.getElementById('cfgAbandonedDiscountPercent');
+  const msgInp = document.getElementById('cfgAbandonedVoucherMsg');
+
+  if (chk) chk.checked = !!cfg.enabled;
+  if (lbl) {
+    lbl.textContent = cfg.enabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+    lbl.style.color = cfg.enabled ? '#10b981' : '#ef4444';
+  }
+  if (codeInp) codeInp.value = cfg.code || 'COMEBACK5';
+  if (pctInp) pctInp.value = cfg.percent || 5;
+  if (msgInp) msgInp.value = cfg.message || '';
+}
+
+function saveAbandonedCartVoucherConfig() {
+  const chk = document.getElementById('cfgAbandonedCartEnabled');
+  const codeInp = document.getElementById('cfgAbandonedVoucherCode');
+  const pctInp = document.getElementById('cfgAbandonedDiscountPercent');
+  const msgInp = document.getElementById('cfgAbandonedVoucherMsg');
+
+  const newCfg = {
+    enabled: chk ? chk.checked : true,
+    code: (codeInp && codeInp.value.trim().toUpperCase()) || 'COMEBACK5',
+    percent: (pctInp && Number(pctInp.value)) || 5,
+    message: (msgInp && msgInp.value.trim()) || 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်ခင်ဗျာ။'
+  };
+
+  localStorage.setItem('tm_cfg_abandoned_voucher', JSON.stringify(newCfg));
+
+  const lbl = document.getElementById('cfgAbandonedCartStatusLabel');
+  if (lbl) {
+    lbl.textContent = newCfg.enabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+    lbl.style.color = newCfg.enabled ? '#10b981' : '#ef4444';
+  }
+
+  if (typeof showToast === 'function') {
+    showToast('Abandoned Cart Voucher ပြင်ဆင်မှု သိမ်းဆည်းပြီးပါပြီ!', 'success');
+  } else {
+    alert('Abandoned Cart Voucher ပြင်ဆင်မှု သိမ်းဆည်းပြီးပါပြီ!');
+  }
+}
+
 function showAbandonedCartVoucherModal() {
+  const cfg = getAbandonedCartVoucherConfig();
+  if (!cfg.enabled) return; // Admin က ပိတ်ထားပါက မပြပါ
+
   sessionStorage.setItem('tm_cart_voucher_shown', 'true');
   let modal = document.getElementById('tmCartVoucherModal');
   if (!modal) {
@@ -5427,13 +5519,13 @@ function showAbandonedCartVoucherModal() {
       <div style="font-size:36px; margin-bottom:8px;">🎁</div>
       <h3 style="color:var(--gold, #d4af37); font-size:1.15rem; margin-bottom:8px;">အထူးလက်ဆောင် ကူပွန်!</h3>
       <p style="color:#ddd; font-size:12px; line-height:1.5; margin-bottom:14px;">
-        ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက <strong>5% သီးသန့် လျှော့ဈေး</strong> ရရှိမည့် ကူပွန်ကုဒ် လက်ဆောင်ပေးထားပါသည်ခင်ဗျာ။
+        ${cfg.message} (<strong>${cfg.percent}% OFF</strong>)
       </p>
       <div style="background:rgba(212,175,55,0.15); border:1px dashed var(--gold, #d4af37); border-radius:8px; padding:10px; margin-bottom:15px;">
-        <span style="font-size:16px; font-weight:bold; letter-spacing:1px; color:var(--gold, #d4af37);">COMEBACK5</span>
+        <span style="font-size:16px; font-weight:bold; letter-spacing:1px; color:var(--gold, #d4af37);">${cfg.code}</span>
       </div>
       <div style="display:flex; gap:8px;">
-        <button type="button" onclick="applyCartVoucherAndCheckout('COMEBACK5')" style="flex:1; background:var(--gold, #d4af37); color:#000; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:bold; cursor:pointer;">ကူပွန်ယူပြီး Checkout ဆင်းမည်</button>
+        <button type="button" onclick="applyCartVoucherAndCheckout('${cfg.code}')" style="flex:1; background:var(--gold, #d4af37); color:#000; border:none; border-radius:8px; padding:10px; font-size:12px; font-weight:bold; cursor:pointer;">ကူပွန်ယူပြီး Checkout ဆင်းမည်</button>
       </div>
     </div>
   `;
@@ -5457,6 +5549,7 @@ function applyCartVoucherAndCheckout(code) {
     showToast('ကူပွန် ' + code + ' ကို အသုံးပြုလိုက်ပါပြီခင်ဗျာ!', 'success');
   }
 }
+
 
 // Page load ပြီးနောက် ၂ စက္ကန့်အကြာတွင် စစ်ဆေးပြသခြင်း
 setTimeout(() => {
@@ -7967,6 +8060,7 @@ function closeModal(id) {
       // Settings Tab ကို နှိပ်ပါက Firebase မှ FOC အချက်အလက်များ တန်းဖြည့်ပေးခြင်း
       if (tId === 'settingsTab') {
         if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
+        if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
       }
     }
 
