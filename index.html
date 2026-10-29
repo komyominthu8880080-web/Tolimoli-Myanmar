@@ -5373,23 +5373,27 @@ function checkAbandonedCartRecovery() {
     const rawCart = localStorage.getItem('cart') || localStorage.getItem('tm_cart');
     const currentCart = rawCart ? JSON.parse(rawCart) : (typeof cart !== 'undefined' ? cart : []);
 
+    // ခြင်းတောင်းထဲ ပစ္စည်းမရှိပါက ရပ်တန့်မည်
     if (!Array.isArray(currentCart) || currentCart.length === 0) {
-      dismissAbandonedCartBar();
+      if (typeof dismissAbandonedCartBar === 'function') dismissAbandonedCartBar();
       return;
     }
 
-    const totalQty = currentCart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
-
     // အောက်ခြေ Sticky Bar ပြသခြင်း
-    showAbandonedCartBar(totalQty);
+    const totalQty = currentCart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0);
+    if (typeof showAbandonedCartBar === 'function') showAbandonedCartBar(totalQty);
 
-    // နောက်ဆုံး လှုပ်ရှားမှု အချိန်ကို စစ်ဆေးပြီး ၁ မိနစ်ထက်ကျော်ပါက Voucher Popup ပြသခြင်း
-    const lastActivity = Number(localStorage.getItem('tm_cart_last_activity') || 0);
+    // Cart Modal ပွင့်မနေသည့် အချိန်တွင် Voucher Popup ပေါ်စေခြင်း
+    const cartModal = document.getElementById('cartModal');
+    const isCartOpen = cartModal && (cartModal.style.display === 'flex' || cartModal.style.display === 'block' || cartModal.classList.contains('active'));
+
     const popupShown = sessionStorage.getItem('tm_cart_voucher_shown');
-    const now = Date.now();
-
-    if (!popupShown && lastActivity > 0 && (now - lastActivity > 60 * 1000)) {
-      showAbandonedCartVoucherModal();
+    
+    // ပစ္စည်းရှိနေပြီး Cart ပိတ်ထားပါက စက္ကန့် ၆၀ စောင့်စရာမလိုဘဲ တိုက်ရိုက် ပြသပေးခြင်း
+    if (!popupShown && !isCartOpen) {
+      if (typeof showAbandonedCartVoucherModal === 'function') {
+        showAbandonedCartVoucherModal();
+      }
     }
   } catch (err) {
     console.log('Abandoned Cart Check Error:', err);
