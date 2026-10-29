@@ -6338,45 +6338,79 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         return matchId || matchName || matchPhone;
       });
 
-      container.innerHTML = filteredOrders.map((o, idx) => {
-        const oId = o.id || 'ORD-' + idx;
-        const tot = Number(o.total || 0);
+      // Bulk Action Toolbar + Order Cards Rendering
+  const bulkToolbarHtml = `
+    <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:8px 10px; margin-bottom:10px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:#f8fafc; font-weight:600; margin:0;">
+          <input type="checkbox" id="adminBulkSelectAll" onchange="toggleSelectAllAdminOrders(this)" style="transform:scale(1.15); cursor:pointer;">
+          အားလုံးရွေးမည်
+        </label>
+        <span id="adminSelectedCountBadge" style="background:#3b82f6; color:#fff; font-size:11px; padding:2px 8px; border-radius:12px; font-weight:bold; display:none;">0 ခုရွေးထားသည်</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <select id="adminBulkStatusSelect" style="padding:4px 8px; border-radius:6px; background:#0f172a; color:#fff; border:1px solid #475569; font-size:11px;">
+          <option value="">အခြေအနေ ရွေးချယ်ရန်</option>
+          <option value="အော်ဒါလက်ခံရရှိ (Pending)">အော်ဒါလက်ခံရရှိ (Pending)</option>
+          <option value="အတည်ပြုပြီး (Confirmed)">အတည်ပြုပြီး (Confirmed)</option>
+          <option value="ပို့ဆောင်နေဆဲ (In Transit)">ပို့ဆောင်နေဆဲ (In Transit)</option>
+          <option value="ပစ္စည်းရောက်ရှိ (Delivered)">ပစ္စည်းရောက်ရှိ (Delivered)</option>
+          <option value="ပယ်ဖျက် (Cancelled)">ပယ်ဖျက် (Cancelled)</option>
+        </select>
+        <button type="button" onclick="executeAdminBulkStatusUpdate()" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:600;">
+          <i class="fas fa-sync-alt"></i> ပြောင်းမည်
+        </button>
+        <button type="button" onclick="exportOrdersCSV()" style="background:#f59e0b; color:#000; border:none; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; font-weight:bold;">
+          <i class="fas fa-file-excel"></i> Export CSV
+        </button>
+      </div>
+    </div>
+  `;
 
-        if (String(o.status).includes('Returned') || String(o.status).includes('Cancelled')) {
-          codReturnedTot += tot;
-        } else if (String(o.status).includes('COD Settled') || String(o.status).includes('ငွေစာရင်းရှင်းပြီး')) {
-          codSettledTot += tot;
-        } else {
-          codPendingTot += tot;
-        }
+  const ordersCardsHtml = filteredOrders.map((o, idx) => {
+    const oId = o.id || 'ORD-' + idx;
+    const tot = Number(o.total || 0);
 
-        const itemsTxt = (o.items || []).map(i => `${i.name} (x${i.qty})`).join(', ');
+    if (String(o.status).includes('Returned') || String(o.status).includes('Cancelled')) {
+      codReturnedTot += tot;
+    } else if (String(o.status).includes('COD Settled') || String(o.status).includes('ငွေစာရင်းရှင်းပြီး')) {
+      codSettledTot += tot;
+    } else {
+      codPendingTot += tot;
+    }
 
-        return `
-          <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:10px; margin-bottom:8px; border:1px solid #334155;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="color:var(--gold); font-size:0.85rem;">${oId} - ${o.customer}</b>
-              <span style="font-size:0.72rem; color:#94a3b8;">${formatExactDateTime(o.date)}</span>
-            </div>
-            <div style="font-size:0.75rem; margin:3px 0;">ဖုန်း: ${o.phone} | လိပ်စာ: ${o.address}</div>
-            ${o.specialNote ? `<div style="font-size:0.75rem; color:#f59e0b; margin:2px 0;">📝 မှတ်ချက်: ${o.specialNote}</div>` : ''}
-            ${o.cancelRemark ? `<div style="font-size:0.75rem; color:#ef4444; margin:2px 0;">⚠️ Cancel အကြောင်းအရင်း: ${o.cancelRemark}</div>` : ''}
-            <div style="font-size:0.75rem; color:#ddd; margin:3px 0;">📦 ${itemsTxt}</div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; flex-wrap:wrap; gap:4px;">
-              <span style="color:#38bdf8; font-weight:bold; font-size:0.8rem;">${tot.toLocaleString()} Ks (${o.payment})</span>
-              <span style="font-size:0.72rem; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.08);">${o.status || 'Pending'}</span>
-              <div style="display:flex; gap:4px;">
-                <button class="action-badge" style="background:#0284c7; color:#fff;" onclick="openOrderEditModal('${oId}')" title="အော်ဒါနှင့် ပစ္စည်းအရေအတွက် ပြင်မည်">
-                  <i class="fas fa-edit"></i> ပြင်
-                </button>
-                <button class="action-badge" style="background:#2563eb; color:#fff;" onclick="openOrderDetailModal('${oId}')">
-                  <i class="fas fa-file-invoice"></i> ဘောင်ချာ ပြင်/ထုတ်
-                </button>
-              </div>
-            </div>
+    const itemsTxt = (o.items || []).map(i => `${i.name} (x${i.qty})`).join(', ');
+
+    return `
+      <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,0.08); position:relative;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <input type="checkbox" class="admin-order-chk" value="${oId}" onchange="updateAdminSelectedOrdersCount()" style="transform:scale(1.2); cursor:pointer;">
+            <b style="color:var(--gold); font-size:0.85rem;">${oId} - ${o.customer || ''}</b>
           </div>
-        `;
-      }).join('');
+          <span style="font-size:0.72rem; color:#94a3b8;">${formatExactDateTime(o.date)}</span>
+        </div>
+        <div style="font-size:0.75rem; margin:4px 0 2px 24px; color:#cbd5e1;">📞 ဖုန်း: ${o.phone || ''} | 🏠 လိပ်စာ: ${o.address || ''}</div>
+        ${o.specialNote ? `<div style="font-size:0.75rem; color:#f59e0b; margin:2px 0 2px 24px;">🚩 မှတ်ချက်: ${o.specialNote}</div>` : ''}
+        ${o.cancelRemark ? `<div style="font-size:0.75rem; color:#ef4444; margin:2px 0 2px 24px;">⚠️ Cancel အကြောင်းရင်း: ${o.cancelRemark}</div>` : ''}
+        <div style="font-size:0.75rem; color:#ddd; margin:2px 0 4px 24px;">📦 ${itemsTxt}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; flex-wrap:wrap; gap:6px;">
+          <span style="color:#38bdf8; font-weight:bold; font-size:0.8rem; margin-left:24px;">${tot.toLocaleString()} Ks (${o.payment || ''})</span>
+          <span style="font-size:0.72rem; padding:2px 6px; border-radius:4px; background:rgba(255,255,255,0.08);">${o.status || 'အော်ဒါလက်ခံရရှိ'}</span>
+          <div style="display:flex; gap:4px;">
+            <button class="action-badge" style="background:#0284c7; color:#fff;" onclick="openOrderEditModal('${oId}')">
+              <i class="fas fa-edit"></i> ပြင်
+            </button>
+            <button class="action-badge" style="background:#2563eb; color:#fff;" onclick="openOrderDetailModal('${oId}')">
+              <i class="fas fa-file-invoice"></i> ဘောင်ချာ ပြင်/ထုတ်
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = bulkToolbarHtml + ordersCardsHtml;
 
       document.getElementById('summaryCodPending').innerText = codPendingTot.toLocaleString() + ' Ks';
       document.getElementById('summaryCodSettled').innerText = codSettledTot.toLocaleString() + ' Ks';
@@ -6726,23 +6760,100 @@ function printOrderWaybill(orderId) {
       });
     }
 
-    function exportOrdersCSV() {
-      if (!Array.isArray(orders) || orders.length === 0) {
-        alert('Export ပြုလုပ်ရန် အော်ဒါဒေတာ မရှိပါ');
-        return;
+    // Bulk Select All ဖွင့်/ပိတ်
+function toggleSelectAllAdminOrders(master) {
+  const checkboxes = document.querySelectorAll('.admin-order-chk');
+  checkboxes.forEach(cb => cb.checked = master.checked);
+  updateAdminSelectedOrdersCount();
+}
+
+// ရွေးထားသည့် အရေအတွက် Badge ပြသခြင်း
+function updateAdminSelectedOrdersCount() {
+  const selected = document.querySelectorAll('.admin-order-chk:checked');
+  const badge = document.getElementById('adminSelectedCountBadge');
+  if (!badge) return;
+  if (selected.length > 0) {
+    badge.innerText = selected.length + ' ခုရွေးထားသည်';
+    badge.style.display = 'inline-block';
+  } else {
+    badge.style.display = 'none';
+    const master = document.getElementById('adminBulkSelectAll');
+    if (master) master.checked = false;
+  }
+}
+
+// Bulk Status အစုလိုက် ပြောင်းလဲခြင်း
+async function executeAdminBulkStatusUpdate() {
+  const selectedCbs = document.querySelectorAll('.admin-order-chk:checked');
+  if (selectedCbs.length === 0) {
+    return alert('အခြေအနေပြောင်းလဲရန် အော်ဒါများကို အရင် ရွေးချယ်ပေးပါခင်ဗျာ');
+  }
+  const newStatus = document.getElementById('adminBulkStatusSelect')?.value;
+  if (!newStatus) {
+    return alert('ပြောင်းလဲလိုသည့် အခြေအနေ (Status) ကို ရွေးချယ်ပေးပါခင်ဗျာ');
+  }
+
+  if (!confirm(`ရွေးချယ်ထားသော အော်ဒါ (${selectedCbs.length}) ခုကို "${newStatus}" အဖြစ် တစ်ပြိုင်နက် ပြောင်းလဲမှာ သေချာပါသလားခင်ဗျာ?`)) {
+    return;
+  }
+
+  const idsToUpdate = Array.from(selectedCbs).map(cb => cb.value);
+  let updatedCount = 0;
+
+  orders.forEach(o => {
+    if (idsToUpdate.includes(String(o.id))) {
+      o.status = newStatus;
+      updatedCount++;
+      if (typeof db !== 'undefined' && o.docId) {
+        try { db.collection('orders').doc(o.docId).update({ status: newStatus }); } catch (err) {}
       }
-
-      let csv = "Order ID,Date,Customer Name,Phone,Township,Address,Delivery Service,Payment,Total Amount,Status,Cancel Remark\n";
-      orders.forEach(o => {
-        csv += `"${o.id}","${o.date || ''}","${(o.customer || '').replace(/"/g, '""')}","${o.phone || ''}","${o.township || ''}","${(o.address || '').replace(/"/g, '""')}","${o.deliveryService || ''}","${o.payment || ''}","${o.total || 0}","${o.status || 'Pending'}","${(o.cancelRemark || '').replace(/"/g, '""')}"\n`;
-      });
-
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `Orders_Report_${new Date().toISOString().slice(0,10)}.csv`;
-      link.click();
     }
+  });
+
+  alert(`အော်ဒါ (${updatedCount}) ခု၏ အခြေအနေကို အောင်မြင်စွာ ပြောင်းလဲပြီးပါပြီခင်ဗျာ`);
+  renderAdminOrders();
+}
+
+// Smart CSV/Excel Export (ရွေးထားသည် သို့မဟုတ် အားလုံးကို ဒေါင်းလုဒ်ဆွဲခြင်း)
+function exportOrdersCSV() {
+  if (!Array.isArray(orders) || orders.length === 0) {
+    return alert('Export ပြုလုပ်ရန် အော်ဒါဒေတာ မရှိပါ');
+  }
+
+  const selectedCbs = document.querySelectorAll('.admin-order-chk:checked');
+  let targetOrders = orders;
+
+  if (selectedCbs.length > 0) {
+    const ids = Array.from(selectedCbs).map(cb => cb.value);
+    targetOrders = orders.filter(o => ids.includes(String(o.id)));
+  }
+
+  let csv = "Order ID,Date,Customer Name,Phone,Address,Items,Total Amount,Payment,Status,Delivery/Bus,Voucher No\n";
+
+  targetOrders.forEach(o => {
+    const itemsSummary = (o.items || []).map(i => `${i.name} (x${i.qty})`).join('; ').replace(/"/g, '""');
+    const row = [
+      `"${o.id || ''}"`,
+      `"${o.date || ''}"`,
+      `"${(o.customer || '').replace(/"/g, '""')}"`,
+      `"${o.phone || ''}"`,
+      `"${(o.address || '').replace(/"/g, '""')}"`,
+      `"${itemsSummary}"`,
+      `"${o.total || 0}"`,
+      `"${o.payment || ''}"`,
+      `"${(o.status || 'Pending').replace(/"/g, '""')}"`,
+      `"${(o.busLineName || o.deliveryService || '').replace(/"/g, '""')}"`,
+      `"${(o.voucherNo || '').replace(/"/g, '""')}"`
+    ];
+    csv += row.join(",") + "\n";
+  });
+
+  const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `Orders_Export_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+}
 
     function openTrackModal() { openModal('orderTrackModal'); }
     function trackOrder() {
