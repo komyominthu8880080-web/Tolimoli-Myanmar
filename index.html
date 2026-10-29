@@ -9186,27 +9186,8 @@ function fallbackCopyText(text, successMsg) {
 
     // 5. TIMELINE TRACKING HISTORY IN TRACK MODAL
     function buildOrderTimelineHtml(order) {
-      const s = order.status || 'အော်ဒါလက်ခံရရှိ (Pending)';
-      const isTransit = s.includes('In Transit') || s.includes('Delivered') || s.includes('Settled');
-      const isDelivered = s.includes('Delivered') || s.includes('Settled');
-
-      return `
-        <div class="tracking-timeline">
-          <div class="timeline-node done">
-            <b style="color:#00ff88;">၁။ အော်ဒါ လက်ခံရရှိပြီး</b>
-            <div style="color:var(--text-muted); font-size:10px;">ဘောင်ချာနံပါတ် စနစ်ထဲ ရောက်ရှိပါပြီ</div>
-          </div>
-          <div class="timeline-node ${isTransit ? 'done' : 'active'}">
-            <b style="color:${isTransit ? '#00ff88' : '#f59e0b'};">၂။ ပို့ဆောင်ရေး / ဂိတ်တင်ပြီး (In Transit)</b>
-            <div style="color:var(--text-muted); font-size:10px;">${order.voucherNo ? 'ဘောင်ချာနံပါတ်: ' + order.voucherNo : 'လွှဲပြောင်းပြင်ဆင်ဆဲ'}</div>
-          </div>
-          <div class="timeline-node ${isDelivered ? 'done' : ''}">
-            <b style="color:${isDelivered ? '#00ff88' : '#cbd5e1'};">၃။ ဝယ်သူလက်ခံရရှိပြီး (Delivered)</b>
-            <div style="color:var(--text-muted); font-size:10px;">ပစ္စည်း အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ</div>
-          </div>
-        </div>
-      `;
-    }
+  return '';
+}
 
     // 6. FREQUENTLY BOUGHT TOGETHER IN DETAIL
     function renderFrequentlyBoughtTogether(product) {
