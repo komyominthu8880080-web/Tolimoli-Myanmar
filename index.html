@@ -5690,23 +5690,44 @@ setTimeout(() => {
     }
 
     function applyDiscountCoupon() {
-      const code = (document.getElementById('couponCodeInput')?.value || '').trim().toUpperCase();
-      const notice = document.getElementById('couponNotice');
-      if (!code) { currentAppliedDiscount = 0; renderCartUI(); return; }
+  const code = (document.getElementById('couponCodeInput')?.value || '').trim().toUpperCase();
+  const notice = document.getElementById('couponNotice');
+  if (!code) { currentAppliedDiscount = 0; renderCartUI(); return; }
 
-      const dObj = discounts.find(d => d.code === code);
-      if (!dObj) {
-        currentAppliedDiscount = 0;
-        notice.innerHTML = '<span style="color:#ef4444;">ကူပွန်ကုဒ် မှားယွင်းနေပါသည်</span>';
-        renderCartUI();
-        return;
-      }
+  // ၁။ မူလ discounts array ထဲတွင် ရှာဖွေခြင်း
+  let dObj = (typeof discounts !== 'undefined' && Array.isArray(discounts)) 
+             ? discounts.find(d => (d.code || '').toUpperCase() === code) 
+             : null;
 
-      let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-      currentAppliedDiscount = (dObj.type === 'percent') ? Math.round((subTotal * dObj.val) / 100) : (Number(dObj.val) || 0);
-      notice.innerHTML = `<span style="color:#00ff88;">Promo Code "${code}" အောင်မြင်ပါသည် (- ${currentAppliedDiscount.toLocaleString()} Ks)</span>`;
-      renderCartUI();
-    }
+  // ၂။ မူလ discounts ထဲ မရှိပါက Admin Voucher (ဥပမာ COMEBACK5) ဟုတ်/မဟုတ် တိုက်ရိုက်စစ်ဆေးခြင်း
+  const cfg = (typeof getAbandonedCartVoucherConfig === 'function') ? getAbandonedCartVoucherConfig() : null;
+  if (!dObj && cfg && cfg.enabled && code === (cfg.code || 'COMEBACK5').toUpperCase()) {
+    dObj = {
+      code: cfg.code || 'COMEBACK5',
+      val: Number(cfg.percent) || 5,
+      type: 'percent'
+    };
+  }
+
+  // ၃။ ကူပွန် မမှန်ကန်ပါက
+  if (!dObj) {
+    currentAppliedDiscount = 0;
+    if (notice) notice.innerHTML = '<span style="color:#ef4444;">ကူပွန်ကုဒ် မှားယွင်းနေပါသည်</span>';
+    renderCartUI();
+    return;
+  }
+
+  // ၄။ ကူပွန် မှန်ကန်ပါက လျှော့ဈေး တွက်ချက်ခြင်း
+  let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
+  currentAppliedDiscount = (dObj.type === 'percent') 
+                           ? Math.round((subTotal * Number(dObj.val)) / 100) 
+                           : (Number(dObj.val) || 0);
+
+  if (notice) {
+    notice.innerHTML = `<span style="color:#00ff88;">Promo Code "${code}" အောင်မြင်ပါသည် (- ${currentAppliedDiscount.toLocaleString()} Ks)</span>`;
+  }
+  renderCartUI();
+}
 
     function updateCartBadge() {
       const cnt = cart.reduce((acc, c) => acc + c.qty, 0);
