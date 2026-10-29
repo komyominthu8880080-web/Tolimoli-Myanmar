@@ -5540,14 +5540,46 @@ function closeCartVoucherModal() {
 function applyCartVoucherAndCheckout(code) {
   closeCartVoucherModal();
   if (typeof openCartModal === 'function') openCartModal();
-  const couponInput = document.getElementById('couponCodeInput') || document.querySelector('input[placeholder*="ကူပွန်"]');
-  if (couponInput) {
-    couponInput.value = code;
-    if (typeof applyCoupon === 'function') applyCoupon();
+
+  // Admin သတ်မှတ်ထားသော % အတိုင်း coupons list ထဲသို့ ထည့်သွင်းမှတ်ပုံတင်ခြင်း
+  try {
+    const cfg = getAbandonedCartVoucherConfig();
+    if (typeof coupons !== 'undefined' && Array.isArray(coupons)) {
+      const exists = coupons.find(c => (c.code || '').toUpperCase() === (code || '').toUpperCase());
+      if (!exists) {
+        coupons.push({
+          code: code.toUpperCase(),
+          discount: Number(cfg.percent) || 5,
+          type: 'percent',
+          active: true
+        });
+      }
+    }
+  } catch (e) {
+    console.log('Coupon register error:', e);
   }
-  if (typeof showToast === 'function') {
-    showToast('ကူပွန် ' + code + ' ကို အသုံးပြုလိုက်ပါပြီခင်ဗျာ!', 'success');
-  }
+
+  // ကူပွန် input အကွက်ကို ရှာပြီး ကုဒ်ထည့်ကာ လျှော့ဈေး အလိုအလျောက် ဖြတ်တောက်တွက်ချက်ခြင်း
+  setTimeout(() => {
+    const couponInput = document.getElementById('couponCode') || 
+                        document.getElementById('couponCodeInput') || 
+                        document.getElementById('promoCode') || 
+                        document.querySelector('input[placeholder*="ကူပွန်"]');
+
+    if (couponInput) {
+      couponInput.value = code;
+    }
+
+    if (typeof applyDiscountCoupon === 'function') {
+      applyDiscountCoupon();
+    } else if (typeof applyCoupon === 'function') {
+      applyCoupon();
+    }
+
+    if (typeof showToast === 'function') {
+      showToast('ကူပွန် ' + code + ' ကို အသုံးပြုလိုက်ပါပြီခင်ဗျာ!', 'success');
+    }
+  }, 300);
 }
 
 
