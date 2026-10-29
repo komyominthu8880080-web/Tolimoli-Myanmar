@@ -5541,43 +5541,33 @@ function applyCartVoucherAndCheckout(code) {
   closeCartVoucherModal();
   if (typeof openCartModal === 'function') openCartModal();
 
-  // Admin သတ်မှတ်ထားသော % အတိုင်း coupons list ထဲသို့ ထည့်သွင်းမှတ်ပုံတင်ခြင်း
-  try {
-    const cfg = getAbandonedCartVoucherConfig();
-    if (typeof coupons !== 'undefined' && Array.isArray(coupons)) {
-      const exists = coupons.find(c => (c.code || '').toUpperCase() === (code || '').toUpperCase());
-      if (!exists) {
-        coupons.push({
-          code: code.toUpperCase(),
-          discount: Number(cfg.percent) || 5,
-          type: 'percent',
-          active: true
-        });
-      }
+  const cfg = getAbandonedCartVoucherConfig();
+  const vCode = (code || cfg.code || 'COMEBACK5').toUpperCase();
+  const vPct = Number(cfg.percent) || 5;
+
+  // ဆိုင်၏ မူလ discounts array ထဲသို့ dynamic တိုက်ရိုက် ထည့်သွင်းမှတ်ပုံတင်ခြင်း
+  if (typeof discounts !== 'undefined' && Array.isArray(discounts)) {
+    const idx = discounts.findIndex(d => (d.code || '').toUpperCase() === vCode);
+    if (idx > -1) {
+      discounts[idx].val = vPct;
+      discounts[idx].type = 'percent';
+    } else {
+      discounts.push({
+        code: vCode,
+        val: vPct,
+        type: 'percent'
+      });
     }
-  } catch (e) {
-    console.log('Coupon register error:', e);
   }
 
-  // ကူပွန် input အကွက်ကို ရှာပြီး ကုဒ်ထည့်ကာ လျှော့ဈေး အလိုအလျောက် ဖြတ်တောက်တွက်ချက်ခြင်း
+  // ကူပွန် Input ထဲသို့ ကုဒ်ထည့်သွင်းပြီး မူလ applyDiscountCoupon function ကို တိုက်ရိုက် ခေါ်ယူတွက်ချက်ခြင်း
   setTimeout(() => {
-    const couponInput = document.getElementById('couponCode') || 
-                        document.getElementById('couponCodeInput') || 
-                        document.getElementById('promoCode') || 
-                        document.querySelector('input[placeholder*="ကူပွန်"]');
-
-    if (couponInput) {
-      couponInput.value = code;
+    const couponInp = document.getElementById('couponCodeInput');
+    if (couponInp) {
+      couponInp.value = vCode;
     }
-
     if (typeof applyDiscountCoupon === 'function') {
       applyDiscountCoupon();
-    } else if (typeof applyCoupon === 'function') {
-      applyCoupon();
-    }
-
-    if (typeof showToast === 'function') {
-      showToast('ကူပွန် ' + code + ' ကို အသုံးပြုလိုက်ပါပြီခင်ဗျာ!', 'success');
     }
   }, 300);
 }
