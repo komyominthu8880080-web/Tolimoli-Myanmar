@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     const payload = {
       to: formattedPhone,
       message: `Order ${orderId} confirmed. Total: ${totalAmount} Ks. Tolimoli Myanmar.`,
-      from: 'SMSPoh'
+      from: 'SMSPohTest'
     };
 
     // SMSPoh v3 REST Endpoint သို့ ပို့ဆောင်ခြင်း
