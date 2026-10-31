@@ -9394,7 +9394,7 @@ var adminLogoTimer = null;
 function triggerAdminPinPad() {
   adminLogoClicks++;
   clearTimeout(adminLogoTimer);
-  adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1800);
+  adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1000);
 
   if (adminLogoClicks >= 3) {
     adminLogoClicks = 0;
@@ -12312,12 +12312,6 @@ function syncSearchCategoryDropdown() {
   if (!catSelect) return;
 }
 
-// ၅။ Trigger Admin PIN Pad Helper
-function triggerAdminPinPad() {
-  if (typeof openCustomPinModal === 'function') {
-    openCustomPinModal();
-  }
-}
 // ==========================================
 // PHASE 2: DISCREET SHOPPING & PRIVACY SUITE
 // ==========================================
