@@ -3293,6 +3293,10 @@ function scrollCategories(amount) {
           <input type="checkbox" id="cfgToggleSmartGate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
         </label>
       </div>
+      <div style="margin-top: 10px;">
+        <label style="font-size: 0.7rem; color: #ccc;">အကြံပြုလိုသော ပင်မကားဂိတ်များ (ကော်မာခံ၍ ရိုက်ပါ)</label>
+        <input type="text" id="cfgSmartGateNames" placeholder="အောင်မင်္ဂလာအဝေးပြေးဂိတ်၊ ဒဂုံဧရာအဝေးပြေးဂိတ်" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+      </div>
     </div>
 
     <!-- Toggle 4: Estimated Delivery Date -->
@@ -3300,11 +3304,21 @@ function scrollCategories(amount) {
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
           <b style="font-size: 0.85rem; color: #fff; display: block;">၄။ ရောက်ရှိမည့်ရက် ခန့်မှန်းချက် (Estimated Delivery Date)</b>
-          <span style="font-size: 0.72rem; color: #aaa;">မြို့အလိုက် ပစ္စည်းရောက်မည့် ကြာချိန် (ဥပမာ - ၁-၂ ရက်) ပြသခြင်း</span>
+          <span style="font-size: 0.72rem; color: #aaa;">မြို့အလိုက် ပစ္စည်းရောက်မည့် ကြာချိန်ကို စိတ်ကြိုက်သတ်မှတ်ခြင်း</span>
         </div>
         <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
           <input type="checkbox" id="cfgToggleEstimatedDate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
         </label>
+      </div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">ရန်ကုန်/မန္တလေး ခန့်မှန်းကြာချိန်</label>
+          <input type="text" id="cfgEtaCity" placeholder="၁ ရက် မှ ၂ ရက်အတွင်း" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">နယ်မြို့များ ခန့်မှန်းကြာချိန်</label>
+          <input type="text" id="cfgEtaGate" placeholder="၂ ရက် မှ ၃ ရက်အတွင်း" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
       </div>
     </div>
 
@@ -5650,7 +5664,9 @@ function saveLogisticsSettingsToCloud() {
   const multiCityOn = document.getElementById('cfgToggleMultiCity') ? document.getElementById('cfgToggleMultiCity').checked : false;
   const freeDeliveryOn = document.getElementById('cfgToggleFreeDelivery') ? document.getElementById('cfgToggleFreeDelivery').checked : false;
   const smartGateOn = document.getElementById('cfgToggleSmartGate') ? document.getElementById('cfgToggleSmartGate').checked : false;
-  const estimatedDateOn = document.getElementById('cfgToggleEstimatedDate') ? document.getElementById('cfgToggleEstimatedDate').checked : false;
+  const smartGateNames = document.getElementById('cfgSmartGateNames')?.value.trim() || 'အောင်မင်္ဂလာအဝေးပြေးဂိတ်၊ ဒဂုံဧရာအဝေးပြေးဂိတ်';
+  const etaCity = document.getElementById('cfgEtaCity')?.value.trim() || '၁ ရက် မှ ၂ ရက်အတွင်း';
+  const etaGate = document.getElementById('cfgEtaGate')?.value.trim() || '၂ ရက် မှ ၃ ရက်အတွင်း';
 
   const feeYangon = Number(document.getElementById('cfgFeeYangonCOD')?.value) || 3000;
   const feeMandalay = Number(document.getElementById('cfgFeeMandalayCOD')?.value) || 3500;
@@ -5669,10 +5685,13 @@ function saveLogisticsSettingsToCloud() {
       minAmount: freeMinAmount
     },
     smartGate: {
-      enabled: smartGateOn
+      enabled: smartGateOn,
+      gateNames: smartGateNames
     },
     estimatedDate: {
-      enabled: estimatedDateOn
+      enabled: estimatedDateOn,
+      etaCity: etaCity,
+      etaGate: etaGate
     },
     updatedAt: new Date().toISOString()
   };
@@ -5735,6 +5754,15 @@ function initLogisticsSettingsUI() {
     }
     if (document.getElementById('cfgToggleEstimatedDate')) {
       document.getElementById('cfgToggleEstimatedDate').checked = !!cfg.estimatedDate?.enabled;
+    }
+    if (document.getElementById('cfgSmartGateNames')) {
+      document.getElementById('cfgSmartGateNames').value = cfg.smartGate?.gateNames || 'အောင်မင်္ဂလာအဝေးပြေးဂိတ်၊ ဒဂုံဧရာအဝေးပြေးဂိတ်';
+    }
+    if (document.getElementById('cfgEtaCity')) {
+      document.getElementById('cfgEtaCity').value = cfg.estimatedDate?.etaCity || '၁ ရက် မှ ၂ ရက်အတွင်း';
+    }
+    if (document.getElementById('cfgEtaGate')) {
+      document.getElementById('cfgEtaGate').value = cfg.estimatedDate?.etaGate || '၂ ရက် မှ ၃ ရက်အတွင်း';
     }
   }
 }
@@ -5977,7 +6005,7 @@ setTimeout(() => {
           ? `<span style="color:#10b981;">🎉 ပို့ဆောင်ခ အခမဲ့ (Free Delivery ရရှိပါသည်)</span>` 
           : `ပို့ဆောင်ခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> (COD အိမ်ရောက်ငွေချေ)`;
         if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
-          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ပစ္စည်းရောက်ရှိမည့်ကြာချိန်: ၁ ရက် မှ ၂ ရက်အတွင်း`;
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ပစ္စည်းရောက်ရှိမည့်ကြာချိန်: ${logisticsConfig?.estimatedDate?.etaCity || '၁ ရက် မှ ၂ ရက်အတွင်း'}`;
         } else if (badgeEta) {
           badgeEta.innerHTML = '';
         }
@@ -5987,7 +6015,7 @@ setTimeout(() => {
           ? '<span style="color:#10b981;">🎉 ကားဂိတ်ချခ အခမဲ့</span> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)'
           : `ရန်ကုန်ကားဂိတ်ချခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)`;
         if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
-          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ခန့်မှန်းကြာချိန်: ၂ ရက် မှ ၃ ရက်အတွင်း ဂိတ်သို့ရောက်ရှိမည်`;
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ခန့်မှန်းကြာချိန်: ${logisticsConfig?.estimatedDate?.etaGate || '၂ ရက် မှ ၃ ရက်အတွင်း'} (ဂိတ်သို့ရောက်ရှိမည်)`;
         } else if (badgeEta) {
           badgeEta.innerHTML = '';
         }
