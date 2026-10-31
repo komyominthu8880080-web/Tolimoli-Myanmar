@@ -2091,7 +2091,6 @@ function scrollCategories(amount) {
         <div id="detailColorContainer"></div>
       </div>
 
-      <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">လူမှုကွန်ရက်တွင် ကြည့်ရှုလေ့လာရန် -</p>
       <div id="detailSocialLinks" style="display:flex; gap:6px; margin:6px 0 10px; flex-wrap:wrap;"></div>
 
       
@@ -5120,28 +5119,60 @@ if (socBox) {
   const shareTitle = encodeURIComponent(`${p.name} - ${Number(p.price || 0).toLocaleString()} MMK`);
   const encodedUrl = encodeURIComponent(currentUrl);
 
-  socBox.innerHTML = `
-    <div style="width:100%; margin-top:8px;">
-      <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
-        <i class="fas fa-share-alt"></i> ပစ္စည်းမျှဝေရန် (Share):
+  // ၁။ လူမှုကွန်ရက် လင့်ခ်များ (YouTube, Telegram, TikTok, Facebook) စစ်ဆေးဖော်ပြခြင်း
+    const socialLinks = [
+      { name: 'YouTube', icon: 'fa-youtube', bg: '#FF0000', link: p.youtube || p.youtubeLink },
+      { name: 'Telegram', icon: 'fa-telegram', bg: '#229ED9', link: p.telegram || p.telegramLink },
+      { name: 'TikTok', icon: 'fa-tiktok', bg: '#000000', link: p.tiktok || p.tiktokLink },
+      { name: 'Facebook', icon: 'fa-facebook', bg: '#1877F2', link: p.facebook || p.facebookLink }
+    ];
+
+    let socialButtonsHtml = '';
+    socialLinks.forEach(item => {
+      if (item.link && String(item.link).trim() !== '') {
+        socialButtonsHtml += `
+          <a href="${String(item.link).trim()}" target="_blank" rel="noopener noreferrer" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:6px 10px; background:${item.bg}; color:#fff; border-radius:6px; font-size:11px; text-decoration:none; font-weight:600;">
+            <i class="fab ${item.icon}"></i> ${item.name}
+          </a>
+        `;
+      }
+    });
+
+    const socialSectionHtml = socialButtonsHtml ? `
+      <div style="width:100%; margin-bottom:8px;">
+        <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+          <i class="fas fa-play-circle"></i> လူမှုကွန်ရက်တွင် ကြည့်ရှုလေ့လာရန် -
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          ${socialButtonsHtml}
+        </div>
       </div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        <a href="https://t.me/share/url?url=${encodedUrl}&text=${shareTitle}" target="_blank" style="flex:1; min-width:70px; background:#229ED9; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
-          <i class="fab fa-telegram-plane"></i> Telegram
-        </a>
-        <a href="viber://forward?text=${shareTitle}%20${encodedUrl}" target="_blank" style="flex:1; min-width:70px; background:#7360f2; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
-          <i class="fab fa-viber"></i> Viber
-        </a>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="flex:1; min-width:70px; background:#1877f2; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
-          <i class="fab fa-facebook-f"></i> Share
-        </a>
-        <button type="button" onclick="navigator.clipboard.writeText('${currentUrl}').then(()=>alert('ပစ္စည်း Link ကို Copy ကူးပြီးပါပြီ!'))" style="flex:1; min-width:70px; background:#334155; border:1px solid #475569; color:#fff; padding:6px 8px; border-radius:6px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">
-          <i class="fas fa-copy"></i> Copy Link
-        </button>
+    ` : '';
+
+    // ၂။ ပစ္စည်းမျှဝေရန် (Share) ခလုတ်များနှင့် ပေါင်းစပ်ဖော်ပြခြင်း
+    socBox.innerHTML = `
+      ${socialSectionHtml}
+      <div style="width:100%; margin-top:4px;">
+        <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; display:flex; align-items:center; gap:5px;">
+          <i class="fas fa-share-alt"></i> ပစ္စည်းမျှဝေရန် (Share):
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <a href="https://t.me/share/url?url=${encodedUrl}&text=${shareTitle}" target="_blank" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#229ED9; color:#fff; border-radius:6px; font-size:11px; text-decoration:none;">
+            <i class="fab fa-telegram-plane"></i> Telegram
+          </a>
+          <a href="viber://forward?text=${shareTitle}%20${encodedUrl}" target="_blank" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#7360f2; color:#fff; border-radius:6px; font-size:11px; text-decoration:none;">
+            <i class="fab fa-viber"></i> Viber
+          </a>
+          <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#1877F2; color:#fff; border-radius:6px; font-size:11px; text-decoration:none;">
+            <i class="fab fa-facebook-f"></i> Share
+          </a>
+          <button type="button" onclick="navigator.clipboard.writeText('${currentUrl}').then(()=>alert('ပစ္စည်း Link ကို Copy ကူးပြီးပါပြီ!'))" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#334155; color:#fff; border:none; border-radius:6px; font-size:11px; cursor:pointer;">
+            <i class="fas fa-copy"></i> Copy Link
+          </button>
+        </div>
       </div>
-    </div>
-  `;
-}
+    `;
+  }
 
       document.getElementById('detailDescription').textContent = p.description || 'အချက်အလက် မရှိသေးပါ';
       
