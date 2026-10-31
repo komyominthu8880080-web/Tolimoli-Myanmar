@@ -7601,6 +7601,9 @@ function renderVisualSalesCharts(orderList) {
         badge.innerText = `${selectedAdminCategories.length} ခု ရွေးထားသည်`;
         badge.style.color = selectedAdminCategories.length > 0 ? '#10b981' : '#f87171';
       }
+      if (typeof syncSearchCategoryDropdown === 'function') {
+    syncSearchCategoryDropdown();
+  }
     }
 
     function toggleAdminCategoryChip(catName) {
@@ -8885,46 +8888,17 @@ function fallbackCopyText(text, successMsg) {
     }
     function syncSearchCategoryDropdown() {
   const sel = document.getElementById('searchCategoryFilterSelect');
-  if (sel) {
-    sel.innerHTML = `<option value="All">📂 အမျိုးအစား အားလုံး</option>` +
-      categories.map(c => `<option value="${c}" ${selectedCategory === c ? 'selected' : ''}>📂 ${c}</option>`).join('');
+  if (sel && Array.isArray(categories)) {
+    sel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
+      categories.map(c => `<option value="${c}" ${selectedCategory === c ? 'selected' : ''}>${c}</option>`).join('');
   }
 
   // Admin Dashboard Search Bar အတွက် Category စာရင်း ဖြည့်ပေးခြင်း
   const adminSel = document.getElementById('adminProductCategoryFilterSelect');
-  if (adminSel) {
+  if (adminSel && Array.isArray(categories)) {
     const curAdminVal = adminSel.value || 'All';
-    let catList = [];
-    
-    // categories data ပုံစံအမျိုးမျိုးကို စစ်ဆေးဆွဲထုတ်ခြင်း
-    if (typeof categories !== 'undefined' && categories) {
-      if (Array.isArray(categories)) {
-        catList = categories.map(c => (typeof c === 'object' && c !== null ? (c.name || c.title || '') : c));
-      } else if (typeof categories === 'object') {
-        catList = Object.keys(categories).map(k => {
-          const item = categories[k];
-          return typeof item === 'object' && item !== null ? (item.name || item.title || k) : item;
-        });
-      }
-    }
-    
-    // အကယ်၍ categories မရှိပါက products ထဲမှ categories များကို ဆွဲထုတ်ခြင်း (Fallback)
-    if (catList.length === 0 && typeof products !== 'undefined' && Array.isArray(products)) {
-      const pCats = new Set();
-      products.forEach(p => {
-        if (p.category) pCats.add(p.category);
-        if (Array.isArray(p.categories)) p.categories.forEach(c => pCats.add(c));
-      });
-      catList = Array.from(pCats);
-    }
-
-    // Dropdown ထဲသို့ Option များ ထည့်သွင်းပေးခြင်း
-    let optionsHtml = '<option value="All">အမျိုးအစား အားလုံး</option>';
-    catList.filter(Boolean).forEach(catName => {
-      const isSelected = curAdminVal === catName ? 'selected' : '';
-      optionsHtml += `<option value="${catName}" ${isSelected}>${catName}</option>`;
-    });
-    adminSel.innerHTML = optionsHtml;
+    adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
+      categories.map(c => `<option value="${c}" ${curAdminVal === c ? 'selected' : ''}>${c}</option>`).join('');
   }
 }
     function handleSearchCategoryDropdownChange(catName) {
