@@ -2226,6 +2226,13 @@ function scrollCategories(amount) {
   </label>
   <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" onfocus="if(typeof initTownshipDatalist==='function') initTownshipDatalist()" placeholder="ဥပမာ- လှိုင်၊ မန္တလေး၊ အောင်မင်္ဂလာဂိတ်..." autocomplete="off" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:#fff; font-size:12.5px;">
   <datalist id="townshipList"></datalist>
+
+  <!-- DYNAMIC LOGISTICS INFO BADGE -->
+<div id="logisticsDynamicBadge" style="display: none; margin-top: 6px; padding: 8px 10px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 6px; font-size: 0.75rem; color: #f3f4f6;">
+  <div id="logisticsDeliveryTypeText" style="font-weight: bold; color: var(--gold, #d4af37);"></div>
+  <div id="logisticsFeeBreakdownText" style="margin-top: 2px; color: #cbd5e1;"></div>
+  <div id="logisticsEtaText" style="margin-top: 2px; color: #94a3b8; font-size: 0.7rem;"></div>
+</div>
           
           <!-- DYNAMIC DELIVERY SERVICES CARDS FOR MATCHED TOWNSHIP -->
           <div id="dynamicDeliOptionsContainer" style="margin-top:6px; display:none;">
@@ -2629,7 +2636,7 @@ function scrollCategories(amount) {
           <i class="fas fa-search"></i> စာရင်းကြည့်မည်
         </button>
       </div>
-
+      
       <div class="admin-nav">
         <button class="admin-nav-btn active" onclick="switchAdminTab('productsTab', this)">Items & Products</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('stockTab', this)">Stock Inventory</button>
@@ -2643,7 +2650,9 @@ function scrollCategories(amount) {
         <button class="admin-nav-btn" onclick="switchAdminTab('autoReplyTab', this)" style="color:#38bdf8;"><i class="fas fa-robot"></i> Auto Reply Bot</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('mysteryTab', this)">Mystery Boxes</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('communityTab', this)">Community Mod</button>
-        <button class="admin-nav-btn" onclick="switchAdminTab('settingsTab', this)">Settings & Delivery</button>
+        <button type="button" class="admin-nav-btn" onclick="switchAdminTab('logisticsTab', this)">
+  <i class="fas fa-truck"></i> Settings & Logistics
+</button>
       </div>
 
       <!-- Tab 1: Products -->
@@ -3216,10 +3225,95 @@ function scrollCategories(amount) {
         <div id="adminCommunityPostsList"></div>
       </div>
 
-      <!-- Tab 7: Settings & Delivery -->
-      <div class="admin-tab" id="settingsTab">
+      <!-- Tab: Logistics & Delivery Management -->
+      <div class="admin-tab" id="logisticsTab">
         <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">စနစ်ဆိုင်ရာ ပြင်ဆင်ချက်များ & Delivery Settings</h4>
-        <!-- ABANDONED CART RECOVERY VOUCHER SETTINGS -->
+        <!-- LOGISTICS & DELIVERY FEATURE TOGGLE SYSTEM -->
+  <div style="background: rgba(255, 255, 255, 0.03); border: 1.5px solid var(--gold, #d4af37); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 14px;">
+      <span style="color: var(--gold, #d4af37); font-weight: bold; font-size: 0.95rem;">
+        <i class="fas fa-truck-moving" style="margin-right: 6px;"></i>ပို့ဆောင်ရေး စနစ်များ စီမံခန့်ခွဲမှု (Logistics Controls)
+      </span>
+      <span style="font-size: 0.72rem; color: #888;">Multi-City Feature Rules</span>
+    </div>
+
+    <!-- Toggle 1: Multi-City Delivery Rules -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၁။ Multi-City Delivery စနစ် (မြို့အလိုက် ပို့ခ)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">ရန်ကုန်/မန္တလေး COD နှင့် နယ်မြို့များအတွက် ကားဂိတ်ချခ သီးခြားခွဲထုတ်ခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleMultiCity" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">ရန်ကုန် COD ပို့ခ (ကျပ်)</label>
+          <input type="number" id="cfgFeeYangonCOD" placeholder="3000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">မန္တလေး COD ပို့ခ (ကျပ်)</label>
+          <input type="number" id="cfgFeeMandalayCOD" placeholder="3500" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size: 0.7rem; color: #ccc;">နယ်မြို့များအတွက် ကားဂိတ်ချခ (ပုံသေကျပ်)</label>
+          <input type="number" id="cfgFeeGateBase" placeholder="2000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle 2: Free Delivery Threshold -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၂။ အခမဲ့ ပို့ဆောင်ခ စနစ် (Free Delivery)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">သတ်မှတ်ငွေပမာဏပြည့်ပါက ပို့ခ အခမဲ့ပေးခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleFreeDelivery" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px;">
+        <label style="font-size: 0.7rem; color: #ccc;">အနည်းဆုံး ဝယ်ယူရမည့် ငွေပမာဏ (ကျပ်)</label>
+        <input type="number" id="cfgFreeDeliveryMinAmount" placeholder="50000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+      </div>
+    </div>
+
+    <!-- Toggle 3: Smart Bus Gate Selector -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၃။ Smart Bus Gate Selector (ကားဂိတ် အကြံပြုချက်)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">နယ်မြို့အလိုက် အောင်မင်္ဂလာ/ဒဂုံဧရာ ဂိတ်နှင့် ကားလိုင်းများ ရွေးချယ်စေခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleSmartGate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+    </div>
+
+    <!-- Toggle 4: Estimated Delivery Date -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၄။ ရောက်ရှိမည့်ရက် ခန့်မှန်းချက် (Estimated Delivery Date)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">မြို့အလိုက် ပစ္စည်းရောက်မည့် ကြာချိန် (ဥပမာ - ၁-၂ ရက်) ပြသခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleEstimatedDate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+    </div>
+
+    <!-- Save Button for Logistics Settings -->
+    <button type="button" onclick="saveLogisticsSettingsToCloud()" class="btn-gold" style="width: 100%; padding: 9px; font-weight: bold; font-size: 0.9rem; border-radius: 6px; cursor: pointer;">
+      <i class="fas fa-save" style="margin-right: 6px;"></i>ပို့ဆောင်ရေး သတ်မှတ်ချက်များ သိမ်းဆည်းမည်
+    </button>
+  </div>
+          <!-- ABANDONED CART RECOVERY VOUCHER SETTINGS -->
       <div style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
           <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
@@ -5549,6 +5643,108 @@ function saveAbandonedCartVoucherConfig() {
     alert('Abandoned Cart Voucher ပြင်ဆင်မှု သိမ်းဆည်းပြီးပါပြီ!');
   }
 }
+// ==================== LOGISTICS & DELIVERY MANAGEMENT SYSTEM ====================
+
+// ၁။ ပို့ဆောင်ရေး သတ်မှတ်ချက်များကို သိမ်းဆည်းသည့် Function
+function saveLogisticsSettingsToCloud() {
+  const multiCityOn = document.getElementById('cfgToggleMultiCity') ? document.getElementById('cfgToggleMultiCity').checked : false;
+  const freeDeliveryOn = document.getElementById('cfgToggleFreeDelivery') ? document.getElementById('cfgToggleFreeDelivery').checked : false;
+  const smartGateOn = document.getElementById('cfgToggleSmartGate') ? document.getElementById('cfgToggleSmartGate').checked : false;
+  const estimatedDateOn = document.getElementById('cfgToggleEstimatedDate') ? document.getElementById('cfgToggleEstimatedDate').checked : false;
+
+  const feeYangon = Number(document.getElementById('cfgFeeYangonCOD')?.value) || 3000;
+  const feeMandalay = Number(document.getElementById('cfgFeeMandalayCOD')?.value) || 3500;
+  const feeGateBase = Number(document.getElementById('cfgFeeGateBase')?.value) || 2000;
+  const freeMinAmount = Number(document.getElementById('cfgFreeDeliveryMinAmount')?.value) || 50000;
+
+  const logisticsConfig = {
+    multiCity: {
+      enabled: multiCityOn,
+      feeYangon: feeYangon,
+      feeMandalay: feeMandalay,
+      feeGateBase: feeGateBase
+    },
+    freeDelivery: {
+      enabled: freeDeliveryOn,
+      minAmount: freeMinAmount
+    },
+    smartGate: {
+      enabled: smartGateOn
+    },
+    estimatedDate: {
+      enabled: estimatedDateOn
+    },
+    updatedAt: new Date().toISOString()
+  };
+
+  // LocalStorage တွင် အမြန်သိမ်းဆည်းခြင်း
+  localStorage.setItem('tm_logistics_config', JSON.stringify(logisticsConfig));
+
+  // Firebase Firestore / Realtime Database သို့ သိမ်းဆည်းခြင်း
+  try {
+    if (typeof db !== 'undefined') {
+      if (typeof db.collection === 'function') {
+        db.collection('settings').doc('logistics').set(logisticsConfig, { merge: true });
+      } else if (typeof db.ref === 'function') {
+        db.ref('settings/logistics').update(logisticsConfig);
+      }
+    }
+  } catch (err) {
+    console.warn('Logistics Cloud Save:', err);
+  }
+
+  // အသိပေး Toast စာတန်း ထုတ်ပြခြင်း
+  if (typeof showToast === 'function') {
+    showToast('🚚 ပို့ဆောင်ရေး သတ်မှတ်ချက်များ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!', 'success');
+  } else {
+    alert('🚚 ပို့ဆောင်ရေး သတ်မှတ်ချက်များ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!');
+  }
+}
+
+// ၂။ ပို့ဆောင်ရေး သတ်မှတ်ချက်များကို Admin UI သို့ ပြန်လည်ဆွဲတင်သည့် Function
+function initLogisticsSettingsUI() {
+  let cfg = null;
+  const saved = localStorage.getItem('tm_logistics_config');
+  if (saved) {
+    try { cfg = JSON.parse(saved); } catch(e) {}
+  }
+
+  if (cfg) {
+    if (document.getElementById('cfgToggleMultiCity')) {
+      document.getElementById('cfgToggleMultiCity').checked = !!cfg.multiCity?.enabled;
+    }
+    if (document.getElementById('cfgFeeYangonCOD')) {
+      document.getElementById('cfgFeeYangonCOD').value = cfg.multiCity?.feeYangon || 3000;
+    }
+    if (document.getElementById('cfgFeeMandalayCOD')) {
+      document.getElementById('cfgFeeMandalayCOD').value = cfg.multiCity?.feeMandalay || 3500;
+    }
+    if (document.getElementById('cfgFeeGateBase')) {
+      document.getElementById('cfgFeeGateBase').value = cfg.multiCity?.feeGateBase || 2000;
+    }
+
+    if (document.getElementById('cfgToggleFreeDelivery')) {
+      document.getElementById('cfgToggleFreeDelivery').checked = !!cfg.freeDelivery?.enabled;
+    }
+    if (document.getElementById('cfgFreeDeliveryMinAmount')) {
+      document.getElementById('cfgFreeDeliveryMinAmount').value = cfg.freeDelivery?.minAmount || 50000;
+    }
+
+    if (document.getElementById('cfgToggleSmartGate')) {
+      document.getElementById('cfgToggleSmartGate').checked = !!cfg.smartGate?.enabled;
+    }
+    if (document.getElementById('cfgToggleEstimatedDate')) {
+      document.getElementById('cfgToggleEstimatedDate').checked = !!cfg.estimatedDate?.enabled;
+    }
+  }
+}
+
+// Page Load ချိန်တွင် UI setting များကို အဆင်သင့် ဆွဲတင်ခြင်း
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLogisticsSettingsUI);
+} else {
+  initLogisticsSettingsUI();
+}
 
 function showAbandonedCartVoucherModal() {
   const cfg = getAbandonedCartVoucherConfig();
@@ -5728,7 +5924,77 @@ setTimeout(() => {
       currentVipStatus.discountAmount = vipDiscountAmount;
 
       const totalDiscount = currentAppliedDiscount + vipDiscountAmount + (currentRedeemedPointsDiscount || 0);
-      const actualDeliveryFee = currentVipStatus.isFreeDelivery ? 0 : (currentDeliveryFee || 0);
+
+      // ===== DYNAMIC LOGISTICS & MULTI-CITY ENGINE =====
+    let actualDeliveryFee = 0;
+    let logisticsConfig = null;
+    try {
+      const savedLogistics = localStorage.getItem('tm_logistics_config');
+      if (savedLogistics) logisticsConfig = JSON.parse(savedLogistics);
+    } catch(e) {}
+
+    const selectedTownship = (document.getElementById('custTownshipInput')?.value || '').trim();
+    const isYgn = /ရန်ကုန်|yangon|ygn/i.test(selectedTownship);
+    const isMdy = /မန္တလေး|mandalay|mdy/i.test(selectedTownship);
+
+    // မြို့အလိုက် ပို့ခ/ဂိတ်ချခ တွက်ချက်ခြင်း
+    if (logisticsConfig?.multiCity?.enabled && selectedTownship) {
+      if (isYgn) {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeYangon) || 3000;
+      } else if (isMdy) {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeMandalay) || 3500;
+      } else {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeGateBase) || 2000;
+      }
+    } else {
+      actualDeliveryFee = Number(currentDeliveryFee) || 0;
+    }
+
+    // Free Delivery Threshold စစ်ဆေးခြင်း
+    let isFreeDeliveryApplied = false;
+    if (currentVipStatus?.isFreeDelivery) {
+      isFreeDeliveryApplied = true;
+      actualDeliveryFee = 0;
+    } else if (logisticsConfig?.freeDelivery?.enabled) {
+      const minAmount = Number(logisticsConfig.freeDelivery.minAmount) || 50000;
+      if (subTotal >= minAmount) {
+        isFreeDeliveryApplied = true;
+        actualDeliveryFee = 0;
+      }
+    }
+
+    // Checkout UI Dynamic Badge ဖော်ပြချက် အသစ်ပြင်ဆင်ခြင်း
+    const badge = document.getElementById('logisticsDynamicBadge');
+    const badgeType = document.getElementById('logisticsDeliveryTypeText');
+    const badgeFee = document.getElementById('logisticsFeeBreakdownText');
+    const badgeEta = document.getElementById('logisticsEtaText');
+
+    if (badge && selectedTownship) {
+      badge.style.display = 'block';
+      if (isYgn || isMdy) {
+        badgeType.innerHTML = `<i class="fas fa-home"></i> အိမ်အရောက် ပို့ဆောင်မှု (${isYgn ? 'ရန်ကုန်' : 'မန္တလေး'})`;
+        badgeFee.innerHTML = isFreeDeliveryApplied 
+          ? `<span style="color:#10b981;">🎉 ပို့ဆောင်ခ အခမဲ့ (Free Delivery ရရှိပါသည်)</span>` 
+          : `ပို့ဆောင်ခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> (COD အိမ်ရောက်ငွေချေ)`;
+        if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ပစ္စည်းရောက်ရှိမည့်ကြာချိန်: ၁ ရက် မှ ၂ ရက်အတွင်း`;
+        } else if (badgeEta) {
+          badgeEta.innerHTML = '';
+        }
+      } else {
+        badgeType.innerHTML = `<i class="fas fa-shuttle-van"></i> နယ်မြို့ ကားဂိတ်ပို့ဆောင်မှု (${selectedTownship})`;
+        badgeFee.innerHTML = isFreeDeliveryApplied 
+          ? '<span style="color:#10b981;">🎉 ကားဂိတ်ချခ အခမဲ့</span> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)'
+          : `ရန်ကုန်ကားဂိတ်ချခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)`;
+        if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ခန့်မှန်းကြာချိန်: ၂ ရက် မှ ၃ ရက်အတွင်း ဂိတ်သို့ရောက်ရှိမည်`;
+        } else if (badgeEta) {
+          badgeEta.innerHTML = '';
+        }
+      }
+    } else if (badge) {
+      badge.style.display = 'none';
+    }
 
       document.getElementById('cartSubTotal').innerText = subTotal.toLocaleString() + ' Ks';
       document.getElementById('cartDiscountText').innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
@@ -5822,6 +6088,16 @@ setTimeout(() => {
       const name = document.getElementById('custName').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
       const address = document.getElementById('custAddress').value.trim();
+      const township = document.getElementById('custTownshipInput')?.value.trim() || '';
+    
+    // Dynamic Logistics Info ဖတ်ယူခြင်း
+    let logisticsInfoText = '';
+    const badgeType = document.getElementById('logisticsDeliveryTypeText')?.innerText || '';
+    const badgeFee = document.getElementById('logisticsFeeBreakdownText')?.innerText || '';
+    const badgeEta = document.getElementById('logisticsEtaText')?.innerText || '';
+    if (township && badgeType) {
+      logisticsInfoText = `${badgeType} | ${badgeFee} ${badgeEta ? '(' + badgeEta + ')' : ''}`;
+    }
       const specialNote = document.getElementById('custSpecialNote')?.value.trim() || '';
       const trxId = document.getElementById('slipTrxIdInput')?.value.trim();
       const file = document.getElementById('slipFileInput')?.files[0];
@@ -5877,7 +6153,30 @@ setTimeout(() => {
       const orderId = 'ORD-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(1000 + Math.random()*9000);
       const subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
       const totalDiscount = currentAppliedDiscount + (currentVipStatus.discountAmount || 0);
-      const actualDeliveryFee = currentVipStatus.isFreeDelivery ? 0 : (currentDeliveryFee || 0);
+      // Logistics Config စစ်ဆေး၍ ပို့ခ သတ်မှတ်ခြင်း
+    let logisticsConfig = null;
+    try {
+      const savedLogistics = localStorage.getItem('tm_logistics_config');
+      if (savedLogistics) logisticsConfig = JSON.parse(savedLogistics);
+    } catch(e) {}
+
+    let actualDeliveryFee = Number(currentDeliveryFee) || 0;
+    const isYgn = /ရန်ကုန်|yangon|ygn/i.test(township);
+    const isMdy = /မန္တလေး|mandalay|mdy/i.test(township);
+
+    if (logisticsConfig?.multiCity?.enabled && township) {
+      if (isYgn) {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeYangon) || 3000;
+      } else if (isMdy) {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeMandalay) || 3500;
+      } else {
+        actualDeliveryFee = Number(logisticsConfig.multiCity.feeGateBase) || 2000;
+      }
+    }
+
+    if (currentVipStatus?.isFreeDelivery || (logisticsConfig?.freeDelivery?.enabled && subTotal >= (Number(logisticsConfig.freeDelivery.minAmount) || 50000))) {
+      actualDeliveryFee = 0;
+    }
       const grandTotal = Math.max(0, subTotal - totalDiscount + actualDeliveryFee);
 
       const newOrder = {
@@ -5885,8 +6184,9 @@ setTimeout(() => {
         customer: name,
         phone: phone,
         telegramUser: '',
-        township: currentSelectedTownship || '-',
-        deliveryService: currentDeliveryService || 'Deli',
+        township: township || currentSelectedTownship || '-',
+    logisticsInfo: logisticsInfoText || '',
+    deliveryService: currentDeliveryService || (isYgn || isMdy ? 'အိမ်အရောက် ပို့ဆောင်မှု (COD)' : 'ကားဂိတ် ပို့ဆောင်မှု'),
         busLineName: '',
         voucherNo: '',
         voucherImgUrl: '',
