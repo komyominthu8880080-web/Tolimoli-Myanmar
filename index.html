@@ -9984,18 +9984,34 @@ function openCustomPinModal() {
     }
 
     function toggleGlobalSoundNotification() {
-      isSoundMuted = !isSoundMuted;
-      localStorage.setItem('tm_sound_muted', isSoundMuted ? 'true' : 'false');
-      updateSoundToggleUI();
-      if (!isSoundMuted) playNotificationSound('bell');
-      showClipboardToast(isSoundMuted ? '🔇 Noti အသံ ပိတ်လိုက်ပါပြီ (Muted)' : '🔊 Noti အသံ ဖွင့်လိုက်ပါပြီ (Unmuted)');
-    }
+  // လက်ရှိ muted ဖြစ်မဖြစ်ကို localStorage မှ boolean အတိအကျ စစ်ဆေးပြီး ပြောင်းပြန်လှန်ခြင်း
+  const currentlyMuted = localStorage.getItem('tm_sound_muted') === 'true';
+  const newMutedState = !currentlyMuted;
+  
+  localStorage.setItem('tm_sound_muted', newMutedState ? 'true' : 'false');
+  if (typeof isSoundMuted !== 'undefined') {
+    isSoundMuted = newMutedState;
+  }
 
-    function updateSoundToggleUI() {
+  updateSoundToggleUI();
+
+  if (!newMutedState && typeof playNotificationSound === 'function') {
+    playNotificationSound('bell');
+  }
+
+  if (typeof showClipboardToast === 'function') {
+    showClipboardToast(newMutedState ? '🔇 အသံ ပိတ်လိုက်ပါပြီ (Muted)' : '🔊 အသံ ဖွင့်လိုက်ပါပြီ (Unmuted)');
+  }
+}
+
+function updateSoundToggleUI() {
   const btn = document.getElementById('btnGlobalSoundToggle');
   if (!btn) return;
 
-  if (isSoundMuted) {
+  // localStorage ထဲရှိ အခြေအနေကို တိုက်ရိုက်ဖတ်ယူခြင်း
+  const isMuted = localStorage.getItem('tm_sound_muted') === 'true';
+
+  if (isMuted) {
     btn.classList.add('muted');
     // အသံပိတ်ထားချိန် - စပီကာပိတ် အနီရောင်သင်္ကေတ အပြည့်အစုံ
     btn.innerHTML = '<i class="fas fa-volume-mute" style="color: #ff4d4f !important; font-size: 1.25rem;"></i>';
@@ -10009,10 +10025,9 @@ function openCustomPinModal() {
     btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (ပိတ်ရန် နှိပ်ပါ)';
   }
 }
-// စာမျက်နှာ စဖွင့်ဖွင့်ချင်း အသံ UI အခြေအနေကို ချက်ချင်း စစ်ဆေးပြသခြင်း
-if (typeof updateSoundToggleUI === 'function') {
-  updateSoundToggleUI();
-}
+
+// စာမျက်နှာ စဖွင့်ချိန်တွင် အသံ UI အခြေအနေကို ချက်ချင်း စစ်ဆေးပြသခြင်း
+updateSoundToggleUI();
 
     function showVisualNotificationToast(title, msg, iconClass = 'fa-bell') {
       let toast = document.createElement('div');
