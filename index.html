@@ -5974,28 +5974,45 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
     }
     
     function showOrderSuccessScreen(o) {
-      // --- TELEGRAM WEBHOOK NOTIFICATION ---
+      // --- TELEGRAM WEBHOOK NOTIFICATION (FIXED TO MATCH BACKEND API) ---
   try {
-    fetch('/api/telegram-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        orderId: o.id || '',
-        customerName: o.customer || '',
-        phone: o.phone || '',
-        address: o.address || '',
-        township: o.township || '',
-        items: o.items || [],
-        totalAmount: o.total || 0,
-        slipUrl: o.slipUrl || '',
-        paymentMethod: o.payment || 'COD',
-        specialNote: o.specialNote || '',
-        createdAt: o.createdAt || new Date().toISOString()
-      })
-    }).catch(err => console.error('Telegram notification error:', err));
+    const tgChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '';
+    const tgTopicId = (typeof botConfig !== 'undefined' && botConfig.tgOrderTopicId) ? botConfig.tgOrderTopicId : null;
+
+    if (tgChatId) {
+      let itemsListText = '';
+      if (Array.isArray(o.items)) {
+        itemsListText = o.items.map(it => `• ${it.name || it.title} (x${it.qty || 1}) - ${(it.price * (it.qty || 1)).toLocaleString()} MMK`).join('\n');
+      }
+
+      const orderMessageText = `🛍 <b>အော်ဒါအသစ် ရောက်ရှိပါသည်!</b>\n\n` +
+        `🆔 <b>Order ID:</b> <code>${o.id}</code>\n` +
+        `👤 <b>အမည်:</b> ${o.customer || 'မဖော်ပြထားပါ'}\n` +
+        `📞 <b>ဖုန်း:</b> ${o.phone || 'မဖော်ပြထားပါ'}\n` +
+        `📍 <b>လိပ်စာ:</b> ${o.address || ''} ${o.township || ''}\n` +
+        `💵 <b>စုစုပေါင်း:</b> <b>${Number(o.total || 0).toLocaleString()} MMK</b>\n` +
+        `💳 <b>ငွေပေးချေမှု:</b> ${o.payment || 'COD'}\n` +
+        (o.specialNote ? `📝 <b>မှတ်ချက်:</b> ${o.specialNote}\n` : '') +
+        (o.slipUrl ? `🧾 <b>စလစ်လင့်ခ်:</b> <a href="${o.slipUrl}">ကြည့်ရှုရန်</a>\n` : '') +
+        `\n📦 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsListText}`;
+
+      const payload = {
+        action: 'sendOrderNotification',
+        chatId: tgChatId,
+        messageText: orderMessageText
+      };
+      if (tgTopicId) payload.topicId = tgTopicId;
+
+      fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).catch(err => console.error('Telegram notification error:', err));
+    }
   } catch (tgErr) {
     console.error('Telegram trigger failed:', tgErr);
   }
+  
       const ownerPhone = botConfig.ownerPhone || '09768124433';
       const shareText = `Tolimoli Order: ${o.id} | ဝယ်သူ: ${o.customer} (${o.phone}) | စုစုပေါင်း: ${Number(o.total).toLocaleString()} MMK`;
       const encoded = encodeURIComponent(shareText);
