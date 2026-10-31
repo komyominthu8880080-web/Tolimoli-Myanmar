@@ -5972,8 +5972,30 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
         }).catch(e => console.log('Auto voucher download note:', e));
       }, 300);
     }
-
+    
     function showOrderSuccessScreen(o) {
+      // --- TELEGRAM WEBHOOK NOTIFICATION ---
+  try {
+    fetch('/api/telegram-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: o.id || '',
+        customerName: o.customer || '',
+        phone: o.phone || '',
+        address: o.address || '',
+        township: o.township || '',
+        items: o.items || [],
+        totalAmount: o.total || 0,
+        slipUrl: o.slipUrl || '',
+        paymentMethod: o.payment || 'COD',
+        specialNote: o.specialNote || '',
+        createdAt: o.createdAt || new Date().toISOString()
+      })
+    }).catch(err => console.error('Telegram notification error:', err));
+  } catch (tgErr) {
+    console.error('Telegram trigger failed:', tgErr);
+  }
       const ownerPhone = botConfig.ownerPhone || '09768124433';
       const shareText = `Tolimoli Order: ${o.id} | ဝယ်သူ: ${o.customer} (${o.phone}) | စုစုပေါင်း: ${Number(o.total).toLocaleString()} MMK`;
       const encoded = encodeURIComponent(shareText);
