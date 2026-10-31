@@ -8881,14 +8881,17 @@ function fallbackCopyText(text, successMsg) {
   }
 
   // Admin Dashboard Search Bar အတွက် Category စာရင်း ဖြည့်ပေးခြင်း
-  const adminSel = document.getElementById('adminProductCategoryFilterSelect');
+  const adminSel = document.getElementById('adminProductCategoryFilterSelect') || document.getElementById('adminCategoryFilterSelect') || document.getElementById('adminCategoryFilter');
   if (adminSel) {
     const curAdminVal = adminSel.value || 'All';
-    adminSel.innerHTML = `<option value="All">📂 အမျိုးအစား အားလုံး</option>` +
-      categories.map(c => `<option value="${c}" ${curAdminVal === c ? 'selected' : ''}>📂 ${c}</option>`).join('');
+    adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
+      categories.map(c => {
+        const cName = typeof c === 'object' && c !== null ? (c.name || c.title || '') : c;
+        if (!cName) return '';
+        return `<option value="${cName}" ${curAdminVal === cName ? 'selected' : ''}>${cName}</option>`;
+      }).join('');
   }
-}
-
+  }
     function handleSearchCategoryDropdownChange(catName) {
       selectCategoryByName(catName);
     }
