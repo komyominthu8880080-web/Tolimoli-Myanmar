@@ -1684,6 +1684,9 @@ header.sticky-scrolled .hero-compact {
 
 /* ခြင်းထဲထည့်မည် ခလုတ် - သီးသန့် အပေါ်တန်းအပြည့် */
 .btn-quick-add-cart {
+  position: relative !important;
+  z-index: 10 !important;
+  pointer-events: auto !important;
   width: 100% !important;
   padding: 8px 4px !important;
   background: #f5a623 !important;
@@ -4291,9 +4294,9 @@ orders = deduplicateOrders(raw);
               </div>
               <div class="product-card-actions">
   <!-- ၁။ ခြင်းထဲထည့်မည် (အပေါ်တန်း - အပြည့်) -->
-  <button type="button" class="btn-quick-add-cart" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); quickAddToCart(${p.id}, event)">
-    <i class="fas fa-cart-plus"></i> ${isOutOfStock ? 'ကုန်ပြီ' : 'ခြင်းထဲထည့်မည်'}
-  </button>
+  <button type="button" class="btn-quick-add-cart" ${isOutOfStock ? 'disabled' : ''} onclick="event.stopPropagation(); if(typeof quickAddToCart === 'function'){ quickAddToCart('${p.id}'); } else if(typeof addToCart === 'function'){ addToCart('${p.id}'); }">
+  <i class="fas fa-cart-plus"></i> ${isOutOfStock ? 'ကုန်ပြီ' : 'ခြင်းထဲထည့်မည်'}
+</button>
 
   <!-- အောက်တန်း - ဘေးချင်းယှဉ် ၂ ခု -->
   <div class="product-card-actions-sub">
