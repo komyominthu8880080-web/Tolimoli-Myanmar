@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Phone and Order ID are required' });
     }
 
-    // ဖုန်းနံပါတ်ကို 09xxxxxxxxx ဖော်မတ်သို့ ပြောင်းလဲခြင်း
+    // ဖုန်းနံပါတ်ကို SMSPoh လက်ခံသည့် 09xxxxxxxxx ပုံစံသို့ ပြောင်းလဲခြင်း
     let formattedPhone = phone.replace(/\s+/g, '').replace(/[-+]/g, '');
     if (formattedPhone.startsWith('959')) {
       formattedPhone = '09' + formattedPhone.slice(3);
@@ -29,19 +29,17 @@ export default async function handler(req, res) {
       });
     }
 
-    // apiKey:apiSecret ကို Base64 encode ပြုလုပ်၍ Bearer Token ဖန်တီးခြင်း
-    const rawToken = `${SMS_KEY}:${SMS_SECRET}`;
-    const base64Token = Buffer.from(rawToken).toString('base64');
+    // apiKey:apiSecret ကို Base64 encode ပြုလုပ်၍ Bearer Token တည်ဆောက်ခြင်း
+    const base64Token = Buffer.from(`${SMS_KEY}:${SMS_SECRET}`).toString('base64');
 
-    // SMSPoh v3 Emulator သတ်မှတ်ချက်အတိုင်း Payload တည်ဆောက်ခြင်း
+    // SMSPoh Test Account အတွက် fixed message စာသားကို အသုံးပြုပေးရပါသည်
     const payload = {
       to: formattedPhone,
-      message: `Order ${orderId} confirmed. Total: ${totalAmount} Ks. Tolimoli Myanmar.`,
-      from: 'SMSPohTest'
+      message: 'This is a test message from SMSPoh',
+      from: 'SMSPoh'
     };
 
-    // SMSPoh v3 REST Endpoint သို့ ပို့ဆောင်ခြင်း
-    let response = await fetch('https://v3.smspoh.com/api/rest/send', {
+    const response = await fetch('https://v3.smspoh.com/api/rest/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,13 +48,7 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload)
     });
 
-    let smsResult;
-    try {
-      smsResult = await response.json();
-    } catch (e) {
-      smsResult = { status: response.status, statusText: response.statusText };
-    }
-
+    const smsResult = await response.json();
     console.log('[SMSPoh Response]:', smsResult);
 
     return res.status(200).json({
