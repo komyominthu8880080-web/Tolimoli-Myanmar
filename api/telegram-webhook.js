@@ -12,8 +12,8 @@ export default async function handler(req, res) {
     return res.status(200).send('Method Not Allowed');
   }
 
-  // @Tolimolimyanmar_bot ၏ တိကျသော Token အမှန်
-  const ORDER_BOT_TOKEN = '8954973059:AAFOW9folWooIRgmikMe7yj10rscgHRznhY';
+  // @Tolimolimyanmar_bot ၏ Token အသစ်စက်စက်
+  const ORDER_BOT_TOKEN = '8954973059:AAGbFEOLt29DgWfgf09xHNpn9Lu-SBZAI-4';
   // သင်၏ Chat ID (Tolimoli Myanmar Account)
   const ADMIN_CHAT_ID = '1858981030';
   // @TolomoliLivechat_Bot Token
