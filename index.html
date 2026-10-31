@@ -1859,9 +1859,9 @@ body.modal-open .floating-action-container {
       </div>
 
       <div class="header-actions-group">
-        <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ အဖွင့်/အပိတ် (Mute/Unmute Notifications)">
-          <i class="fas fa-volume-up" id="globalSoundIcon"></i>
-        </button>
+        <button class="btn-sound-toggle" id="btnGlobalSoundToggle" onclick="toggleGlobalSoundNotification()" title="အသံ ဖွင့်/ပိတ်" style="transition: all 0.3s ease; border: 1.5px solid transparent; border-radius: 50%; padding: 6px;">
+  <i class="fas fa-volume-up" id="globalSoundIcon" style="font-size: 1.15rem;"></i>
+</button>
         <button class="btn-header-action" id="btnDiscreetMask" onclick="toggleDiscreetMask()" title="လျှို့ဝှက်ပုံစံပြောင်းရန် (Privacy Mask)">
           <i class="fas fa-mask"></i>
         </button>
@@ -9995,16 +9995,25 @@ function openCustomPinModal() {
   const btn = document.getElementById('btnGlobalSoundToggle');
   const icon = document.getElementById('globalSoundIcon');
   if (!btn || !icon) return;
+
   if (isSoundMuted) {
     btn.classList.add('muted');
+    // အသံပိတ်ထားချိန် - စောင်းမျဉ်းသင်္ကေတ + အနီရောင်နောက်ခံနှင့် အနီရောင်မီးရောင်
     icon.className = 'fas fa-volume-mute';
-    icon.style.color = '#ef4444'; // အနီရောင်ဖြင့် အသံပိတ်ထားကြောင်း အလွန်သိသာစေခြင်း
-    btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ပြန်ဖွင့်ရန် နှိပ်ပါ)';
+    icon.style.setProperty('color', '#ff4d4f', 'important');
+    btn.style.setProperty('background', 'rgba(239, 68, 68, 0.25)', 'important');
+    btn.style.setProperty('border', '1.5px solid #ef4444', 'important');
+    btn.style.setProperty('box-shadow', '0 0 10px rgba(239, 68, 68, 0.6)', 'important');
+    btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ဖွင့်ရန် နှိပ်ပါ)';
   } else {
     btn.classList.remove('muted');
+    // အသံဖွင့်ထားချိန် - အသံထွက်စပီကာ + အစိမ်းရောင်နောက်ခံနှင့် အစိမ်းရောင်မီးရောင်
     icon.className = 'fas fa-volume-up';
-    icon.style.color = '#10b981'; // အစိမ်းရောင်ဖြင့် အသံဖွင့်ထားကြောင်း တောက်ပစွာ ပြသခြင်း
-    btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (အသံပိတ်ရန် နှိပ်ပါ)';
+    icon.style.setProperty('color', '#10b981', 'important');
+    btn.style.setProperty('background', 'rgba(16, 185, 129, 0.25)', 'important');
+    btn.style.setProperty('border', '1.5px solid #10b981', 'important');
+    btn.style.setProperty('box-shadow', '0 0 10px rgba(16, 185, 129, 0.6)', 'important');
+    btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (ပိတ်ရန် နှိပ်ပါ)';
   }
 }
 
