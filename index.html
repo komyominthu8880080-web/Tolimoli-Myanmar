@@ -7583,39 +7583,44 @@ function renderVisualSalesCharts(orderList) {
 
 
     function renderAdminCategoryChips() {
-      const container = document.getElementById('adminCategoryChipsContainer');
-      const badge = document.getElementById('selectedCatCountBadge');
-      if (!container) return;
+  const container = document.getElementById('adminCategoryChipsContainer');
+  const badge = document.getElementById('selectedCatCountBadge');
+  if (!container) return;
 
-      container.innerHTML = categories.map(c => {
-        const isSelected = selectedAdminCategories.includes(c);
-        return `
-          <div class="admin-cat-chip ${isSelected ? 'active' : ''}" onclick="toggleAdminCategoryChip('${c}')">
-            <span>${isSelected ? '✔ ' : ''}${c}</span>
-            <span class="chip-del-icon" onclick="deleteCategoryFromAdmin(event, '${c}')" title="ဖျက်မည်">×</span>
-          </div>
-        `;
-      }).join('');
+  container.innerHTML = categories.map(c => {
+    const isSelected = selectedAdminCategories.includes(c);
+    return `
+      <div class="admin-cat-chip ${isSelected ? 'active' : ''}" onclick="toggleAdminCategoryChip('${c}')">
+        <span>${isSelected ? '✓ ' : ''}${c}</span>
+        <span class="chip-del-icon" onclick="deleteCategoryFromAdmin(event, '${c}')" title="ဖျက်မည်">&times;</span>
+      </div>
+    `;
+  }).join('');
 
-      if (badge) {
-        badge.innerText = `${selectedAdminCategories.length} ခု ရွေးထားသည်`;
-        badge.style.color = selectedAdminCategories.length > 0 ? '#10b981' : '#f87171';
-      }
-      if (typeof syncSearchCategoryDropdown === 'function') {
-    syncSearchCategoryDropdown();
+  if (badge) {
+    badge.innerText = `${selectedAdminCategories.length} ခု ရွေးထားသည်`;
+    badge.style.color = selectedAdminCategories.length > 0 ? '#10b981' : '#f87171';
   }
-    }
 
-    function toggleAdminCategoryChip(catName) {
-      if (navigator.vibrate) navigator.vibrate(30);
-      const idx = selectedAdminCategories.indexOf(catName);
-      if (idx > -1) {
-        selectedAdminCategories.splice(idx, 1);
-      } else {
-        selectedAdminCategories.push(catName);
-      }
-      renderAdminCategoryChips();
-    }
+  // Admin Dropdown ထဲသို့ Category များ ချက်ချင်း တိုက်ရိုက် ထည့်သွင်းခြင်း
+  const adminSel = document.getElementById('adminProductCategoryFilterSelect');
+  if (adminSel && Array.isArray(categories)) {
+    const curAdminVal = adminSel.value || 'All';
+    adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
+      categories.map(c => `<option value="${c}" ${curAdminVal === c ? 'selected' : ''}>${c}</option>`).join('');
+  }
+}
+
+function toggleAdminCategoryChip(catName) {
+  if (navigator.vibrate) navigator.vibrate(30);
+  const idx = selectedAdminCategories.indexOf(catName);
+  if (idx > -1) {
+    selectedAdminCategories.splice(idx, 1);
+  } else {
+    selectedAdminCategories.push(catName);
+  }
+  renderAdminCategoryChips();
+}
 
     function setAdminSelectedCategories(catList) {
       selectedAdminCategories = Array.isArray(catList) ? [...catList] : (catList ? [catList] : []);
@@ -8442,10 +8447,7 @@ function closeModal(id) {
         localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
         updateFocAdminUI();
         renderAdminDeliverySettings();
-    if (typeof syncSearchCategoryDropdown === 'function') {
-      syncSearchCategoryDropdown();
-    }
-    openModal('adminModal');
+    
         if (typeof renderCheckoutFocSection === 'function') renderCheckoutFocSection();
       }
     });
