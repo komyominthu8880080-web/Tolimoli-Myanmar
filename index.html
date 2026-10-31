@@ -5121,10 +5121,10 @@ if (socBox) {
 
   // ၁။ လူမှုကွန်ရက် လင့်ခ်များ (YouTube, Telegram, TikTok, Facebook) စစ်ဆေးဖော်ပြခြင်း
     const socialLinks = [
-      { name: 'YouTube', icon: 'fa-youtube', bg: '#FF0000', link: p.youtube || p.youtubeLink },
-      { name: 'Telegram', icon: 'fa-telegram', bg: '#229ED9', link: p.telegram || p.telegramLink },
-      { name: 'TikTok', icon: 'fa-tiktok', bg: '#000000', link: p.tiktok || p.tiktokLink },
-      { name: 'Facebook', icon: 'fa-facebook', bg: '#1877F2', link: p.facebook || p.facebookLink }
+      { name: 'YouTube', icon: 'fa-youtube', bg: '#FF0000', link: p.ytLink || p.pYtLink || p.youtube || p.youtubeLink },
+      { name: 'Telegram', icon: 'fa-telegram', bg: '#229ED9', link: p.tgLink || p.pTgLink || p.telegram || p.telegramLink },
+      { name: 'TikTok', icon: 'fa-tiktok', bg: '#000000', link: p.ttLink || p.pTtLink || p.tiktok || p.tiktokLink },
+      { name: 'Facebook', icon: 'fa-facebook', bg: '#1877F2', link: p.fbLink || p.pFbLink || p.facebook || p.facebookLink }
     ];
 
     let socialButtonsHtml = '';
