@@ -9992,19 +9992,21 @@ function openCustomPinModal() {
     }
 
     function updateSoundToggleUI() {
-      const btn = document.getElementById('btnGlobalSoundToggle');
-      const icon = document.getElementById('globalSoundIcon');
-      if (!btn || !icon) return;
-      if (isSoundMuted) {
-        btn.classList.add('muted');
-        icon.className = 'fas fa-volume-mute';
-        btn.title = 'အသံ ပိတ်ထားသည် (Unmute ရန် နှိပ်ပါ)';
-      } else {
-        btn.classList.remove('muted');
-        icon.className = 'fas fa-volume-up';
-        btn.title = 'အသံ ဖွင့်ထားသည် (Mute ရန် နှိပ်ပါ)';
-      }
-    }
+  const btn = document.getElementById('btnGlobalSoundToggle');
+  const icon = document.getElementById('globalSoundIcon');
+  if (!btn || !icon) return;
+  if (isSoundMuted) {
+    btn.classList.add('muted');
+    icon.className = 'fas fa-volume-mute';
+    icon.style.color = '#ef4444'; // အနီရောင်ဖြင့် အသံပိတ်ထားကြောင်း အလွန်သိသာစေခြင်း
+    btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ပြန်ဖွင့်ရန် နှိပ်ပါ)';
+  } else {
+    btn.classList.remove('muted');
+    icon.className = 'fas fa-volume-up';
+    icon.style.color = '#10b981'; // အစိမ်းရောင်ဖြင့် အသံဖွင့်ထားကြောင်း တောက်ပစွာ ပြသခြင်း
+    btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (အသံပိတ်ရန် နှိပ်ပါ)';
+  }
+}
 
     function showVisualNotificationToast(title, msg, iconClass = 'fa-bell') {
       let toast = document.createElement('div');
