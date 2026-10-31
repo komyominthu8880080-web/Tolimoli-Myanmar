@@ -5964,26 +5964,7 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
 
       document.getElementById('custFeedbackNote').value = '';
       openModal('orderSuccessModal');
-      // ဝယ်သူထံ အော်ဒါအတည်ပြု SMS ပို့ဆောင်ခြင်း (Background Trigger)
-    if (o && o.phone) {
-      fetch('/api/sms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone: o.phone,
-          orderId: o.id || '',
-          totalAmount: o.total || 0,
-          customerName: o.customer || ''
-        })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('[SMS Trigger Status]:', data);
-      })
-      .catch(err => {
-        console.warn('[SMS Trigger Failed]:', err);
-      });
-    }
+      
     }
 
     var selectedQuickRatingVal = 'ကျေနပ်သည်';
