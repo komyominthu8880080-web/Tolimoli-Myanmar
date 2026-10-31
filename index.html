@@ -5953,20 +5953,29 @@ setTimeout(() => {
 
       const totalDiscount = currentAppliedDiscount + vipDiscountAmount + (currentRedeemedPointsDiscount || 0);
 
-      // ===== DYNAMIC LOGISTICS & MULTI-CITY ENGINE =====
+      // ==========================================
+    // 🚚 INTEGRATED LOGISTICS & MULTI-CITY ENGINE
+    // ==========================================
     let actualDeliveryFee = 0;
+    let isFreeDeliveryApplied = false;
+
+    // ၁။ စနစ်သစ် Config အချက်အလက်များ ဖတ်ယူခြင်း
     let logisticsConfig = null;
     try {
-      const savedLogistics = localStorage.getItem('tm_logistics_config');
-      if (savedLogistics) logisticsConfig = JSON.parse(savedLogistics);
+      const savedConfig = localStorage.getItem('tm_logistics_config');
+      if (savedConfig) logisticsConfig = JSON.parse(savedConfig);
     } catch(e) {}
+
+    const isMultiCityEnabled = !!logisticsConfig?.multiCity?.enabled;
+    const isFreeDeliveryEnabled = !!logisticsConfig?.freeDelivery?.enabled;
+    const minFreeAmount = Number(logisticsConfig?.freeDelivery?.minAmount) || 50000;
 
     const selectedTownship = (document.getElementById('custTownshipInput')?.value || '').trim();
     const isYgn = /ရန်ကုန်|yangon|ygn/i.test(selectedTownship);
     const isMdy = /မန္တလေး|mandalay|mdy/i.test(selectedTownship);
 
-    // မြို့အလိုက် ပို့ခ/ဂိတ်ချခ တွက်ချက်ခြင်း
-    if (logisticsConfig?.multiCity?.enabled && selectedTownship) {
+    // (က) ပို့ခ/ဂိတ်ချခ သတ်မှတ်ခြင်း (စနစ်သစ် vs စနစ်ဟောင်း)
+    if (isMultiCityEnabled && selectedTownship) {
       if (isYgn) {
         actualDeliveryFee = Number(logisticsConfig.multiCity.feeYangon) || 3000;
       } else if (isMdy) {
@@ -5978,20 +5987,16 @@ setTimeout(() => {
       actualDeliveryFee = Number(currentDeliveryFee) || 0;
     }
 
-    // Free Delivery Threshold စစ်ဆေးခြင်း
-    let isFreeDeliveryApplied = false;
+    // (ခ) Free Delivery စစ်ဆေးခြင်း
     if (currentVipStatus?.isFreeDelivery) {
       isFreeDeliveryApplied = true;
       actualDeliveryFee = 0;
-    } else if (logisticsConfig?.freeDelivery?.enabled) {
-      const minAmount = Number(logisticsConfig.freeDelivery.minAmount) || 50000;
-      if (subTotal >= minAmount) {
-        isFreeDeliveryApplied = true;
-        actualDeliveryFee = 0;
-      }
+    } else if (isFreeDeliveryEnabled && subTotal >= minFreeAmount) {
+      isFreeDeliveryApplied = true;
+      actualDeliveryFee = 0;
     }
 
-    // Checkout UI Dynamic Badge ဖော်ပြချက် အသစ်ပြင်ဆင်ခြင်း
+    // (ဂ) Checkout UI Dynamic Badge ဖော်ပြချက် အသစ်ပြင်ဆင်ခြင်း
     const badge = document.getElementById('logisticsDynamicBadge');
     const badgeType = document.getElementById('logisticsDeliveryTypeText');
     const badgeFee = document.getElementById('logisticsFeeBreakdownText');
@@ -5999,23 +6004,33 @@ setTimeout(() => {
 
     if (badge && selectedTownship) {
       badge.style.display = 'block';
+
       if (isYgn || isMdy) {
-        badgeType.innerHTML = `<i class="fas fa-home"></i> အိမ်အရောက် ပို့ဆောင်မှု (${isYgn ? 'ရန်ကုန်' : 'မန္တလေး'})`;
-        badgeFee.innerHTML = isFreeDeliveryApplied 
-          ? `<span style="color:#10b981;">🎉 ပို့ဆောင်ခ အခမဲ့ (Free Delivery ရရှိပါသည်)</span>` 
-          : `ပို့ဆောင်ခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> (COD အိမ်ရောက်ငွေချေ)`;
+        const cityName = isYgn ? 'ရန်ကုန်' : 'မန္တလေး';
+        const deliName = typeof currentDeliveryService !== 'undefined' && currentDeliveryService ? ` (${currentDeliveryService})` : '';
+        
+        badgeType.innerHTML = `<i class="fas fa-home"></i> အိမ်အရောက် ပို့ဆောင်မှု${deliName} (${cityName})`;
+        badgeFee.innerHTML = isFreeDeliveryApplied
+          ? `<span style="color:#10b981;">➤ ပို့ဆောင်ခ အခမဲ့ (Free Delivery ရရှိပါသည်)</span>`
+          : `ပို့ဆောင်ခ: <b>${actualDeliveryFee.toLocaleString()}</b> ကျပ် (COD အိမ်ရောက်ငွေချေ)`;
+
         if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
-          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ပစ္စည်းရောက်ရှိမည့်ကြာချိန်: ${logisticsConfig?.estimatedDate?.etaCity || '၁ ရက် မှ ၂ ရက်အတွင်း'}`;
+          const etaText = logisticsConfig.estimatedDate.etaCity || '၁ ရက် မှ ၂ ရက်အတွင်း';
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ပစ္စည်းရောက်ရှိမည့်ကြာချိန်: ${etaText}`;
         } else if (badgeEta) {
           badgeEta.innerHTML = '';
         }
       } else {
-        badgeType.innerHTML = `<i class="fas fa-shuttle-van"></i> နယ်မြို့ ကားဂိတ်ပို့ဆောင်မှု (${selectedTownship})`;
-        badgeFee.innerHTML = isFreeDeliveryApplied 
-          ? '<span style="color:#10b981;">🎉 ကားဂိတ်ချခ အခမဲ့</span> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)'
-          : `ရန်ကုန်ကားဂိတ်ချခ: <b>${actualDeliveryFee.toLocaleString()} ကျပ်</b> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)`;
+        const busLineText = typeof currentBusLineName !== 'undefined' && currentBusLineName ? ` (${currentBusLineName})` : '';
+
+        badgeType.innerHTML = `<i class="fas fa-shuttle-van"></i> နယ်မြို့ ကားဂိတ်ပို့ဆောင်မှု${busLineText} (${selectedTownship})`;
+        badgeFee.innerHTML = isFreeDeliveryApplied
+          ? `<span style="color:#10b981;">➤ ကားဂိတ်ချခ အခမဲ့</span> + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)`
+          : `ရန်ကုန်ကားဂိတ်ချခ: <b>${actualDeliveryFee.toLocaleString()}</b> ကျပ် + ကားတန်ဆာခ (ဂိတ်ရောက်မှ ပေးချေရန်)`;
+
         if (logisticsConfig?.estimatedDate?.enabled && badgeEta) {
-          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ခန့်မှန်းကြာချိန်: ${logisticsConfig?.estimatedDate?.etaGate || '၂ ရက် မှ ၃ ရက်အတွင်း'} (ဂိတ်သို့ရောက်ရှိမည်)`;
+          const etaText = logisticsConfig.estimatedDate.etaGate || '၂ ရက် မှ ၃ ရက်အတွင်း';
+          badgeEta.innerHTML = `<i class="fas fa-clock"></i> ခန့်မှန်းကြာချိန်: ${etaText} (ဂိတ်သို့ရောက်ရှိမည်)`;
         } else if (badgeEta) {
           badgeEta.innerHTML = '';
         }
@@ -6032,7 +6047,41 @@ setTimeout(() => {
       document.getElementById('cartTotalPrice').innerText = grandTotal.toLocaleString() + ' MMK';
       renderCheckoutFocSection();
     }
+    // မြို့နယ်ရွေးချယ်ချိန်တွင် စနစ်ဟောင်း Deli / ဂိတ်များနှင့် စနစ်သစ်ကို ပေါင်းစပ်ပေးသည့် Function
+function handleTownshipSelectionIntegration(townshipInputVal) {
+  const township = (townshipInputVal || '').trim();
+  if (!township) return;
 
+  const isYgn = /ရန်ကုန်|yangon|ygn/i.test(township);
+  const isMdy = /မန္တလေး|mandalay|mdy/i.test(township);
+
+  const deliContainer = document.getElementById('dynamicDeliOptionsContainer');
+  const gateContainer = document.getElementById('stationDirectoryContainer') || document.getElementById('smartGateSuggestionBox');
+
+  // ၁။ ရန်ကုန် သို့မဟုတ် မန္တလေး ဖြစ်ပါက -> Deli ရွေးချယ်မှု ပြသမည်
+  if (isYgn || isMdy) {
+    if (deliContainer) deliContainer.style.display = 'block';
+    if (gateContainer) gateContainer.style.display = 'none';
+
+    if (typeof renderAvailableDeliCompanies === 'function') {
+      renderAvailableDeliCompanies(township);
+    }
+  } 
+  // ၂။ နယ်မြို့ ဖြစ်ပါက -> Stations Directory (ကားဂိတ်စာရင်း) ပြသမည်
+  else {
+    if (deliContainer) deliContainer.style.display = 'none';
+    if (gateContainer) gateContainer.style.display = 'block';
+
+    if (typeof filterStationsByTownship === 'function') {
+      filterStationsByTownship(township);
+    } else if (typeof renderStationDirectoryOptions === 'function') {
+      renderStationDirectoryOptions(township);
+    }
+  }
+
+  // တွက်ချက်မှုနှင့် UI Badge ကို တစ်ပြိုင်နက် Update လုပ်ခြင်း
+  renderCartUI();
+}
     function changeCartQty(idx, delta) {
       const it = cart[idx];
       const prod = products.find(p => p.id === it.id);
@@ -9500,6 +9549,7 @@ function fallbackCopyText(text, successMsg) {
     handleTownshipSelect = function() {
       const input = document.getElementById('custTownshipInput');
       const val = input ? input.value.trim() : '';
+      handleTownshipSelectionIntegration(val);
       if (!val) {
         document.getElementById('dynamicDeliOptionsContainer').style.display = 'none';
         currentDeliveryFee = 0;
