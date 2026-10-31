@@ -8364,6 +8364,11 @@ function closeModal(id) {
         if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
         if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
       }
+      if (tid === 'productsTab') {
+    if (typeof syncSearchCategoryDropdown === 'function') {
+      syncSearchCategoryDropdown();
+    }
+  }
     }
 
     function loadCentralSettings() {
@@ -8433,6 +8438,11 @@ function closeModal(id) {
 
         localStorage.setItem('tm_foc_config', JSON.stringify(focConfig));
         updateFocAdminUI();
+        renderAdminDeliverySettings();
+    if (typeof syncSearchCategoryDropdown === 'function') {
+      syncSearchCategoryDropdown();
+    }
+    openModal('adminModal');
         if (typeof renderCheckoutFocSection === 'function') renderCheckoutFocSection();
       }
     });
