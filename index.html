@@ -9983,50 +9983,54 @@ function openCustomPinModal() {
       } catch(e) {}
     }
 
-    function toggleGlobalSoundNotification() {
-  // လက်ရှိ muted ဖြစ်မဖြစ်ကို localStorage မှ boolean အတိအကျ စစ်ဆေးပြီး ပြောင်းပြန်လှန်ခြင်း
-  const currentlyMuted = localStorage.getItem('tm_sound_muted') === 'true';
-  const newMutedState = !currentlyMuted;
-  
-  localStorage.setItem('tm_sound_muted', newMutedState ? 'true' : 'false');
+   function toggleGlobalSoundNotification() {
+  const btn = document.getElementById('btnGlobalSoundToggle');
+  // ခလုတ်တွင် 'muted' class ရှိ/မရှိ ဖြင့် လက်ရှိ အခြေအနေကို တိုက်ရိုက် စစ်ဆေးခြင်း
+  const isCurrentlyMuted = btn ? btn.classList.contains('muted') : (localStorage.getItem('tm_sound_muted') === 'true');
+  const nextMutedState = !isCurrentlyMuted;
+
+  // LocalStorage နှင့် Global Variable ကို သိမ်းဆည်းခြင်း
+  localStorage.setItem('tm_sound_muted', nextMutedState ? 'true' : 'false');
   if (typeof isSoundMuted !== 'undefined') {
-    isSoundMuted = newMutedState;
+    isSoundMuted = nextMutedState;
   }
 
+  // UI ကို တိုက်ရိုက် update ခေါ်ယူခြင်း
   updateSoundToggleUI();
 
-  if (!newMutedState && typeof playNotificationSound === 'function') {
+  // အသံဖွင့်လိုက်ပါက Bell သံမြည်စေခြင်း
+  if (!nextMutedState && typeof playNotificationSound === 'function') {
     playNotificationSound('bell');
   }
 
+  // အသိပေး Toast စာတန်းပြသခြင်း
   if (typeof showClipboardToast === 'function') {
-    showClipboardToast(newMutedState ? '🔇 အသံ ပိတ်လိုက်ပါပြီ (Muted)' : '🔊 အသံ ဖွင့်လိုက်ပါပြီ (Unmuted)');
+    showClipboardToast(nextMutedState ? '🔇 အသံ ပိတ်လိုက်ပါပြီ (Muted)' : '🔊 အသံ ဖွင့်လိုက်ပါပြီ (Unmuted)');
   }
 }
 
 function updateSoundToggleUI() {
-  const isMuted = localStorage.getItem('tm_sound_muted') === 'true';
   const btn = document.getElementById('btnGlobalSoundToggle');
   if (!btn) return;
+
+  const isMuted = localStorage.getItem('tm_sound_muted') === 'true';
 
   if (isMuted) {
     btn.classList.add('muted');
     btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ပြန်ဖွင့်ရန် နှိပ်ပါ)';
-    // ခလုတ်အတွင်းပိုင်းကို အနီရောင်စပီကာပိတ် Icon တိုက်ရိုက်ထည့်သွင်းခြင်း
+    // အသံပိတ်ထားချိန် - စပီကာပိတ် အနီရောင် အပြည့်အဝ
     btn.innerHTML = '<i class="fas fa-volume-mute" style="color: #ffffff !important; font-size: 1.15rem;"></i>';
-    // ခလုတ်တစ်ခုလုံးကို အနီရောင် တောက်ပသောခလုတ်အဖြစ် ပြောင်းလဲခြင်း
     btn.setAttribute('style', 'background: #ef4444 !important; border: 2px solid #b91c1c !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.8) !important; border-radius: 50% !important; width: 38px !important; height: 38px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; padding: 0 !important;');
   } else {
     btn.classList.remove('muted');
     btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (အသံပိတ်ရန် နှိပ်ပါ)';
-    // ခလုတ်အတွင်းပိုင်းကို အစိမ်းရောင်စပီကာသံထွက် Icon တိုက်ရိုက်ထည့်သွင်းခြင်း
+    // အသံဖွင့်ထားချိန် - စပီကာသံထွက် အစိမ်းရောင် အပြည့်အဝ
     btn.innerHTML = '<i class="fas fa-volume-up" style="color: #ffffff !important; font-size: 1.15rem;"></i>';
-    // ခလုတ်တစ်ခုလုံးကို အစိမ်းရောင် တောက်ပသောခလုတ်အဖြစ် ပြောင်းလဲခြင်း
     btn.setAttribute('style', 'background: #10b981 !important; border: 2px solid #059669 !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.8) !important; border-radius: 50% !important; width: 38px !important; height: 38px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; padding: 0 !important;');
   }
 }
 
-// စာမျက်နှာ စဖွင့်ချိန်တွင် အသံ UI အခြေအနေကို ချက်ချင်း စစ်ဆေးပြသခြင်း
+// စာမျက်နှာ စဖွင့်ချိန်တွင် အသံ UI အခြေအနေကို ချက်ချင်း ပြသခြင်း
 updateSoundToggleUI();
 
     function showVisualNotificationToast(title, msg, iconClass = 'fa-bell') {
