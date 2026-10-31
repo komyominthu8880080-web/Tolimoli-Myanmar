@@ -10005,25 +10005,31 @@ function openCustomPinModal() {
 }
 
 function updateSoundToggleUI() {
-  const btn = document.getElementById('btnGlobalSoundToggle');
-  if (!btn) return;
-
-  // localStorage ထဲရှိ အခြေအနေကို တိုက်ရိုက်ဖတ်ယူခြင်း
   const isMuted = localStorage.getItem('tm_sound_muted') === 'true';
+  const btns = document.querySelectorAll('#btnGlobalSoundToggle, .btn-sound-toggle');
+  const icons = document.querySelectorAll('#globalSoundIcon, #btnGlobalSoundToggle i, .btn-sound-toggle i');
 
-  if (isMuted) {
-    btn.classList.add('muted');
-    // အသံပိတ်ထားချိန် - စပီကာပိတ် အနီရောင်သင်္ကေတ အပြည့်အစုံ
-    btn.innerHTML = '<i class="fas fa-volume-mute" style="color: #ff4d4f !important; font-size: 1.25rem;"></i>';
-    btn.style.cssText = 'background: rgba(239, 68, 68, 0.25) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.7) !important; border-radius: 50% !important; padding: 6px 8px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important;';
-    btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ဖွင့်ရန် နှိပ်ပါ)';
-  } else {
-    btn.classList.remove('muted');
-    // အသံဖွင့်ထားချိန် - စပီကာသံထွက် အစိမ်းရောင်တောက်ပသင်္ကေတ အပြည့်အစုံ
-    btn.innerHTML = '<i class="fas fa-volume-up" style="color: #10b981 !important; font-size: 1.25rem;"></i>';
-    btn.style.cssText = 'background: rgba(16, 185, 129, 0.25) !important; border: 2px solid #10b981 !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.7) !important; border-radius: 50% !important; padding: 6px 8px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important;';
-    btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (ပိတ်ရန် နှိပ်ပါ)';
-  }
+  btns.forEach(btn => {
+    if (isMuted) {
+      btn.classList.add('muted');
+      btn.title = '🔇 အသံ ပိတ်ထားပါသည် (ဖွင့်ရန် နှိပ်ပါ)';
+      btn.setAttribute('style', 'background: rgba(239, 68, 68, 0.25) !important; border: 2px solid #ef4444 !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.7) !important; border-radius: 50% !important; padding: 6px 8px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important;');
+    } else {
+      btn.classList.remove('muted');
+      btn.title = '🔊 အသံ ဖွင့်ထားပါသည် (ပိတ်ရန် နှိပ်ပါ)';
+      btn.setAttribute('style', 'background: rgba(16, 185, 129, 0.25) !important; border: 2px solid #10b981 !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.7) !important; border-radius: 50% !important; padding: 6px 8px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important;');
+    }
+  });
+
+  icons.forEach(icon => {
+    if (isMuted) {
+      icon.className = 'fas fa-volume-mute';
+      icon.setAttribute('style', 'color: #ff4d4f !important; font-size: 1.25rem !important;');
+    } else {
+      icon.className = 'fas fa-volume-up';
+      icon.setAttribute('style', 'color: #10b981 !important; font-size: 1.25rem !important;');
+    }
+  });
 }
 
 // စာမျက်နှာ စဖွင့်ချိန်တွင် အသံ UI အခြေအနေကို ချက်ချင်း စစ်ဆေးပြသခြင်း
