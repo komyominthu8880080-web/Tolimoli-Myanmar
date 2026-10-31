@@ -8891,17 +8891,42 @@ function fallbackCopyText(text, successMsg) {
   }
 
   // Admin Dashboard Search Bar အတွက် Category စာရင်း ဖြည့်ပေးခြင်း
-  const adminSel = document.getElementById('adminProductCategoryFilterSelect') || document.getElementById('adminCategoryFilterSelect') || document.getElementById('adminCategoryFilter');
+  const adminSel = document.getElementById('adminProductCategoryFilterSelect');
   if (adminSel) {
     const curAdminVal = adminSel.value || 'All';
-    adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
-      categories.map(c => {
-        const cName = typeof c === 'object' && c !== null ? (c.name || c.title || '') : c;
-        if (!cName) return '';
-        return `<option value="${cName}" ${curAdminVal === cName ? 'selected' : ''}>${cName}</option>`;
-      }).join('');
+    let catList = [];
+    
+    // categories data ပုံစံအမျိုးမျိုးကို စစ်ဆေးဆွဲထုတ်ခြင်း
+    if (typeof categories !== 'undefined' && categories) {
+      if (Array.isArray(categories)) {
+        catList = categories.map(c => (typeof c === 'object' && c !== null ? (c.name || c.title || '') : c));
+      } else if (typeof categories === 'object') {
+        catList = Object.keys(categories).map(k => {
+          const item = categories[k];
+          return typeof item === 'object' && item !== null ? (item.name || item.title || k) : item;
+        });
+      }
+    }
+    
+    // အကယ်၍ categories မရှိပါက products ထဲမှ categories များကို ဆွဲထုတ်ခြင်း (Fallback)
+    if (catList.length === 0 && typeof products !== 'undefined' && Array.isArray(products)) {
+      const pCats = new Set();
+      products.forEach(p => {
+        if (p.category) pCats.add(p.category);
+        if (Array.isArray(p.categories)) p.categories.forEach(c => pCats.add(c));
+      });
+      catList = Array.from(pCats);
+    }
+
+    // Dropdown ထဲသို့ Option များ ထည့်သွင်းပေးခြင်း
+    let optionsHtml = '<option value="All">အမျိုးအစား အားလုံး</option>';
+    catList.filter(Boolean).forEach(catName => {
+      const isSelected = curAdminVal === catName ? 'selected' : '';
+      optionsHtml += `<option value="${catName}" ${isSelected}>${catName}</option>`;
+    });
+    adminSel.innerHTML = optionsHtml;
   }
-  }
+}
     function handleSearchCategoryDropdownChange(catName) {
       selectCategoryByName(catName);
     }
