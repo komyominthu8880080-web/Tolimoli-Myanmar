@@ -11,7 +11,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Phone and Order ID are required' });
     }
 
-    // မြန်မာဖုန်းနံပါတ် 09 ကို International format (959...) သို့ ပြောင်းလဲခြင်း
+    // ဖုန်းနံပါတ် 09 ကို 959 သို့ ပြောင်းလဲခြင်း
     let formattedPhone = phone.replace(/\s+/g, '').replace(/[-+]/g, '');
     if (formattedPhone.startsWith('09')) {
       formattedPhone = '959' + formattedPhone.slice(2);
@@ -19,23 +19,17 @@ export default async function handler(req, res) {
       formattedPhone = '95' + formattedPhone;
     }
 
-    // SMS စာသား (Test Account ဖြစ်ပါက SMSPoh မှ Auto fixed message သာ ပို့ပေးပါမည်)
-    const smsMessage = `မင်္ဂလာပါ ${customerName || ''}၊ တိုလီမိုလီမြန်မာ မှ အော်ဒါ (${orderId}) လက်ခံရရှိပါပြီ။ ကျသင့်ငွေ: ${Number(totalAmount || 0).toLocaleString()} Ks ဖြစ်ပါသည်။ ကျေးဇူးတင်ပါသည်။`;
-
     const SMS_KEY = process.env.SMSPOH_API_KEY || '';
     const SMS_SECRET = process.env.SMSPOH_API_SECRET || '';
 
-    if (!SMS_KEY || !SMS_SECRET) {
-      console.log(`[SMS Simulation] To: ${formattedPhone} | Text: ${smsMessage}`);
+    if (!SMS_KEY) {
       return res.status(200).json({
-        success: true,
-        simulated: true,
-        message: 'Credentials not found in environment variables',
-        details: { to: formattedPhone, text: smsMessage }
+        success: false,
+        message: 'SMSPOH_API_KEY is not defined in environment variables'
       });
     }
 
-    // SMSPoh v3 API သို့ ပေးပို့ခြင်း
+    // SMSPoh v3 API Call
     const smsResponse = await fetch('https://v3.smspoh.com/api/v3/send', {
       method: 'POST',
       headers: {
@@ -44,16 +38,18 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         to: formattedPhone,
-        message: smsMessage,
-        sender: 'SMSPoh' // Test Account အတွက် SMSPoh မှ သတ်မှတ်ထားသော default sender
+        message: `Order ${orderId} confirmed. Total: ${totalAmount} Ks. Tolimoli Myanmar.`,
+        sender: 'SMSPoh'
       })
     });
 
     const smsResult = await smsResponse.json();
+    console.log('[SMSPoh Response]:', smsResult);
+
     return res.status(200).json({ success: true, result: smsResult });
 
   } catch (error) {
-    console.error('SMS Send Error:', error);
+    console.error('[SMS Server Error]:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
