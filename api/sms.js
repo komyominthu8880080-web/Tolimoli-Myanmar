@@ -1,4 +1,4 @@
-// api/sms.js - Serverless function to send Order Confirmation SMS
+// api/sms.js - Serverless function to send Order Confirmation SMS via SMSPoh v3
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
@@ -19,35 +19,33 @@ export default async function handler(req, res) {
       formattedPhone = '95' + formattedPhone;
     }
 
-    // ဝယ်သူထံ ပေးပို့မည့် SMS စာသား
-    const smsMessage = `မင်္ဂလာပါ ${customerName || ''}၊ တိုလီမိုလီမြန်မာ မှ အော်ဒါ (${orderId}) လက်ခံရရှိပါပြီ။ စုစုပေါင်းငွေ: ${Number(totalAmount || 0).toLocaleString()} Ks ဖြစ်ပါသည်။ အော်ဒါအခြေအနေကို https://tolimolimyanmar.com တွင် စစ်ဆေးနိုင်ပါသည်။ ကျေးဇူးတင်ပါသည်။`;
+    // SMS စာသား (Test Account ဖြစ်ပါက SMSPoh မှ Auto fixed message သာ ပို့ပေးပါမည်)
+    const smsMessage = `မင်္ဂလာပါ ${customerName || ''}၊ တိုလီမိုလီမြန်မာ မှ အော်ဒါ (${orderId}) လက်ခံရရှိပါပြီ။ ကျသင့်ငွေ: ${Number(totalAmount || 0).toLocaleString()} Ks ဖြစ်ပါသည်။ ကျေးဇူးတင်ပါသည်။`;
 
-    // SMS Gateway API Call (ဥပမာ - SMSPoh သို့မဟုတ် မိမိအသုံးပြုမည့် Gateway)
-    // Environment Variable တွင် SMS_API_TOKEN ထည့်သွင်းအသုံးပြုနိုင်ပါသည်
-    const SMS_TOKEN = process.env.SMS_API_TOKEN || '';
+    const SMS_KEY = process.env.SMSPOH_API_KEY || '';
+    const SMS_SECRET = process.env.SMSPOH_API_SECRET || '';
 
-    if (!SMS_TOKEN) {
-      // API Key မထည့်ရသေးမီ စမ်းသပ်မှုမပျက်စေရန် Log သာ ထုတ်ပေးခြင်း
+    if (!SMS_KEY || !SMS_SECRET) {
       console.log(`[SMS Simulation] To: ${formattedPhone} | Text: ${smsMessage}`);
-      return res.status(200).json({ 
-        success: true, 
-        simulated: true, 
-        message: 'SMS Simulated (SMS_API_TOKEN not configured yet)',
+      return res.status(200).json({
+        success: true,
+        simulated: true,
+        message: 'Credentials not found in environment variables',
         details: { to: formattedPhone, text: smsMessage }
       });
     }
 
-    // SMSPoh Endpoint ဖြင့် ချိတ်ဆက်ခြင်း (ဥပမာ)
+    // SMSPoh v3 API သို့ ပေးပို့ခြင်း
     const smsResponse = await fetch('https://v3.smspoh.com/api/v3/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SMS_TOKEN}`
+        'Authorization': `Bearer ${SMS_KEY}`
       },
       body: JSON.stringify({
         to: formattedPhone,
         message: smsMessage,
-        sender: 'TOLIMOLI'
+        sender: 'SMSPoh' // Test Account အတွက် SMSPoh မှ သတ်မှတ်ထားသော default sender
       })
     });
 
