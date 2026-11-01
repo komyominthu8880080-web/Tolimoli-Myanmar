@@ -2644,11 +2644,9 @@ function scrollCategories(amount) {
         <button class="admin-nav-btn" onclick="switchAdminTab('customersTab', this)">Customers</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('analyticsTab', this)">Sales Analytics</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('discountsTab', this)">Discounts & VIP</button>
-        <button class="admin-nav-btn" onclick="switchAdminTab('flashSaleTab', this)">Flash Sale & Timers</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('newsTab', this)">News & Sliders</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('liveChatAdminTab', this)" style="color:#00ff88;"><i class="fas fa-headset"></i> Live Chat (Inbox)</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('autoReplyTab', this)" style="color:#38bdf8;"><i class="fas fa-robot"></i> Auto Reply Bot</button>
-        <button class="admin-nav-btn" onclick="switchAdminTab('mysteryTab', this)">Mystery Boxes</button>
         <button class="admin-nav-btn" onclick="switchAdminTab('communityTab', this)">Community Mod</button>
         <button type="button" class="admin-nav-btn" onclick="switchAdminTab('logisticsTab', this)">
   <i class="fas fa-truck"></i> Settings & Logistics
@@ -3056,31 +3054,196 @@ function scrollCategories(amount) {
         <div id="adminDiscountsList"></div>
       </div>
 
-      
-      <!-- Tab: Flash Sale & Timers -->
-      <div class="admin-tab" id="flashSaleTab">
-        <h4 style="color:#fff; font-size:0.9rem; margin-bottom:8px;"><i class="fas fa-bolt" style="color:#ef4444;"></i> Flash Sale & Countdown Timer စီမံခန့်ခွဲခြင်း</h4>
-        <div style="background:rgba(239, 68, 68, 0.08); border:1px solid #ef4444; border-radius:8px; padding:10px; margin-bottom:12px;">
-          <div class="form-group">
-            <label>Flash Sale ပစ္စည်း ရွေးပါ</label>
-            <select id="flashSaleProdSelect"></select>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-            <div class="form-group">
-              <label>လျှော့စျေးနှုန်း (MMK)</label>
-              <input type="number" id="flashSalePriceInput" placeholder="ဥပမာ- 45000">
-            </div>
-            <div class="form-group">
-              <label>သက်တမ်းကုန်မည့် အချိန် (နာရီ)</label>
-              <input type="number" id="flashSaleHoursInput" value="12" min="1">
-            </div>
-          </div>
-          <button type="button" class="btn-gold" onclick="saveFlashSaleItem()" style="background:#ef4444; color:#fff;">
-            <i class="fas fa-fire"></i> Flash Sale သတ်မှတ်မည်
-          </button>
-        </div>
-        <div id="adminFlashSalesList"></div>
+      <!-- ========================================== -->
+    <!-- ⚡ FLASH SALE WITH TOGGLE SWITCH -->
+    <!-- ========================================== -->
+    <div style="background:rgba(239, 68, 68, 0.08); border:1px solid #ef4444; border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <label style="color:#ef4444; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-bolt"></i> Flash Sale & Countdown Timer စီမံခန့်ခွဲခြင်း
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgToggleFlashSale" onchange="togglePromoModule('flashSale', this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgToggleFlashSaleLabel" style="font-weight:700; color:#ef4444;">ပိတ်ထားသည်</span>
+        </label>
       </div>
+
+      <div id="flashSaleConfigBody" style="display:none;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>Flash Sale ပစ္စည်း ရွေးပါ</label>
+          <select id="flashSaleProdSelect" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;"></select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>လျှော့စျေးနှုန်း (MMK)</label>
+            <input type="number" id="flashSalePriceInput" placeholder="ဥပမာ- 45000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>သက်တမ်းကုန်ဆုံးမည့် အချိန် (နာရီ)</label>
+            <input type="number" id="flashSaleHoursInput" value="12" min="1" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+        </div>
+        <button type="button" class="btn-gold" onclick="saveFlashSaleItem()" style="background:#ef4444; color:#fff; width:100%; padding:8px; border-radius:6px; font-weight:700; cursor:pointer;">
+          <i class="fas fa-fire"></i> Flash Sale သတ်မှတ်မည်
+        </button>
+        <div id="adminFlashSalesList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🎁 VIP MYSTERY BOXES WITH TOGGLE SWITCH -->
+    <!-- ========================================== -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-gift"></i> VIP Mystery Boxes စီမံခန့်ခွဲခြင်း
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgToggleMysteryBox" onchange="togglePromoModule('mysteryBox', this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgToggleMysteryBoxLabel" style="font-weight:700; color:#ef4444;">ပိတ်ထားသည်</span>
+        </label>
+      </div>
+
+      <div id="mysteryBoxConfigBody" style="display:none;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>သေတ္တာအမည်</label>
+          <input type="text" id="mysteryBoxNameInput" placeholder="ဥပမာ- Gold Luxury Mystery Box" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>ရောင်းစျေး (MMK)</label>
+            <input type="number" id="mysteryBoxPriceInput" placeholder="35000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>ပါဝင်မည့် ခန့်မှန်းတန်ဖိုး</label>
+            <input type="text" id="mysteryBoxWorthInput" placeholder="တန်ဖိုး ၅၀,၀၀၀ ကျပ်အထက်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>ဖော်ပြချက်စာသား</label>
+          <input type="text" id="mysteryBoxDescInput" placeholder="အီလက်ထရောနစ် ပစ္စည်း + ချောဆီ လက်ဆောင်များ ပါဝင်မည်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <button type="button" class="btn-gold" onclick="addAdminMysteryBox()" style="width:100%; padding:8px; border-radius:6px; font-weight:700; cursor:pointer;">
+          <i class="fas fa-box-open"></i> Mystery Box အသစ် ထည့်သွင်းမည်
+        </button>
+        <div id="adminMysteryBoxesList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🛒 ABANDONED CART RECOVERY VOUCHER -->
+    <!-- ========================================== -->
+    <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-shopping-basket"></i> Abandoned Cart Voucher Recovery စနစ်
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgAbandonedCartEnabled" style="width:16px; height:16px; accent-color:var(--gold); cursor:pointer;">
+          <span id="cfgAbandonedCartStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Voucher Code (ကူပွန်ကုဒ်)</label>
+          <input type="text" id="cfgAbandonedVoucherCode" placeholder="ဥပမာ - COMEBACK5" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">လျှော့စျေး ရာခိုင်နှုန်း (%)</label>
+          <input type="number" id="cfgAbandonedDiscountPercent" placeholder="ဥပမာ - 5" min="1" max="100" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Popup တွင် ပြသမည့် စာသား</label>
+        <input type="text" id="cfgAbandonedVoucherMsg" placeholder="ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့စျေး ရရှိပါမည်။" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+      </div>
+      <div style="text-align:right;">
+        <button type="button" class="btn-gold" onclick="saveAbandonedCartVoucherConfig()" style="padding:6px 14px; font-size:0.75rem; border-radius:6px; cursor:pointer;">
+          <i class="fas fa-save"></i> Voucher Setting သိမ်းမည်
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🎁 SMART TIERED FOC & GIFTS SUITE -->
+    <!-- ========================================== -->
+    <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-gift" style="color:#ef4444;"></i> FOC & လက်ဆောင်ပစ္စည်း စနစ် စီမံခန့်ခွဲမှု (Tiered & Custom Gifts)
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgFocEnabled" onchange="toggleFocCampaignState(this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgFocStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">FOC ပေးမည့် ပုံစံ</label>
+          <select id="cfgFocMode" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="auto">🎁 Auto Gift (အလိုအလျောက် ပေးမည်)</option>
+            <option value="choice">👉 Customer Choice (ဝယ်သူကိုယ်တိုင် ရွေးမည်)</option>
+          </select>
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">အနည်းဆုံး ဝယ်ယူငွေ (Min Spend အဆင့် ၁)</label>
+          <input type="number" id="cfgFocMinAmount" placeholder="30000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#38bdf8; font-size:0.72rem; display:block; margin-bottom:3px;">အဆင့် ၂ ဝယ်ယူငွေ (Tier 2 Min Spend - Optional)</label>
+          <input type="number" id="cfgFocTier2Amount" placeholder="60000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">ပရိုမိုးရှင်း ခေါင်းစဉ်</label>
+          <input type="text" id="cfgFocTitle" placeholder="၃ သောင်းပြည့် အထူးလက်ဆောင်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+
+      <!-- ဆိုင်တွင်း အရောင်းစာရင်းမှ ရွေးချယ်ခြင်း -->
+      <div style="margin-bottom:8px;">
+        <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">၁။ ဆိုင်တွင်း အရောင်းစာရင်းမှ လက်ဆောင်ပစ္စည်းရွေးချယ်သွင်းရန်:</label>
+        <div style="display:flex; gap:6px;">
+          <select id="cfgFocProductSelect" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="">-- ကုန်ပစ္စည်းစာရင်းမှ လက်ဆောင်ပစ္စည်းရွေးပါ --</option>
+          </select>
+          <button type="button" onclick="addFocGiftItem()" style="padding:6px 12px; background:var(--gold); color:#000; border-radius:6px; font-weight:700; cursor:pointer;">+ ထည့်မည်</button>
+        </div>
+      </div>
+
+      <!-- သီးသန့်လက်ဆောင် ထည့်သွင်းခြင်း -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="font-size:0.75rem; color:#38bdf8; font-weight:bold; margin-bottom:6px;">
+          <i class="fas fa-plus-circle"></i> ၂။ အရောင်းထဲမရှိသော သီးသန့်လက်ဆောင် ထည့်သွင်းရန် (Custom Gift With Photo):
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <input type="text" id="customFocGiftName" placeholder="လက်ဆောင်အမည် (ဥပမာ- သီလီကွန်လက်ဆောင်ထုပ်)..." style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          <select id="customFocGiftTier" style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="1">အဆင့် ၁ လက်ဆောင် (Tier 1)</option>
+            <option value="2">အဆင့် ၂ လက်ဆောင် (Tier 2 - VIP Gift)</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+          <input type="file" id="customFocGiftFile" accept="image/*" style="font-size:11px; color:#94a3b8; flex:1;">
+          <input type="text" id="customFocGiftUrl" placeholder="သို့မဟုတ် ပုံ Link (https://...)" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <button type="button" id="btnAddCustomFocGift" onclick="addCustomManualFocGiftWithMedia()" style="width:100%; padding:6px; background:#38bdf8; color:#000; font-weight:bold; border-radius:6px; cursor:pointer;">
+          <i class="fas fa-gift"></i> သီးသန့်လက်ဆောင်ပစ္စည်း ထည့်သွင်းမည်
+        </button>
+      </div>
+
+      <label style="font-size:11px; color:var(--gold); font-weight:bold; display:block; margin:6px 0 3px;">လက်ရှိ ရွေးချယ်ထားသော လက်ဆောင်များ စာရင်း:</label>
+      <div id="cfgFocSelectedItemsContainer" style="display:flex; flex-direction:column; gap:6px; min-height:40px; margin-bottom:8px;"></div>
+
+      <button type="button" onclick="saveFocCampaignSettings()" style="width:100%; margin-top:8px; padding:8px; background:var(--gold); color:#000; font-weight:bold; border-radius:6px; cursor:pointer;">
+        <i class="fas fa-save"></i> FOC အချက်အလက်များ သိမ်းဆည်းမည် (Cloud Sync)
+      </button>
+    </div>
 
       <!-- Tab: News & Image Sliders Manager -->
       <div class="admin-tab" id="newsTab">
@@ -3108,35 +3271,6 @@ function scrollCategories(amount) {
           </button>
         </div>
         <div id="adminNewsArticlesList"></div>
-      </div>
-
-      <!-- Tab: Mystery Boxes Management -->
-      <div class="admin-tab" id="mysteryTab">
-        <h4 style="color:#fff; font-size:0.9rem; margin-bottom:8px;"><i class="fas fa-gift" style="color:var(--gold);"></i> VIP Mystery Box စီမံခန့်ခွဲခြင်း</h4>
-        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--gold); border-radius:8px; padding:10px; margin-bottom:12px;">
-          <div class="form-group">
-            <label>သေတ္တာအမည်</label>
-            <input type="text" id="mysteryBoxNameInput" placeholder="ဥပမာ- Gold Luxury Mystery Box">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-            <div class="form-group">
-              <label>ရောင်းဈေး (MMK)</label>
-              <input type="number" id="mysteryBoxPriceInput" placeholder="35000">
-            </div>
-            <div class="form-group">
-              <label>ပါဝင်မည့် ခန့်မှန်းတန်ဖိုး</label>
-              <input type="text" id="mysteryBoxWorthInput" placeholder="တန်ဖိုး ၅၀,၀၀၀ ကျပ်အထက်">
-            </div>
-          </div>
-          <div class="form-group">
-            <label>ဖော်ပြချက်စာသား</label>
-            <input type="text" id="mysteryBoxDescInput" placeholder="ဆီလီကွန်ပစ္စည်း + ချောဆီ လက်ဆောင်များ ပါဝင်မည်">
-          </div>
-          <button type="button" class="btn-gold" onclick="addAdminMysteryBox()">
-            <i class="fas fa-box-open"></i> Mystery Box အသစ် ထည့်သွင်းမည်
-          </button>
-        </div>
-        <div id="adminMysteryBoxesList"></div>
       </div>
 
       <!-- Tab: Live Chat Admin Inbox (ဝယ်သူများနှင့် စာ/ပုံ/ဗီဒီယို တိုက်ရိုက်ပြောဆိုခန်း) -->
@@ -3327,114 +3461,6 @@ function scrollCategories(amount) {
       <i class="fas fa-save" style="margin-right: 6px;"></i>ပို့ဆောင်ရေး သတ်မှတ်ချက်များ သိမ်းဆည်းမည်
     </button>
   </div>
-          <!-- ABANDONED CART RECOVERY VOUCHER SETTINGS -->
-      <div style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid var(--gold); border-radius: 10px; padding: 12px; margin-bottom: 12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
-            <i class="fas fa-shopping-basket" style="color:var(--gold);"></i> Abandoned Cart Voucher Recovery စနစ်
-          </label>
-          <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer;">
-            <input type="checkbox" id="cfgAbandonedCartEnabled" style="width:16px; height:16px; accent-color:var(--gold);">
-            <span id="cfgAbandonedCartStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
-          </label>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-          <div>
-            <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Voucher Code (ကူပွန်ကုဒ်)</label>
-            <input type="text" id="cfgAbandonedVoucherCode" placeholder="ဥပမာ - COMEBACK5" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem; font-weight:bold; letter-spacing:1px;">
-          </div>
-          <div>
-            <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">လျှော့ဈေး ရာခိုင်နှုန်း (%)</label>
-            <input type="number" id="cfgAbandonedDiscountPercent" placeholder="ဥပမာ - 5" min="1" max="100" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-          </div>
-        </div>
-        <div style="margin-bottom:8px;">
-          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Popup တွင် ပြသမည့် စာသား</label>
-          <input type="text" id="cfgAbandonedVoucherMsg" placeholder="ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်။" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-        </div>
-        <div style="text-align:right;">
-          <button type="button" class="btn-gold" onclick="saveAbandonedCartVoucherConfig()" style="padding:6px 14px; font-size:0.75rem; border-radius:6px;">
-            <i class="fas fa-save"></i> Voucher Setting သိမ်းမည်
-          </button>
-        </div>
-      </div>
-        <!-- SMART FOC & GIFT CAMPAIGN SUITE -->
-        <!-- SMART TIERED FOC & MANUAL GIFTS SUITE (UPDATED) -->
-        <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
-              <i class="fas fa-gift" style="color:#ef4444;"></i> 🎁 FOC & လက်ဆောင်ပစ္စည်း စနစ် စီမံခန့်ခွဲမှု (Tiered & Custom Gifts)
-            </label>
-            <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer;">
-              <input type="checkbox" id="cfgFocEnabled" onchange="toggleFocCampaignState(this.checked)" style="width:16px; height:16px; accent-color:#10b981;">
-              <span id="cfgFocStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
-            </label>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-            <div>
-              <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">FOC ပေးမည့် ပုံစံ</label>
-              <select id="cfgFocMode" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fde047; font-size:0.75rem; font-weight:600;">
-                <option value="auto">🎁 Auto Gift (အလိုအလျောက် ပေးမည်)</option>
-                <option value="choice">🎯 Customer Choice (ဝယ်သူကိုယ်တိုင် ရွေးမည်)</option>
-              </select>
-            </div>
-            <div>
-              <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">အနည်းဆုံး ဝယ်ယူငွေ (Min Spend အဆင့် ၁) *</label>
-              <input type="number" id="cfgFocMinAmount" placeholder="30000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-            </div>
-          </div>
-
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
-            <div>
-              <label style="color:#38bdf8; font-size:0.72rem; display:block; margin-bottom:3px;">အဆင့် ၂ ဝယ်ယူငွေ (Tier 2 Min Spend - Optional)</label>
-              <input type="number" id="cfgFocTier2Amount" placeholder="60000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-            </div>
-            <div>
-              <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">ပရိုမိုးရှင်း ခေါင်းစဉ်</label>
-              <input type="text" id="cfgFocTitle" placeholder="၃ သောင်းပြည့် အထူးလက်ဆောင်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-            </div>
-          </div>
-
-          <!-- ၁။ ဆိုင်တွင်း အရောင်းစာရင်းမှ ရွေးချယ်ခြင်း -->
-          <div style="margin-bottom:8px;">
-            <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">၁။ ဆိုင်တွင်း အရောင်းစာရင်းမှ လက်ဆောင်ရွေးချယ်ထည့်သွင်းရန်:</label>
-            <div style="display:flex; gap:6px;">
-              <select id="cfgFocProductSelect" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-                <option value="">-- ကုန်ပစ္စည်းစာရင်းမှ လက်ဆောင်ပစ္စည်းရွေးပါ --</option>
-              </select>
-              <button type="button" onclick="addFocGiftItem()" style="padding:6px 12px; background:var(--gold); color:#000; font-weight:bold; border:none; border-radius:6px; font-size:0.75rem; cursor:pointer;">+ ထည့်မည်</button>
-            </div>
-          </div>
-
-          <!-- ၂။ အရောင်းထဲမရှိသော သီးသန့်လက်ဆောင် (ပုံ + စာ) တိုက်ရိုက်ထည့်သွင်းခြင်း -->
-          <div style="background:rgba(255,255,255,0.03); border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:8px;">
-            <div style="font-size:0.75rem; color:#38bdf8; font-weight:bold; margin-bottom:6px;">
-              <i class="fas fa-plus-circle"></i> ၂။ အရောင်းထဲမရှိသော သီးသန့်လက်ဆောင် ထည့်သွင်းရန် (Custom Gift With Photo):
-            </div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
-              <input type="text" id="customFocGiftName" placeholder="လက်ဆောင်အမည် (ဥပမာ- ဆီလီကွန်လက်ဆောင်ထုပ်)..." style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-              <select id="customFocGiftTier" style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fde047; font-size:0.75rem;">
-                <option value="1">အဆင့် ၁ လက်ဆောင် (Tier 1)</option>
-                <option value="2">အဆင့် ၂ လက်ဆောင် (Tier 2 - VIP Gift)</option>
-              </select>
-            </div>
-            <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
-              <input type="file" id="customFocGiftFile" accept="image/*" style="font-size:11px; color:#94a3b8; flex:1;">
-              <input type="text" id="customFocGiftUrl" placeholder="သို့မဟုတ် ပုံ Link (https://...)" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.75rem;">
-            </div>
-            <button type="button" id="btnAddCustomFocGift" onclick="addCustomManualFocGiftWithMedia()" style="width:100%; padding:7px; background:#0284c7; color:#fff; font-weight:bold; border:none; border-radius:6px; font-size:0.75rem; cursor:pointer;">
-              <i class="fas fa-gift"></i> သီးသန့်လက်ဆောင်ပစ္စည်း ထည့်သွင်းမည်
-            </button>
-          </div>
-
-          <label style="font-size:11px; color:var(--gold); font-weight:bold; display:block; margin:6px 0 3px;">လက်ရှိ ရွေးချယ်ထားသော လက်ဆောင်ပစ္စည်းများ:</label>
-          <div id="cfgFocSelectedItemsContainer" style="display:flex; flex-direction:column; gap:6px; min-height:40px; background:rgba(0,0,0,0.3); padding:8px; border-radius:8px; border:1px dashed #475569;"></div>
-
-          <button type="button" onclick="saveFocCampaignSettings()" style="width:100%; margin-top:8px; padding:8px; background:#10b981; color:#fff; font-weight:bold; border:none; border-radius:6px; font-size:0.78rem; cursor:pointer;">
-            <i class="fas fa-save"></i> FOC အချက်အလက်များ သိမ်းဆည်းမည် (Cloud Sync)
-          </button>
-        </div>
 
         <!-- AUTO-HIDE OUT OF STOCK TOGGLE -->
         <div style="background:rgba(239, 68, 68, 0.08); border:1.5px solid #ef4444; padding:10px 12px; border-radius:8px; margin-bottom:10px;">
@@ -11655,6 +11681,7 @@ function handleStationSelectAutoFill(typedText) {
       renderAdminStationsDirectory();
       populateStationSelectOptions();
       initFocSettingsListener();
+      if (typeof initPromoModulesToggleState === 'function') initPromoModulesToggleState();
     });
 
     // =========================================================================
@@ -12349,7 +12376,7 @@ addFocGiftItem = function() {
         </div>
       `).join('');
     };
-
+    
     window.toggleFocCampaignState = function(state) {
       focConfig.enabled = state;
       const statusLabel = document.getElementById('cfgFocStatusLabel');
@@ -12358,6 +12385,53 @@ addFocGiftItem = function() {
         statusLabel.style.color = state ? '#10b981' : '#ef4444';
       }
     };
+
+    // ==========================================
+// 🎛️ PROMO MODULES MASTER TOGGLE (FLASH SALE & MYSTERY BOX)
+// ==========================================
+function togglePromoModule(moduleType, isEnabled) {
+  if (moduleType === 'flashSale') {
+    const bodyEl = document.getElementById('flashSaleConfigBody');
+    const labelEl = document.getElementById('cfgToggleFlashSaleLabel');
+    if (bodyEl) bodyEl.style.display = isEnabled ? 'block' : 'none';
+    if (labelEl) {
+      labelEl.innerText = isEnabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+      labelEl.style.color = isEnabled ? '#10b981' : '#ef4444';
+    }
+    localStorage.setItem('tm_flashsale_enabled', isEnabled ? 'true' : 'false');
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_promo_status/flashSaleEnabled').set(isEnabled);
+    }
+  } else if (moduleType === 'mysteryBox') {
+    const bodyEl = document.getElementById('mysteryBoxConfigBody');
+    const labelEl = document.getElementById('cfgToggleMysteryBoxLabel');
+    if (bodyEl) bodyEl.style.display = isEnabled ? 'block' : 'none';
+    if (labelEl) {
+      labelEl.innerText = isEnabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+      labelEl.style.color = isEnabled ? '#10b981' : '#ef4444';
+    }
+    localStorage.setItem('tm_mysterybox_enabled', isEnabled ? 'true' : 'false');
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_promo_status/mysteryBoxEnabled').set(isEnabled);
+    }
+  }
+}
+
+function initPromoModulesToggleState() {
+  const flashSaleState = localStorage.getItem('tm_flashsale_enabled') === 'true';
+  const chkFlash = document.getElementById('cfgToggleFlashSale');
+  if (chkFlash) {
+    chkFlash.checked = flashSaleState;
+    togglePromoModule('flashSale', flashSaleState);
+  }
+
+  const mysteryState = localStorage.getItem('tm_mysterybox_enabled') === 'true';
+  const chkMystery = document.getElementById('cfgToggleMysteryBox');
+  if (chkMystery) {
+    chkMystery.checked = mysteryState;
+    togglePromoModule('mysteryBox', mysteryState);
+  }
+}
 
     // Firebase Cloud သို့ အပြီးတိုင် သိမ်းဆည်းခြင်း
 saveFocCampaignSettings = function() {
