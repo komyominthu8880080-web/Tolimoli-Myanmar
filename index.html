@@ -3069,7 +3069,16 @@ function scrollCategories(amount) {
 
       <div id="flashSaleConfigBody" style="display:none;">
         <div class="form-group" style="margin-bottom:8px;">
-          <label>Flash Sale ပစ္စည်း ရွေးပါ</label>
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Flash Sale ပစ္စည်း ရွေးပါ</span>
+            <span style="font-size:0.7rem; color:#94a3b8; font-weight:normal;">(နာမည် သို့မဟုတ် SKU ရိုက်ရှာနိုင်သည်)</span>
+          </label>
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <input type="text" id="flashSaleSearchInput" placeholder="🔍 ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="filterFlashSaleProducts(this.value)" style="flex:1; padding:6px 10px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.8rem;">
+            <button type="button" onclick="clearFlashSaleSearch()" style="padding:6px 10px; background:#334155; color:#cbd5e1; border:1px solid #475569; border-radius:6px; cursor:pointer; font-size:0.75rem;">
+              <i class="fas fa-times"></i> ရှင်းမည်
+            </button>
+          </div>
           <select id="flashSaleProdSelect" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;"></select>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -12432,6 +12441,54 @@ function initPromoModulesToggleState() {
     chkMystery.checked = mysteryState;
     togglePromoModule('mysteryBox', mysteryState);
   }
+}
+// ==========================================
+// 🔍 FLASH SALE PRODUCT SEARCH & SKU FILTER
+// ==========================================
+function filterFlashSaleProducts(query) {
+  const select = document.getElementById('flashSaleProdSelect');
+  if (!select) return;
+  const q = (query || '').trim().toLowerCase();
+
+  // မူလ ကုန်ပစ္စည်းစာရင်း (products array) မှ ရှာဖွေထုတ်ယူခြင်း
+  if (typeof products !== 'undefined' && Array.isArray(products) && products.length > 0) {
+    const currentVal = select.value;
+    select.innerHTML = '<option value="">-- Flash Sale ပစ္စည်း ရွေးပါ --</option>';
+    const filtered = products.filter(p => {
+      const name = (p.name || p.title || '').toLowerCase();
+      const sku = (p.sku || p.id || '').toLowerCase();
+      return name.includes(q) || sku.includes(q);
+    });
+
+    filtered.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      const skuText = p.sku ? ` [SKU: ${p.sku}]` : '';
+      opt.textContent = `${p.name || p.title} (မူရင်း: ${(p.price || 0).toLocaleString()} Ks)${skuText}`;
+      if (p.id === currentVal) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    // ရှာတွေ့ပါက ပထမဆုံးပစ္စည်းကို Auto ရွေးချယ်ပေးခြင်း
+    if (q && filtered.length > 0) {
+      select.value = filtered[0].id;
+    }
+  } else {
+    // Fallback: Dropdown options များကို တိုက်ရိုက် Filter ပြုလုပ်ခြင်း
+    Array.from(select.options).forEach(opt => {
+      if (!opt.value) return;
+      const text = opt.textContent.toLowerCase();
+      const val = opt.value.toLowerCase();
+      const isMatch = text.includes(q) || val.includes(q);
+      opt.style.display = isMatch ? '' : 'none';
+    });
+  }
+}
+
+function clearFlashSaleSearch() {
+  const input = document.getElementById('flashSaleSearchInput');
+  if (input) input.value = '';
+  filterFlashSaleProducts('');
 }
 
     // Firebase Cloud သို့ အပြီးတိုင် သိမ်းဆည်းခြင်း
