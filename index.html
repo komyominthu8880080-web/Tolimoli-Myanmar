@@ -1853,6 +1853,66 @@ body.modal-open .floating-action-container {
     overflow-x: hidden !important;
   }
 }
+/* ========================================================
+   📱 LOGISTICS & SETTINGS MOBILE RESPONSIVE ENHANCEMENT
+   ======================================================== */
+@media (max-width: 768px) {
+  /* Logistics Tab အတွင်းရှိ Form Row အားလုံးကို Full Width အပေါ်အောက် ပြောင်းလဲခြင်း */
+  #logisticsTab .form-group,
+  #logisticsTab div[style*="display:grid"],
+  #logisticsTab div[style*="display: grid"] {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  /* Input, Select, Textarea အားလုံး မျက်နှာပြင်အပြည့် အညီအမျှဖြစ်စေခြင်း */
+  #logisticsTab input[type="text"],
+  #logisticsTab input[type="number"],
+  #logisticsTab select,
+  #logisticsTab textarea {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-height: 40px !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* ခေါင်းစဉ်နှင့် Toggle Switch (အဖွင့်/အပိတ်) များကို သပ်ရပ်စွာ ဘေးတိုက် ၂ ဘက် ကပ်ညှိခြင်း */
+  #logisticsTab div[style*="justify-content:space-between"],
+  #logisticsTab div[style*="justify-content: space-between"] {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+
+  /* မြို့နယ်ထည့်ရန် Input နှင့် "+ ထည့်မည်" ခလုတ် တွဲထားသည့်နေရာ ပြေပြစ်စေခြင်း */
+  #logisticsTab div[style*="display:flex"]:has(input[type="text"]):has(button) {
+    flex-wrap: wrap !important;
+  }
+  
+  #logisticsTab div[style*="display:flex"] > button {
+    white-space: nowrap !important;
+    min-height: 38px !important;
+  }
+
+  /* မြို့နယ် Tags (Chips) များ အောက်လိုင်းသို့ အလိုအလျောက် ခေါက်ဆင်းစေခြင်း */
+  #logisticsTab div[style*="display:flex"]:has(span),
+  #logisticsTab div[style*="display: flex"]:has(span) {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  /* သိမ်းဆည်းရန် ပင်မခလုတ်ကြီးများကို ဖုန်းမျက်နှာပြင်ပြည့် နှိပ်ရလွယ်ကူစေခြင်း */
+  #logisticsTab button[onclick*="save"],
+  #logisticsTab button[onclick*="Save"] {
+    width: 100% !important;
+    padding: 12px !important;
+    font-size: 0.9rem !important;
+    margin-top: 10px !important;
+  }
+}
   </style>
 </head>
 <body>
