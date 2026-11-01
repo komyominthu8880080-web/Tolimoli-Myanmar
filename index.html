@@ -11774,7 +11774,8 @@ function cancelStationEdit() {
     function saveNewDeliveryStationFromAdmin() {
   const type = document.getElementById('newStationTypeSelect')?.value || 'bus';
   const name = document.getElementById('newStationNameInput')?.value.trim();
-  const phone = stationPhoneList.map(p => p.trim()).filter(Boolean).join(', ');
+  const phoneInputs = Array.from(document.querySelectorAll('#stationPhoneInputsContainer .station-phone-input, .station-phone-input'));
+const phone = phoneInputs.map(inp => inp.value.trim()).filter(Boolean).join(', ');
   const address = document.getElementById('newStationAddressInput')?.value.trim();
   
   // ➕ မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
