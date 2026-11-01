@@ -2329,6 +2329,34 @@ function scrollCategories(amount) {
           </div>
           <small id="deliveryNotice" style="display:block; margin-top:3px; font-size:10.5px; line-height:1.2;"></small>
         </div>
+        <!-- 🚌 CUSTOMER SMART BUS GATE SELECTOR CONTAINER -->
+<div id="customerBusGateSection" style="margin-top:6px; margin-bottom:6px; display:none; background:rgba(15, 23, 42, 0.6); border:1px solid #334155; border-radius:8px; padding:10px;">
+  <label style="color:var(--gold, #d4af37); font-size:11px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+    <span><i class="fas fa-bus"></i> ပစ္စည်းထုတ်ယူမည့် ကားဂိတ် ရွေးချယ်ပါ *</span>
+    <span style="font-size:10px; color:#38bdf8; font-weight:normal;">(ဂိတ်ဒေတာ အလိုအလျောက် ပြသမည်)</span>
+  </label>
+  
+  <!-- ကားဂိတ် ရွေးချယ်ရန် Dropdown -->
+  <select id="checkoutBusGateSelect" onchange="handleCustomerGateSelection(this.value)" style="width:100%; padding:8px 10px; background:#1e293b; border:1.5px solid #38bdf8; border-radius:6px; color:#fff; font-size:11.5px; margin-bottom:6px;">
+    <option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>
+  </select>
+
+  <!-- ဂိတ်အချက်အလက် Preview Card (ဂိတ်ရွေးလိုက်ပါက အလိုအလျောက် ပေါ်လာမည်) -->
+  <div id="busGatePreviewCard" style="display:none; background:rgba(56, 189, 248, 0.08); border:1px solid #38bdf8; border-radius:6px; padding:8px; margin-top:6px; margin-bottom:6px;">
+    <div style="font-size:11.5px; font-weight:bold; color:#38bdf8; margin-bottom:4px;" id="previewGateName"></div>
+    <div style="font-size:10.5px; color:#cbd5e1; margin-bottom:2px;"><i class="fas fa-clock" style="color:var(--gold);"></i> ခရီးကြာချိန်: <span id="previewGateDuration" style="color:#fff; font-weight:600;"></span></div>
+    <div style="font-size:10.5px; color:#cbd5e1; margin-bottom:2px;"><i class="fas fa-phone-alt" style="color:#10b981;"></i> ဖုန်းနံပါတ်: <span id="previewGatePhones" style="color:#fff; font-weight:600;"></span></div>
+    <div style="font-size:10.5px; color:#cbd5e1;"><i class="fas fa-map-marker-alt" style="color:#f43f5e;"></i> ထုတ်ယူရမည့်လိပ်စာ: <span id="previewGateAddress" style="color:#fff;"></span></div>
+  </div>
+
+  <!-- စာရင်းထဲမပါသော အခြားကားဂိတ် ရိုက်ထည့်ရန် Note Box -->
+  <div id="customGateInputWrapper" style="display:none; margin-top:6px;">
+    <label style="color:#f43f5e; font-size:10.5px; display:block; margin-bottom:3px;">
+      <i class="fas fa-pen"></i> မိမိတင်ပို့လိုသော ကားဂိတ်အမည်နှင့် အသေးစိတ် မှတ်ချက် ရေးသားပါ:
+    </label>
+    <textarea id="customGateNoteInput" placeholder="ဥပမာ - မန္တလာမင်း (ကျွဲဆည်ကန်ဝင်း) သို့မဟုတ် လမ်းကြုံကားဂိတ်အမည် ရေးပေးပါ..." rows="2" style="width:100%; padding:6px 8px; background:#0f172a; border:1px solid #f43f5e; border-radius:6px; color:#fff; font-size:11px;"></textarea>
+  </div>
+</div>
         <div class="form-group" style="margin-bottom:6px;">
           <label>လမ်း၊ အိမ်အမှတ် နှင့် လိပ်စာ *</label>
           <textarea id="custAddress" rows="1" placeholder="လိပ်စာအပြည့်အစုံ..." required style="padding:6px;"></textarea>
@@ -3661,6 +3689,17 @@ function scrollCategories(amount) {
               <input type="text" id="newStationNameInput" placeholder="ဥပမာ- ရွှေမန္တလာ (နေပြည်တော်ဂိတ်) သို့မဟုတ် MGL ရုံးခွဲ..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none;">
             </div>
 
+            <!-- ရောက်ရှိမည့် မြို့နယ် နှင့် ခရီးကြာချိန် အသစ်ဖြည့်စွက်ချက် -->
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+  <div>
+    <label style="color:#cbd5e1; font-size:10.5px; display:block; margin-bottom:2px;">ရောက်ရှိမည့် မြို့နယ် (Township) *</label>
+    <input type="text" id="newStationTownship" placeholder="ဥပမာ - မန္တလေး / နေပြည်တော်" style="width:100%; padding:8px; background:#1e293b; border:1.5px solid #334155; border-radius:6px; color:#fff; font-size:11px;">
+  </div>
+  <div>
+    <label style="color:#cbd5e1; font-size:10.5px; display:block; margin-bottom:2px;">ခရီးကြာချိန် (Est. Delivery Days)</label>
+    <input type="text" id="newStationDuration" placeholder="ဥပမာ - ၁ မှ ၂ ရက်အတွင်း" style="width:100%; padding:8px; background:#1e293b; border:1.5px solid #334155; border-radius:6px; color:#fff; font-size:11px;">
+  </div>
+</div>
             <!-- DYNAMIC PHONE NUMBERS SECTION -->
             <div style="background: rgba(16, 185, 129, 0.05); border: 1px dashed #10b981; border-radius: 8px; padding: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -9669,6 +9708,7 @@ function fallbackCopyText(text, successMsg) {
       const input = document.getElementById('custTownshipInput');
       const val = input ? input.value.trim() : '';
       handleTownshipSelectionIntegration(val);
+      filterBusGatesForTownship(val);
       if (!val) {
         document.getElementById('dynamicDeliOptionsContainer').style.display = 'none';
         currentDeliveryFee = 0;
@@ -9694,6 +9734,106 @@ function fallbackCopyText(text, successMsg) {
       } else {
         originalHandleTownshipSelect();
       }
+      // ==========================================
+// 🚌 SMART BUS GATE & STATIONS DIRECTORY LOGIC
+// ==========================================
+
+function filterBusGatesForTownship(selectedTownship) {
+  const gateSection = document.getElementById('customerBusGateSection');
+  const gateSelect = document.getElementById('checkoutBusGateSelect');
+  const previewCard = document.getElementById('busGatePreviewCard');
+  const customBox = document.getElementById('customGateInputWrapper');
+
+  if (!gateSelect) return;
+
+  // အစပိုင်းတွင် Reset လုပ်ခြင်း
+  gateSelect.innerHTML = '<option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>';
+  if (previewCard) previewCard.style.display = 'none';
+  if (customBox) customBox.style.display = 'none';
+
+  if (!selectedTownship) {
+    if (gateSection) gateSection.style.display = 'none';
+    return;
+  }
+
+  // Admin Stations Directory မှ ဒေတာများ ရယူခြင်း
+  let stations = [];
+  try {
+    if (typeof deliveryStations !== 'undefined' && Array.isArray(deliveryStations)) {
+      stations = deliveryStations;
+    } else {
+      stations = JSON.parse(localStorage.getItem('tm_delivery_stations') || '[]');
+    }
+  } catch (e) {
+    stations = [];
+  }
+
+  // ကားဂိတ်အမျိုးအစား နှင့် ရွေးချယ်ထားသော မြို့နယ်အလိုက် Filter စစ်ထုတ်ခြင်း
+  const searchTown = selectedTownship.toLowerCase().trim();
+  const matchedGates = stations.filter(station => {
+    const isBus = !station.type || station.type.includes('ကားဂိတ်') || station.type.toLowerCase().includes('bus');
+    if (!isBus) return false;
+    
+    const targetTown = (station.township || '').toLowerCase().trim();
+    const targetName = (station.name || '').toLowerCase().trim();
+    const targetAddr = (station.address || '').toLowerCase().trim();
+
+    return targetTown.includes(searchTown) || searchTown.includes(targetTown) ||
+           targetName.includes(searchTown) || targetAddr.includes(searchTown);
+  });
+
+  // စစ်ထုတ်ရရှိသော ကားဂိတ်များကို Dropdown ထဲ ထည့်ခြင်း
+  matchedGates.forEach((gate, idx) => {
+    const opt = document.createElement('option');
+    opt.value = gate.id || idx;
+    opt.textContent = `🚌 ${gate.name} ${gate.duration ? '(' + gate.duration + ')' : ''}`;
+    opt.dataset.station = JSON.stringify(gate);
+    gateSelect.appendChild(opt);
+  });
+
+  // ➕ အခြားကားဂိတ် (Custom Note) Option ထည့်ပေးခြင်း
+  const customOpt = document.createElement('option');
+  customOpt.value = 'CUSTOM_OTHER_GATE';
+  customOpt.textContent = '➕ အခြားကားဂိတ် အမည်ရိုက်ထည့်မည်';
+  gateSelect.appendChild(customOpt);
+
+  if (gateSection) gateSection.style.display = 'block';
+}
+
+function handleCustomerGateSelection(val) {
+  const gateSelect = document.getElementById('checkoutBusGateSelect');
+  const previewCard = document.getElementById('busGatePreviewCard');
+  const customBox = document.getElementById('customGateInputWrapper');
+
+  if (val === 'CUSTOM_OTHER_GATE') {
+    if (previewCard) previewCard.style.display = 'none';
+    if (customBox) customBox.style.display = 'block';
+    return;
+  }
+
+  if (customBox) customBox.style.display = 'none';
+
+  if (!val) {
+    if (previewCard) previewCard.style.display = 'none';
+    return;
+  }
+
+  const selectedOption = gateSelect.options[gateSelect.selectedIndex];
+  if (selectedOption && selectedOption.dataset.station) {
+    const data = JSON.parse(selectedOption.dataset.station);
+    const pName = document.getElementById('previewGateName');
+    const pDur = document.getElementById('previewGateDuration');
+    const pPhone = document.getElementById('previewGatePhones');
+    const pAddr = document.getElementById('previewGateAddress');
+
+    if (pName) pName.textContent = '🚌 ' + (data.name || '');
+    if (pDur) pDur.textContent = data.duration || '၁ မှ ၂ ရက်အတွင်း';
+    if (pPhone) pPhone.textContent = data.phone || (Array.isArray(data.phones) ? data.phones.join(', ') : 'ဂိတ်ဖုန်း မပါရှိပါ');
+    if (pAddr) pAddr.textContent = data.address || 'ဂိတ်လိပ်စာ အပြည့်အစုံ မပါရှိပါ';
+    
+    if (previewCard) previewCard.style.display = 'block';
+  }
+}
     };
 
     // 2. CUSTOMER NEWS & ANNOUNCEMENTS TICKER & MANAGER
@@ -11570,6 +11710,10 @@ function editDeliveryStation(idx) {
 
   const addrInp = document.getElementById('newStationAddressInput');
   if (addrInp) addrInp.value = st.address || '';
+  const townInp = document.getElementById('newStationTownship');
+  if (townInp) townInp.value = st.township || '';
+  const durInp = document.getElementById('newStationDuration');
+  if (durInp) durInp.value = st.duration || '';
 
   if (st.phone) {
     const phones = String(st.phone).split(',').map(p => p.trim()).filter(Boolean);
@@ -11597,6 +11741,10 @@ function cancelStationEdit() {
   if (nameInp) nameInp.value = '';
   const addrInp = document.getElementById('newStationAddressInput');
   if (addrInp) addrInp.value = '';
+  const townInp = document.getElementById('newStationTownship');
+    if (townInp) townInp.value = '';
+    const durInp = document.getElementById('newStationDuration');
+    if (durInp) durInp.value = '';
   stationPhoneList = [''];
   renderStationPhoneInputs();
 
@@ -11628,6 +11776,10 @@ function cancelStationEdit() {
   const name = document.getElementById('newStationNameInput')?.value.trim();
   const phone = stationPhoneList.map(p => p.trim()).filter(Boolean).join(', ');
   const address = document.getElementById('newStationAddressInput')?.value.trim();
+  
+  // ➕ မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
+  const township = document.getElementById('newStationTownship')?.value.trim() || '';
+  const duration = document.getElementById('newStationDuration')?.value.trim() || '';
 
   if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ပြည့်စုံစွာ ဖြည့်သွင်းပါခင်ဗျာ');
 
@@ -11637,12 +11789,14 @@ function cancelStationEdit() {
     deliveryStations[editingStationIdx].name = name;
     deliveryStations[editingStationIdx].phone = phone;
     deliveryStations[editingStationIdx].address = address;
+    deliveryStations[editingStationIdx].township = township;
+    deliveryStations[editingStationIdx].duration = duration;
     alert(`[ ${name} ] ၏ အချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!`);
   } else {
     // အသစ်ထည့်သွင်းခြင်း (Create Mode)
     deliveryStations.push({
       id: 'st_' + Date.now(),
-      type, name, phone, address
+      type, name, phone, address, township, duration
     });
     alert(`[ ${name} ] ကို ဂိတ်/ရုံးခွဲ စာရင်းထဲ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!`);
   }
