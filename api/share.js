@@ -82,8 +82,15 @@ export default async function handler(req, res) {
     <img src="${image}" alt="${title}">
     <h2>${title}</h2>
     <p>${description}</p>
-    <a href="${targetUrl}" class="btn">ဝဘ်ဆိုဒ်တွင် ဆက်လက်ကြည့်ရှုရန်</a>
+    <a href="${targetUrl}" class="btn">ဝဘ်ဆိုဒ်သို့ သွားနေပါသည်...</a>
   </div>
+
+  <script>
+    // လူအစစ် Browser ကနေ ဖွင့်ပါက ၁ စက္ကန့်အတွင်း မူရင်း Website စာမျက်နှာဆီ အလိုအလျောက် ပို့ပေးမည်
+    setTimeout(function() {
+      window.location.href = "${targetUrl}";
+    }, 800);
+  </script>
 </body>
 </html>`);
 }
