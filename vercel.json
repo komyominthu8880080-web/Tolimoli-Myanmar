@@ -1,23 +1,23 @@
 {
   "rewrites": [
     {
-      "source": "/index.html",
-      "has": [
-        {
-          "type": "query",
-          "key": "product"
-        }
-      ],
+      "source": "/",
+      "has": [{ "type": "query", "key": "product" }],
+      "destination": "/api/share"
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "cat" }],
       "destination": "/api/share"
     },
     {
       "source": "/index.html",
-      "has": [
-        {
-          "type": "query",
-          "key": "cat"
-        }
-      ],
+      "has": [{ "type": "query", "key": "product" }],
+      "destination": "/api/share"
+    },
+    {
+      "source": "/index.html",
+      "has": [{ "type": "query", "key": "cat" }],
       "destination": "/api/share"
     }
   ]
