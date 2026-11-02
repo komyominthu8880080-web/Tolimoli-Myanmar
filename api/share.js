@@ -28,14 +28,21 @@ export default async function handler(req, res) {
           else if (item.imageUrl) image = item.imageUrl;
           else if (Array.isArray(item.images) && item.images.length > 0) image = item.images[0];
         }
+      // ၂။ Category Link ဖြစ်ပါက
       } else if (cat) {
-        const cleanCat = cat.replace(/[-_]/g, ' ').toUpperCase();
+        const cleanCat = cat.replace(/[-_]/g, ' ').trim().toUpperCase();
         title = `${cleanCat} ပစ္စည်းများ - Tolimoli Myanmar`;
         description = `${cleanCat} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        const catItem = productsList.find(p => 
-          p.category && String(p.category).toLowerCase().includes(cat.toLowerCase())
-        );
+        const searchCat = cat.toLowerCase().trim();
+
+        // category, name, tags, description တစ်ခုခုတွင် ပါဝင်သော ပထမဆုံး ပစ္စည်းပုံကို ရှာမည်
+        const catItem = productsList.find(p => {
+          const pCat = String(p.category || p.cat || p.categoryName || '').toLowerCase();
+          const pName = String(p.name || p.title || '').toLowerCase();
+          return pCat.includes(searchCat) || pName.includes(searchCat);
+        });
+
         if (catItem) {
           if (catItem.image) image = catItem.image;
           else if (catItem.imageUrl) image = catItem.imageUrl;
