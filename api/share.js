@@ -14,8 +14,24 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(RTDB_URL);
     if (response.ok) {
-      const data = await response.json();
-      const productsList = Array.isArray(data) ? data.filter(Boolean) : Object.values(data || {});
+      let rawData = await response.json();
+        
+        // RTDB data သည် nested ဖြစ်နေပါက (ဥပမာ products သို့မဟုတ် items ထဲတွင် ရှိနေပါက)
+        if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+          if (rawData.products) rawData = rawData.products;
+          else if (rawData.items) rawData = rawData.items;
+        }
+
+        // Object မှ Array သို့ တိကျစွာ ပြောင်းလဲခြင်း
+        let productsList = [];
+        if (Array.isArray(rawData)) {
+          productsList = rawData.filter(Boolean);
+        } else if (rawData && typeof rawData === 'object') {
+          productsList = Object.keys(rawData).map(key => {
+            const item = rawData[key];
+            return (item && typeof item === 'object') ? { id: key, ...item } : null;
+          }).filter(Boolean);
+        }
 
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
