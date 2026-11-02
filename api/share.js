@@ -17,13 +17,11 @@ export default async function handler(req, res) {
       let rawData = await response.json();
       let productsList = [];
         
-      // RTDB data သည် nested ဖြစ်နေပါက (ဥပမာ products သို့မဟုတ် items ထဲတွင် ရှိနေပါက)
       if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
         if (rawData.products) rawData = rawData.products;
         else if (rawData.items) rawData = rawData.items;
       }
 
-      // Object မှ Array သို့ တိကျစွာ ပြောင်းလဲခြင်း
       if (Array.isArray(rawData)) {
         productsList = rawData.filter(Boolean);
       } else if (rawData && typeof rawData === 'object') {
@@ -33,7 +31,28 @@ export default async function handler(req, res) {
         }).filter(Boolean);
       }
 
-      // ၁။ ပစ္စည်း တစ်ခုချင်းစီ၏ Link ဖြစ်ပါက
+      // ပုံလင့်ခ်ကို https:// ပါသော full URL ဖြစ်အောင် ပြုပြင်ပေးသည့် helper function
+      const formatImageUrl = (img) => {
+        if (!img || typeof img !== 'string') return '';
+        img = img.trim();
+        if (img.startsWith('http://') || img.startsWith('https://')) return img;
+        if (img.startsWith('//')) return `https:${img}`;
+        if (img.startsWith('/')) return `https://www.tolimolimyanmar.com${img}`;
+        return `https://www.tolimolimyanmar.com/${img}`;
+      };
+
+      // ပစ္စည်းတစ်ခုဆီမှ ပုံကို ဆွဲထုတ်ပေးခြင်း
+      const extractImage = (item) => {
+        if (!item) return '';
+        let raw = '';
+        if (Array.isArray(item.images) && item.images.length > 0) raw = item.images[0];
+        else if (item.image) raw = item.image;
+        else if (item.imageUrl) raw = item.imageUrl;
+        else if (item.thumbnail) raw = item.thumbnail;
+        return formatImageUrl(raw);
+      };
+
+      // ၁။ ပစ္စည်း Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -41,7 +60,7 @@ export default async function handler(req, res) {
           if (item.price) {
             description = `ဈေးနှုန်း - ${Number(item.price).toLocaleString()} MMK | ၁၀၀% လျှို့ဝှက်လုံခြုံစွာ ပို့ဆောင်ပေးပါသည်`;
           }
-          let pImg = (Array.isArray(item.images) && item.images[0]) || item.image || item.imageUrl || '';
+          const pImg = extractImage(item);
           if (pImg) image = pImg;
         }
       } 
@@ -70,43 +89,32 @@ export default async function handler(req, res) {
         title = `${myanmarCatName} - Tolimoli Myanmar`;
         description = `${myanmarCatName} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // Database ထဲရှိ ပစ္စည်းများအား စစ်ဆေးရှာဖွေခြင်း
+        // Database ထဲမှ အဆိုပါ Category ပစ္စည်းကို ဦးစားပေး ရှာဖွေခြင်း
         let catItem = productsList.find(p => {
           if (!p) return false;
-          
-          let catsStr = '';
-          if (Array.isArray(p.categories)) {
-            catsStr = p.categories.map(c => String(c).toLowerCase()).join(' ');
-          } else if (p.category || p.cat) {
-            catsStr = String(p.category || p.cat).toLowerCase();
-          }
-
-          const nameStr = String(p.name || p.title || '').toLowerCase();
-          const descStr = String(p.description || '').toLowerCase();
-
-          return catsStr.includes(slugKey) || 
-                 catsStr.includes(myanmarCatName.toLowerCase()) ||
-                 nameStr.includes(slugKey) || 
-                 nameStr.includes(myanmarCatName.toLowerCase()) ||
-                 nameStr.includes('pump') || 
-                 nameStr.includes('ကျင့်ပြောင်း') ||
-                 descStr.includes('ကျင့်ပြောင်း');
+          let catsStr = Array.isArray(p.categories) ? p.categories.join(' ').toLowerCase() : String(p.category || p.cat || '').toLowerCase();
+          let nameStr = String(p.name || p.title || '').toLowerCase();
+          return catsStr.includes(slugKey) || catsStr.includes(myanmarCatName.toLowerCase()) || 
+                 nameStr.includes(slugKey) || nameStr.includes(myanmarCatName.toLowerCase()) || 
+                 nameStr.includes('pump') || nameStr.includes('ကျင့်ပြောင်း');
         });
 
-        // မတွေ့ပါက JSON string အားလုံးထဲတွင် pump သို့မဟုတ် ကျင့်ပြောင်း ပါဝင်သော ပစ္စည်းကို ရှာဖွေခြင်း
-        if (!catItem) {
-          catItem = productsList.find(p => {
-            if (!p) return false;
-            const fullText = JSON.stringify(p).toLowerCase();
-            return fullText.includes('pump') || fullText.includes('ကျင့်ပြောင်း');
-          });
+        // တွေ့ပါက ၎င်း၏ပုံကို ယူမည်
+        if (catItem) {
+          const foundImg = extractImage(catItem);
+          if (foundImg && !foundImg.includes('logo.png')) {
+            image = foundImg;
+          }
         }
 
-        // index.html logic အတိုင်း images[0] ကို ဦးစားပေး ဆွဲယူခြင်း
-        if (catItem) {
-          let foundImg = (Array.isArray(catItem.images) && catItem.images[0]) || catItem.image || catItem.imageUrl || '';
-          if (typeof foundImg === 'string' && foundImg.trim() !== '' && !foundImg.includes('logo.png')) {
-            image = foundImg;
+        // မတွေ့သေးပါက ပစ္စည်းစာရင်းထဲမှ ပုံရှိသော ပထမဆုံးပစ္စည်းကို ယူပြမည် (Logo သက်သက် မဖြစ်စေရန်)
+        if (image.includes('logo.png')) {
+          for (const p of productsList) {
+            const fallback = extractImage(p);
+            if (fallback && !fallback.includes('logo.png')) {
+              image = fallback;
+              break;
+            }
           }
         }
       }
@@ -115,7 +123,7 @@ export default async function handler(req, res) {
     console.error("RTDB Fetch Error:", err);
   }
 
-  // Telegram နှင့် အခြား Platform များ Meta tag အားလုံးကို တိုက်ရိုက်ဖတ်နိုင်စေရန် ပေးပို့ခြင်း
+  // Telegram / Viber Meta tags ပေးပို့ခြင်း
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   return res.status(200).send(`<!DOCTYPE html>
 <html lang="my" prefix="og: http://ogp.me/ns#">
@@ -123,19 +131,15 @@ export default async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${title}</title>
   
-  <!-- Open Graph / Viber / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${image}">
   <meta property="og:image:secure_url" content="${image}">
-  <meta property="og:image:type" content="${image.endsWith('.png') ? 'image/png' : 'image/jpeg'}">
-  <meta property="og:image:width" content="600">
-  <meta property="og:image:height" content="600">
+  <meta property="og:image:alt" content="${title}">
   <meta property="og:url" content="${targetUrl}">
 
-  <!-- Twitter / Telegram Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
@@ -159,7 +163,6 @@ export default async function handler(req, res) {
   </div>
 
   <script>
-    // လူအစစ် Browser ကနေ ဖွင့်ပါက မူရင်း Website စာမျက်နှာဆီ အလိုအလျောက် ပို့ပေးမည်
     setTimeout(function() {
       window.location.href = "${targetUrl}";
     }, 800);
