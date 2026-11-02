@@ -81,8 +81,7 @@ html {
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', 'Pyidaungsu', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; padding-bottom: 70px; }
-
+    body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 90px !important; }
     #promoBannerBar {
       background: linear-gradient(90deg, #ff4081, #9b51e0);
       color: #fff;
@@ -1674,7 +1673,13 @@ header.sticky-scrolled .hero-compact {
   0%, 100% { opacity: 0.4; transform: translateY(-50%) translateX(0); }
   50% { opacity: 1; transform: translateY(-50%) translateX(3px); }
 }
-
+.product-title {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  min-height: 2.8em !important;
+}
 /* =========================================================
    ၆။ CARD ပေါ်တွင် DIRECT ADD-TO-CART (SPLIT ACTION BUTTONS)
    ========================================================= */
