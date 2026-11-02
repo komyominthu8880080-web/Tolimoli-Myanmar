@@ -1,8 +1,24 @@
 {
   "rewrites": [
     {
-      "source": "/c/:cat",
-      "destination": "/api/share?cat=:cat"
+      "source": "/index.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "product"
+        }
+      ],
+      "destination": "/api/share"
+    },
+    {
+      "source": "/index.html",
+      "has": [
+        {
+          "type": "query",
+          "key": "cat"
+        }
+      ],
+      "destination": "/api/share"
     }
   ]
 }
