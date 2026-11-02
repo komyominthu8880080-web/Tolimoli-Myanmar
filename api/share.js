@@ -17,7 +17,6 @@ export default async function handler(req, res) {
       const data = await response.json();
       const productsList = Array.isArray(data) ? data.filter(Boolean) : Object.values(data || {});
 
-      // ၁။ ကုန်ပစ္စည်း Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -29,9 +28,7 @@ export default async function handler(req, res) {
           else if (item.imageUrl) image = item.imageUrl;
           else if (Array.isArray(item.images) && item.images.length > 0) image = item.images[0];
         }
-      }
-      // ၂။ Category Link ဖြစ်ပါက
-      else if (cat) {
+      } else if (cat) {
         const cleanCat = cat.replace(/[-_]/g, ' ').toUpperCase();
         title = `${cleanCat} ပစ္စည်းများ - Tolimoli Myanmar`;
         description = `${cleanCat} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
@@ -50,31 +47,43 @@ export default async function handler(req, res) {
     console.error("RTDB Fetch Error:", err);
   }
 
-  // Telegram, Viber, Facebook အားလုံး ဖတ်ရှုနိုင်ရန် Open Graph Card သာ အမြဲပေးပို့မည်
+  // Telegram နှင့် အခြား Platform များ Meta tag အားလုံးကို တိုက်ရိုက်ဖတ်နိုင်စေရန် ပေးပို့ခြင်း
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   return res.status(200).send(`<!DOCTYPE html>
-<html lang="my" prefix="og: https://ogp.me/ns#">
+<html lang="my" prefix="og: http://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
   
-  <meta property="og:type" content="product">
+  <meta property="og:type" content="website">
   <meta property="og:site_name" content="Tolimoli Myanmar">
-  <meta property="og:url" content="${targetUrl}">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${image}">
   <meta property="og:image:secure_url" content="${image}">
+  <meta property="og:url" content="${targetUrl}">
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${image}">
-  
-  <meta http-equiv="refresh" content="0;url=${targetUrl}">
+
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh; text-align: center; padding: 20px; background: #0f172a; color: white; }
+    .card { background: #1e293b; padding: 24px; border-radius: 12px; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+    img { width: 100%; border-radius: 8px; margin-bottom: 16px; object-fit: cover; max-height: 280px; }
+    h2 { font-size: 1.1rem; margin-bottom: 8px; }
+    p { color: #f59e0b; font-weight: bold; margin-bottom: 20px; }
+    a.btn { background: #d97706; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; }
+  </style>
 </head>
 <body>
-  <script>window.location.replace("${targetUrl}");</script>
+  <div class="card">
+    <img src="${image}" alt="${title}">
+    <h2>${title}</h2>
+    <p>${description}</p>
+    <a href="${targetUrl}" class="btn">ဝဘ်ဆိုဒ်တွင် ဆက်လက်ကြည့်ရှုရန်</a>
+  </div>
 </body>
 </html>`);
 }
