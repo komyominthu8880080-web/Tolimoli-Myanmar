@@ -5387,7 +5387,7 @@ function renderRecommendedProducts(currentProduct) {
 
       const socBox = document.getElementById('detailSocialLinks');
 if (socBox) {
-  const currentUrl = window.location.origin + window.location.pathname + '?product=' + encodeURIComponent(p.id);
+  const currentUrl = window.location.origin + '/api/share?product=' + encodeURIComponent(p.id);
   const shareTitle = encodeURIComponent(`${p.name} - ${Number(p.price || 0).toLocaleString()} MMK`);
   const encodedUrl = encodeURIComponent(currentUrl);
 
