@@ -52,23 +52,26 @@ export default async function handler(req, res) {
 
         const searchCat = cleanCat.toLowerCase();
 
-        // Database ထဲက ပစ္စည်းများထဲမှ category သို့မဟုတ် name ထဲတွင် စကားလုံး ပါဝင်သည့် ပစ္စည်းကို ရှာဖွေခြင်း
-        const catItem = productsList.find(p => {
+        // ၁။ Category field တွင် searchCat ပါဝင်သော ပစ္စည်းကို ဦးစားပေး ရှာမည်
+        let catItem = productsList.find(p => {
           if (!p) return false;
-          const pCat = String(p.category || p.cat || p.categoryName || '').toLowerCase();
-          const pName = String(p.name || p.title || '').toLowerCase();
-          const pDesc = String(p.description || '').toLowerCase();
-          return pCat.includes(searchCat) || pName.includes(searchCat) || pDesc.includes(searchCat);
+          const pCat = String(p.category || p.cat || p.categoryName || p.type || '').toLowerCase();
+          return pCat === searchCat || pCat.includes(searchCat);
         });
 
+        // ၂။ Category မတွေ့ပါက ပစ္စည်းအမည် (name/title) ထဲတွင် ပါဝင်သော ပစ္စည်းကို ထပ်ရှာမည်
+        if (!catItem) {
+          catItem = productsList.find(p => {
+            if (!p) return false;
+            const pName = String(p.name || p.title || '').toLowerCase();
+            return pName.includes(searchCat);
+          });
+        }
+
+        // ၃။ ရှာတွေ့ပါက အဆိုပါ ပစ္စည်းပုံကို ယူမည်
         if (catItem) {
           const foundImg = catItem.image || catItem.imageUrl || (Array.isArray(catItem.images) && catItem.images[0]);
           if (foundImg) image = foundImg;
-        } else if (productsList.length > 0) {
-          // အကယ်၍ အဆိုပါ category စာလုံးနှင့် ကွက်တိမတွေ့ပါက စာရင်းထဲမှ ပထမဆုံး ပစ္စည်းပုံကို ယူပြမည်
-          const firstItem = productsList[0];
-          const fallbackImg = firstItem.image || firstItem.imageUrl || (Array.isArray(firstItem.images) && firstItem.images[0]);
-          if (fallbackImg) image = fallbackImg;
         }
       }
     }
