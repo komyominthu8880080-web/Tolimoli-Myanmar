@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         }
       } 
       // ၂။ Category Link ဖြစ်ပါက
-      else if (cat) {
+      } else if (cat) {
         const categoryMap = {
           'vibrator': 'တုန်စက်',
           'dildo': 'အတု',
@@ -64,27 +64,47 @@ export default async function handler(req, res) {
         title = `${myanmarCatName} - Tolimoli Myanmar`;
         description = `${myanmarCatName} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // Database ထဲရှိ category, categories, name ထဲတွင် မြန်မာအမည် ပါဝင်သော ပစ္စည်းကို ရှာမည်
+        // Database ထဲရှိ ပစ္စည်းများအား category, categories, name အပြင် JSON စာသားအပြည့်အစုံပါ တိုက်ဆိုင်စစ်ဆေးခြင်း
         let catItem = productsList.find(p => {
           if (!p) return false;
+          
+          const pCat = String(p.category || '');
+          const pCats = Array.isArray(p.categories) ? p.categories.join(' ') : '';
+          const pName = String(p.name || '');
 
-          const pCat = String(p.category || '').toLowerCase();
-          const pCategories = Array.isArray(p.categories) ? p.categories.join(' ').toLowerCase() : '';
-          const pName = String(p.name || '').toLowerCase();
+          // pump သို့မဟုတ် ကျင့်ပြောင်း စာလုံး တိုက်ရိုက်ပါဝင်မှု စစ်ဆေးခြင်း
+          if (slugKey === 'pump') {
+            return pCat.includes('ကျင့်ပြောင်း') || pCats.includes('ကျင့်ပြောင်း') || pName.includes('ကျင့်ပြောင်း') ||
+                   pCat.toLowerCase().includes('pump') || pName.toLowerCase().includes('pump');
+          }
 
-          return pCat.includes(myanmarCatName.toLowerCase()) || 
-                 pCategories.includes(myanmarCatName.toLowerCase()) ||
-                 pName.includes(myanmarCatName.toLowerCase()) ||
-                 pCat.includes(slugKey) ||
-                 pName.includes(slugKey);
+          // အခြား Category များအတွက် စစ်ဆေးခြင်း
+          return pCat.includes(myanmarCatName) || 
+                 pCats.includes(myanmarCatName) || 
+                 pName.includes(myanmarCatName) ||
+                 pCat.toLowerCase().includes(slugKey) ||
+                 pName.toLowerCase().includes(slugKey);
         });
 
+        // အကယ်၍ အထက်ပါနည်းဖြင့် မတွေ့ပါက JSON string တစ်ခုလုံးထဲ ရှာဖွေခြင်း
+        if (!catItem) {
+          catItem = productsList.find(p => {
+            if (!p) return false;
+            const str = JSON.stringify(p);
+            return slugKey === 'pump' 
+              ? (str.includes('ကျင့်ပြောင်း') || str.toLowerCase().includes('pump'))
+              : (str.includes(myanmarCatName) || str.toLowerCase().includes(slugKey));
+          });
+        }
+
+        // ရှာတွေ့သော ပစ္စည်းမှ ပုံလင့်ခ် ရယူခြင်း
         if (catItem) {
           const foundImg = getItemImage(catItem);
-          if (foundImg) image = foundImg;
+          if (foundImg) {
+            image = foundImg;
+          }
         }
       }
-    }
   } catch (err) {
     console.error("RTDB Fetch Error:", err);
   }
