@@ -15,24 +15,25 @@ export default async function handler(req, res) {
     const response = await fetch(RTDB_URL);
     if (response.ok) {
       let rawData = await response.json();
+      let productsList = [];
         
-        // RTDB data သည် nested ဖြစ်နေပါက (ဥပမာ products သို့မဟုတ် items ထဲတွင် ရှိနေပါက)
-        if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
-          if (rawData.products) rawData = rawData.products;
-          else if (rawData.items) rawData = rawData.items;
-        }
+      // RTDB data သည် nested ဖြစ်နေပါက (ဥပမာ products သို့မဟုတ် items ထဲတွင် ရှိနေပါက)
+      if (rawData && typeof rawData === 'object' && !Array.isArray(rawData)) {
+        if (rawData.products) rawData = rawData.products;
+        else if (rawData.items) rawData = rawData.items;
+      }
 
-        // Object မှ Array သို့ တိကျစွာ ပြောင်းလဲခြင်း
-        let productsList = [];
-        if (Array.isArray(rawData)) {
-          productsList = rawData.filter(Boolean);
-        } else if (rawData && typeof rawData === 'object') {
-          productsList = Object.keys(rawData).map(key => {
-            const item = rawData[key];
-            return (item && typeof item === 'object') ? { id: key, ...item } : null;
-          }).filter(Boolean);
-        }
+      // Object မှ Array သို့ တိကျစွာ ပြောင်းလဲခြင်း
+      if (Array.isArray(rawData)) {
+        productsList = rawData.filter(Boolean);
+      } else if (rawData && typeof rawData === 'object') {
+        productsList = Object.keys(rawData).map(key => {
+          const item = rawData[key];
+          return (item && typeof item === 'object') ? { id: key, ...item } : null;
+        }).filter(Boolean);
+      }
 
+      // ၁။ ပစ္စည်း တစ်ခုချင်းစီ၏ Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -40,12 +41,12 @@ export default async function handler(req, res) {
           if (item.price) {
             description = `ဈေးနှုန်း - ${Number(item.price).toLocaleString()} MMK | ၁၀၀% လျှို့ဝှက်လုံခြုံစွာ ပို့ဆောင်ပေးပါသည်`;
           }
-          if (item.image) image = item.image;
-          else if (item.imageUrl) image = item.imageUrl;
-          else if (Array.isArray(item.images) && item.images.length > 0) image = item.images[0];
+          let pImg = (Array.isArray(item.images) && item.images[0]) || item.image || item.imageUrl || '';
+          if (pImg) image = pImg;
         }
+      } 
       // ၂။ Category Link ဖြစ်ပါက
-      } else if (cat) {
+      else if (cat) {
         const categoryMap = {
           'vibrator': 'တုန်စက်',
           'dildo': 'အတု',
@@ -92,7 +93,7 @@ export default async function handler(req, res) {
                  descStr.includes('ကျင့်ပြောင်း');
         });
 
-        // အကယ်၍ အထက်ပါအတိုင်း မတွေ့ပါက name ထဲတွင် pump သို့မဟုတ် ကျင့်ပြောင်း ပါသည့် ပစ္စည်းကို ရှာမည်
+        // မတွေ့ပါက JSON string အားလုံးထဲတွင် pump သို့မဟုတ် ကျင့်ပြောင်း ပါဝင်သော ပစ္စည်းကို ရှာဖွေခြင်း
         if (!catItem) {
           catItem = productsList.find(p => {
             if (!p) return false;
@@ -101,7 +102,7 @@ export default async function handler(req, res) {
           });
         }
 
-        // index.html ၏ ပုံဆွဲထုတ်မှု logic အတိုင်း တိကျစွာ ရယူခြင်း
+        // index.html logic အတိုင်း images[0] ကို ဦးစားပေး ဆွဲယူခြင်း
         if (catItem) {
           let foundImg = (Array.isArray(catItem.images) && catItem.images[0]) || catItem.image || catItem.imageUrl || '';
           if (typeof foundImg === 'string' && foundImg.trim() !== '' && !foundImg.includes('logo.png')) {
@@ -109,7 +110,7 @@ export default async function handler(req, res) {
           }
         }
       }
-      }
+    }
   } catch (err) {
     console.error("RTDB Fetch Error:", err);
   }
@@ -158,7 +159,7 @@ export default async function handler(req, res) {
   </div>
 
   <script>
-    // လူအစစ် Browser ကနေ ဖွင့်ပါက ၁ စက္ကန့်အတွင်း မူရင်း Website စာမျက်နှာဆီ အလိုအလျောက် ပို့ပေးမည်
+    // လူအစစ် Browser ကနေ ဖွင့်ပါက မူရင်း Website စာမျက်နှာဆီ အလိုအလျောက် ပို့ပေးမည်
     setTimeout(function() {
       window.location.href = "${targetUrl}";
     }, 800);
