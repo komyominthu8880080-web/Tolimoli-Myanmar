@@ -30,23 +30,29 @@ export default async function handler(req, res) {
         }
       // ၂။ Category Link ဖြစ်ပါက
       } else if (cat) {
-        const cleanCat = cat.replace(/[-_]/g, ' ').trim().toUpperCase();
-        title = `${cleanCat} ပစ္စည်းများ - Tolimoli Myanmar`;
-        description = `${cleanCat} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
+        const cleanCat = cat.replace(/[-_]/g, ' ').trim();
+        title = `${cleanCat.toUpperCase()} ပစ္စည်းများ - Tolimoli Myanmar`;
+        description = `${cleanCat.toUpperCase()} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        const searchCat = cat.toLowerCase().trim();
+        const searchCat = cleanCat.toLowerCase();
 
-        // category, name, tags, description တစ်ခုခုတွင် ပါဝင်သော ပထမဆုံး ပစ္စည်းပုံကို ရှာမည်
+        // Database ထဲက ပစ္စည်းများထဲမှ category သို့မဟုတ် name ထဲတွင် စကားလုံး ပါဝင်သည့် ပစ္စည်းကို ရှာဖွေခြင်း
         const catItem = productsList.find(p => {
+          if (!p) return false;
           const pCat = String(p.category || p.cat || p.categoryName || '').toLowerCase();
           const pName = String(p.name || p.title || '').toLowerCase();
-          return pCat.includes(searchCat) || pName.includes(searchCat);
+          const pDesc = String(p.description || '').toLowerCase();
+          return pCat.includes(searchCat) || pName.includes(searchCat) || pDesc.includes(searchCat);
         });
 
         if (catItem) {
-          if (catItem.image) image = catItem.image;
-          else if (catItem.imageUrl) image = catItem.imageUrl;
-          else if (Array.isArray(catItem.images) && catItem.images.length > 0) image = catItem.images[0];
+          const foundImg = catItem.image || catItem.imageUrl || (Array.isArray(catItem.images) && catItem.images[0]);
+          if (foundImg) image = foundImg;
+        } else if (productsList.length > 0) {
+          // အကယ်၍ အဆိုပါ category စာလုံးနှင့် ကွက်တိမတွေ့ပါက စာရင်းထဲမှ ပထမဆုံး ပစ္စည်းပုံကို ယူပြမည်
+          const firstItem = productsList[0];
+          const fallbackImg = firstItem.image || firstItem.imageUrl || (Array.isArray(firstItem.images) && firstItem.images[0]);
+          if (fallbackImg) image = fallbackImg;
         }
       }
     }
