@@ -46,29 +46,46 @@ export default async function handler(req, res) {
         }
       // ၂။ Category Link ဖြစ်ပါက
       } else if (cat) {
-        const cleanCat = cat.replace(/[-_]/g, ' ').trim();
-        title = `${cleanCat.toUpperCase()} ပစ္စည်းများ - Tolimoli Myanmar`;
-        description = `${cleanCat.toUpperCase()} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
+        // frontend ရှိ CATEGORY_SLUGS အတိုင်း အမည်နှင့် အဓိပ္ပာယ် ချိန်ညှိခြင်း
+        const categoryMap = {
+          'vibrator': 'တုန်စက်',
+          'dildo': 'အတု',
+          'lube': 'ချောဆီ',
+          'lubricant': 'ချောဆီ',
+          'masturbator': 'ဂျာထု',
+          'pump': 'ကြီးရှည်ကျင့်ပြောင်း',
+          'condom': 'စီလီကွန်အစွပ်',
+          'sleeve': 'စီလီကွန်အစွပ်',
+          'bdsm': 'BDSM ပစ္စည်းများ',
+          'anal': 'နောက်ပေါက်သုံးပစ္စည်း',
+          'delay': 'ကြာဆေး',
+          'enlarge': 'ကြီးဆေး',
+          'female': 'အမျိုးသမီးသုံးဖီးဆေး',
+          'ring': 'သုတ်ထိန်းကွင်း'
+        };
 
-        const searchCat = cleanCat.toLowerCase();
+        const slugKey = String(cat).toLowerCase().trim();
+        const myanmarCatName = categoryMap[slugKey] || slugKey;
 
-        // ၁။ Category field တွင် searchCat ပါဝင်သော ပစ္စည်းကို ဦးစားပေး ရှာမည်
+        title = `${myanmarCatName} - Tolimoli Myanmar`;
+        description = `${myanmarCatName} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
+
+        // Database ထဲရှိ categories array သို့မဟုတ် name ထဲတွင် မြန်မာအမည်/English slug ပါဝင်သော ပစ္စည်းကို ရှာဖွေခြင်း
         let catItem = productsList.find(p => {
           if (!p) return false;
-          const pCat = String(p.category || p.cat || p.categoryName || p.type || '').toLowerCase();
-          return pCat === searchCat || pCat.includes(searchCat);
+          
+          // p.categories (array) သို့မဟုတ် category string စစ်ဆေးခြင်း
+          const cats = Array.isArray(p.categories) 
+            ? p.categories.join(' ').toLowerCase() 
+            : String(p.category || p.cat || '').toLowerCase();
+
+          const pName = String(p.name || p.title || '').toLowerCase();
+
+          return cats.includes(slugKey) || cats.includes(myanmarCatName.toLowerCase()) ||
+                 pName.includes(slugKey) || pName.includes(myanmarCatName.toLowerCase());
         });
 
-        // ၂။ Category မတွေ့ပါက ပစ္စည်းအမည် (name/title) ထဲတွင် ပါဝင်သော ပစ္စည်းကို ထပ်ရှာမည်
-        if (!catItem) {
-          catItem = productsList.find(p => {
-            if (!p) return false;
-            const pName = String(p.name || p.title || '').toLowerCase();
-            return pName.includes(searchCat);
-          });
-        }
-
-        // ၃။ ရှာတွေ့ပါက အဆိုပါ ပစ္စည်းပုံကို ယူမည်
+        // ရှာတွေ့ပါက အဆိုပါ Category ထဲက ပစ္စည်းပုံကို ယူပြမည်
         if (catItem) {
           const foundImg = catItem.image || catItem.imageUrl || (Array.isArray(catItem.images) && catItem.images[0]);
           if (foundImg) image = foundImg;
