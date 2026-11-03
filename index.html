@@ -9396,7 +9396,7 @@ function fallbackCopyText(text, successMsg) {
   const slug = getSlugForCategory(catName);
   const url = (catName === 'All')
     ? `${window.location.origin}/`
-    : `${window.location.origin}/c/${encodeURIComponent(slug)}`;
+    : `${window.location.origin}/api/share?cat=${encodeURIComponent(slug)}`;
   copyTextToClipboard(url, `[${catName}] Link ကူးယူပြီးပါပြီ! Viber/Messenger တွင် ပို့နိုင်ပါပြီ`);
 }
 
@@ -9404,10 +9404,9 @@ function copyProductLink(productId) {
   const p = products.find(x => x.id === productId);
   if (!p) return;
   const key = p.sku ? encodeURIComponent(p.sku) : p.id;
-  const url = `${window.location.origin}/p/${encodeURIComponent(key)}`;
+  const url = `${window.location.origin}/api/share?product=${encodeURIComponent(key)}`;
   copyTextToClipboard(url, `"${p.name.substring(0, 20)}..." Link ကူးယူပြီးပါပြီ!`);
 }
-
 
     function renderCategoryUI() {
       const cont = document.getElementById('categoryContainer');

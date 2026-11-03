@@ -1,10 +1,10 @@
 export default async function handler(req, res) {
   const { product, cat } = req.query;
 
-  // အသုံးပြုသူ မူရင်း မျှဝေလိုက်သော Link URL (Viber/Telegram မလွဲစေရန်)
+  // Viber crawler သည် og:url ကို အဓိက လိုက်ဖတ်သောကြောင့် api/share link ကိုသာ ပေးပို့ခြင်း
   const canonicalUrl = product 
-    ? `https://www.tolimolimyanmar.com/p/${encodeURIComponent(product)}`
-    : (cat ? `https://www.tolimolimyanmar.com/c/${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
+    ? `https://www.tolimolimyanmar.com/api/share?product=${encodeURIComponent(product)}`
+    : (cat ? `https://www.tolimolimyanmar.com/api/share?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
 
   // Website ပွင့်သည့်အခါ တကယ့် web app သို့ လမ်းညွှန်ပေးမည့် target URL
   const targetUrl = product 
