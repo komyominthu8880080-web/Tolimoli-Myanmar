@@ -1,6 +1,12 @@
 export default async function handler(req, res) {
   const { product, cat } = req.query;
 
+  // အသုံးပြုသူ မူရင်း မျှဝေလိုက်သော Link URL (Viber/Telegram မလွဲစေရန်)
+  const canonicalUrl = product 
+    ? `https://www.tolimolimyanmar.com/p/${encodeURIComponent(product)}`
+    : (cat ? `https://www.tolimolimyanmar.com/c/${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
+
+  // Website ပွင့်သည့်အခါ တကယ့် web app သို့ လမ်းညွှန်ပေးမည့် target URL
   const targetUrl = product 
     ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
     : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
@@ -18,6 +24,7 @@ export default async function handler(req, res) {
       let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
+      // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL Generator
       const getSafeImg = (item) => {
         if (!item) return '';
         let url = '';
@@ -26,12 +33,14 @@ export default async function handler(req, res) {
         else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') url = item.images[0].trim();
         
         if (url && url.includes('i.ibb.co')) {
-          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg`;
+          // wsrv.nl proxy ကို path format သန့်သန့်ဖြင့် ပေးပို့ခြင်း (Viber scraper သဘောကျသော format)
+          const cleanHost = url.replace(/^https?:\/\//i, '');
+          return `https://wsrv.nl/?url=${encodeURIComponent(cleanHost)}&output=jpg`;
         }
         return url;
       };
 
-      // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
+      // ၁။ ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -47,7 +56,6 @@ export default async function handler(req, res) {
       else if (cat) {
         const rawSlug = decodeURIComponent(String(cat)).trim().toLowerCase();
 
-        // အမျိုးအစား သတ်မှတ်ချက်များ (ခေါင်းစဉ် နှင့် သီးသန့် ရှာဖွေရမည့် စာလုံးများ)
         const categoryMap = {
           'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
           'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
@@ -62,33 +70,27 @@ export default async function handler(req, res) {
           'delay': { title: 'ကြာဆေး', include: ['ကြာဆေး', 'delay', 'spray'], exclude: [] },
           'enlarge': { title: 'ကြီးဆေး', include: ['ကြီးဆေး', 'enlarge', 'cream'], exclude: [] },
           'female': { title: 'အမျိုးသမီးသုံးဖီးဆေး', include: ['ဖီးဆေး', 'female'], exclude: [] },
-          'ring': { title: 'သုတ်ထိန်းကွင်း', include: ['သုတ်ထိန်း', 'ring'], exclude: [] }
+          'ring': { title: 'သုတ်ထိန်းကွင်း', include: ['သုတ်ထိန်း', 'သုတ်', 'ring'], exclude: [] }
         };
 
         const config = categoryMap[rawSlug] || { title: rawSlug, include: [rawSlug], exclude: [] };
         title = `${config.title} - Tolimoli Myanmar`;
         description = `${config.title} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // အဆင့် (က) - ပစ္စည်း၏ category / categories စာရင်းထဲတွင် တိကျစွာ ကိုက်ညီမှုကို အရင်ရှာမည်
         let matchedItem = productsList.find(p => {
           if (!p || !getSafeImg(p)) return false;
           const pCat = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')}`.toLowerCase();
-          
           const hasExclude = config.exclude.some(ex => pCat.includes(ex.toLowerCase()));
           if (hasExclude) return false;
-
           return config.include.some(inc => pCat.includes(inc.toLowerCase()));
         });
 
-        // အဆင့် (ခ) - category ထဲ မတွေ့ပါက ပစ္စည်းအမည် (name) ထဲတွင် ရှာမည် (မဆိုင်သော ပစ္စည်းကို exclude လုပ်ထားမည်)
         if (!matchedItem) {
           matchedItem = productsList.find(p => {
             if (!p || !getSafeImg(p)) return false;
             const pName = String(p.name || '').toLowerCase();
-
             const hasExclude = config.exclude.some(ex => pName.includes(ex.toLowerCase()));
             if (hasExclude) return false;
-
             return config.include.some(inc => pName.includes(inc.toLowerCase()));
           });
         }
@@ -103,13 +105,17 @@ export default async function handler(req, res) {
     console.error("RTDB Fetch Error:", err);
   }
 
+  // Viber/Telegram scraper များ ချက်ချင်း cache ရယူနိုင်ရန် Header များ သတ်မှတ်ခြင်း
   res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
+
   return res.status(200).send(`<!DOCTYPE html>
 <html lang="my" prefix="og: http://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
   
+  <!-- Open Graph (Viber / Facebook) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
@@ -117,8 +123,9 @@ export default async function handler(req, res) {
   <meta property="og:image" content="${image}">
   <meta property="og:image:secure_url" content="${image}">
   <meta property="og:image:type" content="image/jpeg">
-  <meta property="og:url" content="${targetUrl}">
+  <meta property="og:url" content="${canonicalUrl}">
 
+  <!-- Telegram / Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
