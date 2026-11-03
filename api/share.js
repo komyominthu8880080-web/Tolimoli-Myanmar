@@ -18,7 +18,6 @@ export default async function handler(req, res) {
       let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
-      // Telegram Crawler က ပိတ်ပင်မှုမရှိဘဲ ဖတ်နိုင်ရန် Image URL Proxy လုပ်ပေးခြင်း
       const getSafeImg = (item) => {
         if (!item) return '';
         let url = '';
@@ -32,7 +31,7 @@ export default async function handler(req, res) {
         return url;
       };
 
-      // ၁။ ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
+      // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -48,43 +47,55 @@ export default async function handler(req, res) {
       else if (cat) {
         const rawSlug = decodeURIComponent(String(cat)).trim().toLowerCase();
 
-        // အမျိုးအစား အခေါ်အဝေါ် mapping ဇယား
+        // အမျိုးအစား သတ်မှတ်ချက်များ (ခေါင်းစဉ် နှင့် သီးသန့် ရှာဖွေရမည့် စာလုံးများ)
         const categoryMap = {
-          'vibrator': { title: 'တုန်စက်', keys: ['တုန်', 'vibrat'] },
-          'dildo': { title: 'အတု', keys: ['အတု', 'ကျားတု', 'dildo'] },
-          'lube': { title: 'ချောဆီ', keys: ['ချောဆီ', 'ဂျယ်', 'lube', 'gel', 'oil'] },
-          'lubricant': { title: 'ချောဆီ', keys: ['ချောဆီ', 'ဂျယ်', 'lube', 'lubricant'] },
-          'masturbator': { title: 'မတု / ဂျာထု', keys: ['မတု', 'ဂျာထု', 'masturbat', 'cup'] },
-          'pump': { title: 'ကြီးရှည်ကျင့်ပြောင်း', keys: ['ကျင့်ပြောင်း', 'ကြီးရှည်', 'pump'] },
-          'condom': { title: 'စီလီကွန်အစွပ်', keys: ['အစွပ်', 'စီလီကွန်', 'ကွန်ဒုံး', 'condom', 'sleeve'] },
-          'sleeve': { title: 'စီလီကွန်အစွပ်', keys: ['အစွပ်', 'စီလီကွန်', 'sleeve'] },
-          'bdsm': { title: 'BDSM ပစ္စည်းများ', keys: ['bdsm', 'bondage', 'ကြိုး'] },
-          'anal': { title: 'နောက်ပေါက်သုံးပစ္စည်း', keys: ['နောက်ပေါက်', 'anal', 'plug'] },
-          'delay': { title: 'ကြာဆေး', keys: ['ကြာဆေး', 'delay', 'spray'] },
-          'enlarge': { title: 'ကြီးဆေး', keys: ['ကြီးဆေး', 'enlarge', 'cream'] },
-          'female': { title: 'အမျိုးသမီးသုံးဖီးဆေး', keys: ['ဖီးဆေး', 'female'] },
-          'ring': { title: 'သုတ်ထိန်းကွင်း', keys: ['သုတ်ထိန်း', 'ring'] }
+          'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
+          'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
+          'dildo': { title: 'အတု', include: ['အတု', 'ကျားတု', 'dildo'], exclude: [] },
+          'vibrator': { title: 'တုန်စက်', include: ['တုန်စက်', 'တုန်ခါ', 'vibrat'], exclude: [] },
+          'masturbator': { title: 'မတု / ဂျာထု', include: ['မတု', 'ဂျာထု', 'masturbat', 'cup'], exclude: [] },
+          'pump': { title: 'ကြီးရှည်ကျင့်ပြောင်း', include: ['ကျင့်ပြောင်း', 'ကြီးရှည်', 'pump'], exclude: [] },
+          'condom': { title: 'စီလီကွန်အစွပ်', include: ['အစွပ်', 'စီလီကွန်', 'ကွန်ဒုံး', 'condom', 'sleeve'], exclude: [] },
+          'sleeve': { title: 'စီလီကွန်အစွပ်', include: ['အစွပ်', 'စီလီကွန်', 'sleeve'], exclude: [] },
+          'bdsm': { title: 'BDSM ပစ္စည်းများ', include: ['bdsm', 'bondage', 'ကြိုး'], exclude: [] },
+          'anal': { title: 'နောက်ပေါက်သုံးပစ္စည်း', include: ['နောက်ပေါက်', 'anal', 'plug'], exclude: [] },
+          'delay': { title: 'ကြာဆေး', include: ['ကြာဆေး', 'delay', 'spray'], exclude: [] },
+          'enlarge': { title: 'ကြီးဆေး', include: ['ကြီးဆေး', 'enlarge', 'cream'], exclude: [] },
+          'female': { title: 'အမျိုးသမီးသုံးဖီးဆေး', include: ['ဖီးဆေး', 'female'], exclude: [] },
+          'ring': { title: 'သုတ်ထိန်းကွင်း', include: ['သုတ်ထိန်း', 'ring'], exclude: [] }
         };
 
-        const config = categoryMap[rawSlug] || { title: rawSlug, keys: [rawSlug] };
+        const config = categoryMap[rawSlug] || { title: rawSlug, include: [rawSlug], exclude: [] };
         title = `${config.title} - Tolimoli Myanmar`;
         description = `${config.title} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // ပစ္စည်းများထဲမှ သက်ဆိုင်ရာ အမျိုးအစားနှင့် ကိုက်ညီသော ပစ္စည်းကို ရှာဖွေခြင်း
+        // အဆင့် (က) - ပစ္စည်း၏ category / categories စာရင်းထဲတွင် တိကျစွာ ကိုက်ညီမှုကို အရင်ရှာမည်
         let matchedItem = productsList.find(p => {
-          if (!p) return false;
-          const targetStr = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')} ${p.name || ''}`.toLowerCase();
-          return config.keys.some(k => targetStr.includes(k.toLowerCase()));
+          if (!p || !getSafeImg(p)) return false;
+          const pCat = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')}`.toLowerCase();
+          
+          const hasExclude = config.exclude.some(ex => pCat.includes(ex.toLowerCase()));
+          if (hasExclude) return false;
+
+          return config.include.some(inc => pCat.includes(inc.toLowerCase()));
         });
 
-        // တွေ့ရှိပါက ထိုပစ္စည်းပုံကို ယူမည်
+        // အဆင့် (ခ) - category ထဲ မတွေ့ပါက ပစ္စည်းအမည် (name) ထဲတွင် ရှာမည် (မဆိုင်သော ပစ္စည်းကို exclude လုပ်ထားမည်)
+        if (!matchedItem) {
+          matchedItem = productsList.find(p => {
+            if (!p || !getSafeImg(p)) return false;
+            const pName = String(p.name || '').toLowerCase();
+
+            const hasExclude = config.exclude.some(ex => pName.includes(ex.toLowerCase()));
+            if (hasExclude) return false;
+
+            return config.include.some(inc => pName.includes(inc.toLowerCase()));
+          });
+        }
+
         if (matchedItem) {
           const foundImg = getSafeImg(matchedItem);
           if (foundImg) image = foundImg;
-        } else {
-          // လုံးဝမတွေ့ပါက ပထမဆုံးရရှိနိုင်သော ပစ္စည်းတစ်ခု၏ ပုံကို fallback အနေဖြင့် ယူပေးမည်
-          const fallbackItem = productsList.find(p => getSafeImg(p));
-          if (fallbackItem) image = getSafeImg(fallbackItem);
         }
       }
     }
