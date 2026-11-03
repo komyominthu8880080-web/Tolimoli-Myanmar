@@ -1,10 +1,10 @@
 export default async function handler(req, res) {
   const { product, cat } = req.query;
 
-  // Viber/Telegram cache မလွဲစေရန် Request URL အပြည့်အစုံကို Canonical အဖြစ် သတ်မှတ်ခြင်း
+  // Viber crawler cache မငြိစေရန် request URL အတိုင်း အပြည့်အစုံ ပေးပို့ခြင်း
   const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
 
-  // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုဒ် UI သို့ ဦးတည်မည့် target URL
+  // Website ပွင့်သည့်အခါ မူရင်း app သို့ သွားမည့် target URL
   const targetUrl = product 
     ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
     : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
@@ -48,17 +48,16 @@ export default async function handler(req, res) {
       else if (cat) {
         const rawSlug = decodeURIComponent(String(cat)).trim().toLowerCase();
 
-        // အမျိုးအစား သတ်မှတ်ချက်များ
         const categoryMap = {
-          'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
-          'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
+          'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant', 'ဂျယ်'], exclude: ['အတု', 'dildo'] },
+          'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant', 'ဂျယ်'], exclude: ['အတု', 'dildo'] },
           'dildo': { title: 'အတု', include: ['အတု', 'ကျားတု', 'dildo'], exclude: [] },
           'vibrator': { title: 'တုန်စက်', include: ['တုန်စက်', 'တုန်ခါ', 'vibrat'], exclude: [] },
           'masturbator': { title: 'မတု / ဂျာထု', include: ['မတု', 'ဂျာထု', 'masturbat', 'cup'], exclude: [] },
           'pump': { title: 'ကြီးရှည်ကျင့်ပြောင်း', include: ['ကျင့်ပြောင်း', 'ကြီးရှည်', 'pump'], exclude: [] },
           'condom': { title: 'စီလီကွန်အစွပ်', include: ['အစွပ်', 'စီလီကွန်', 'ကွန်ဒုံး', 'condom', 'sleeve'], exclude: [] },
           'sleeve': { title: 'စီလီကွန်အစွပ်', include: ['အစွပ်', 'စီလီကွန်', 'sleeve'], exclude: [] },
-          'bdsm': { title: 'BDSM ပစ္စည်းများ', include: ['bdsm', 'bondage', 'ကြိုး'], exclude: [] },
+          'bdsm': { title: 'BDSM ပစ္စည်းများ', include: ['bdsm', 'bondage', 'ကြိုး', 'ညှပ်'], exclude: [] },
           'anal': { title: 'နောက်ပေါက်သုံးပစ္စည်း', include: ['နောက်ပေါက်', 'anal', 'plug'], exclude: [] },
           'delay': { title: 'ကြာဆေး', include: ['ကြာဆေး', 'delay', 'spray'], exclude: [] },
           'enlarge': { title: 'ကြီးဆေး', include: ['ကြီးဆေး', 'enlarge', 'cream'], exclude: [] },
@@ -70,7 +69,7 @@ export default async function handler(req, res) {
         title = `${config.title} - Tolimoli Myanmar`;
         description = `${config.title} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // Category ထဲတွင် တိကျစွာ ကိုက်ညီမှုကို ဦးစွာရှာဖွေခြင်း
+        // Category ထဲတွင် ရှာဖွေခြင်း
         let matchedItem = productsList.find(p => {
           if (!p || !getSafeImg(p)) return false;
           const pCat = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')}`.toLowerCase();
@@ -79,7 +78,7 @@ export default async function handler(req, res) {
           return config.include.some(inc => pCat.includes(inc.toLowerCase()));
         });
 
-        // Category ထဲ မတွေ့ပါက ပစ္စည်းအမည် (name) ထဲတွင် ရှာဖွေခြင်း
+        // Category တွင် မတွေ့ပါက ပစ္စည်းအမည် (name) ထဲတွင် ရှာဖွေခြင်း
         if (!matchedItem) {
           matchedItem = productsList.find(p => {
             if (!p || !getSafeImg(p)) return false;
@@ -90,6 +89,7 @@ export default async function handler(req, res) {
           });
         }
 
+        // တွေ့ရှိသော ပစ္စည်းပုံကို အသုံးပြုခြင်း
         if (matchedItem) {
           const foundImg = getSafeImg(matchedItem);
           if (foundImg) image = foundImg;
