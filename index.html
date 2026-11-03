@@ -8271,7 +8271,8 @@ function renderVisualSalesCharts(orderList) {
           const p = products.find(x => x.id === editId);
           if (p) {
             Object.assign(p, {
-              name, sku, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock, weight, expiryDate, length, width, girth, description: desc,
+              name, sku, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock,
+              weight, expiryDate, length, width, girth, desc,
               image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
               youtube: yt, facebook: fb, telegram: tg, tiktok: tt
             });
@@ -8279,7 +8280,8 @@ function renderVisualSalesCharts(orderList) {
           }
         } else {
           products.unshift({
-            id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock, damaged: 0, weight, expiryDate, length, width, girth,
+            id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock,
+            weight, expiryDate, length, width, girth,
             description: desc, image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
             youtube: yt, facebook: fb, telegram: tg, tiktok: tt, rating: 5.0
           });
@@ -8562,7 +8564,7 @@ function toggleAdminCategoryChip(catName) {
       if (document.getElementById('pIsPromoCheck')) document.getElementById('pIsPromoCheck').checked = !!p.isPromo;
       if (document.getElementById('pIsHiddenCheck')) document.getElementById('pIsHiddenCheck').checked = !!p.isHidden;
       document.getElementById('pCost').value = p.cost || 0;
-      document.getElementById('pStock').value = p.stock;
+      document.getElementById('pStock').value = (p.stock !== undefined && p.stock !== null) ? p.stock : 0;
       document.getElementById('pWeight').value = p.weight || '';
       document.getElementById('pExpiryDate').value = p.expiryDate || '';
       document.getElementById('pLength').value = p.length || '';
@@ -8570,11 +8572,13 @@ function toggleAdminCategoryChip(catName) {
       document.getElementById('pGirth').value = p.girth || '';
 
       // Populate Dynamic Colors & Variants
-      if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
-        setAdminColors(p.colorVariants);
-      } else {
-        setAdminColors(Array.isArray(p.colors) && p.colors.length > 0 ? p.colors : ['']);
-      }
+    if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
+      setAdminColors(p.colorVariants);
+    } else if (Array.isArray(p.colors) && p.colors.length > 0) {
+      setAdminColors(p.colors);
+    } else {
+      setAdminColors([]);
+    }
 
       // Populate Dynamic Images
       const imgList = (Array.isArray(p.images) && p.images.length > 0) ? p.images : (p.image ? [p.image] : ['']);
