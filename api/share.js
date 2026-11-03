@@ -25,6 +25,7 @@ export default async function handler(req, res) {
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
       // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL Generator
+      // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL
       const getSafeImg = (item) => {
         if (!item) return '';
         let url = '';
@@ -32,13 +33,9 @@ export default async function handler(req, res) {
         else if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) url = item.imageUrl.trim();
         else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') url = item.images[0].trim();
         
-        if (url && url.includes('i.ibb.co')) {
-          // wsrv.nl proxy ကို path format သန့်သန့်ဖြင့် ပေးပို့ခြင်း (Viber scraper သဘောကျသော format)
-          const cleanHost = url.replace(/^https?:\/\//i, '');
-          return `https://wsrv.nl/?url=${encodeURIComponent(cleanHost)}&output=jpg`;
-        }
         return url;
       };
+      
 
       // ၁။ ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
       if (product) {
