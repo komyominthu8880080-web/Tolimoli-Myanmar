@@ -128,6 +128,7 @@ export default async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${title}</title>
   
+  <!-- Open Graph Meta Tags (Viber / Facebook) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
@@ -135,6 +136,8 @@ export default async function handler(req, res) {
   <meta property="og:image" content="${image}">
   <meta property="og:image:secure_url" content="${image}">
   <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="600">
   <meta property="og:url" content="${canonicalUrl}">
 
   <meta name="twitter:card" content="summary_large_image">
