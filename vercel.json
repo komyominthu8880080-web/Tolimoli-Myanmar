@@ -1,3 +1,13 @@
 {
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/c/:cat",
+      "destination": "/api/share?cat=:cat"
+    },
+    {
+      "source": "/p/:product",
+      "destination": "/api/share?product=:product"
+    }
+  ]
 }
