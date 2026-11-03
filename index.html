@@ -3154,6 +3154,64 @@ function scrollCategories(amount) {
           </button>
         </div>
 
+        <!-- ==================== Combo Deals Management Section ==================== -->
+<div class="admin-card-section" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
+    <h3 style="margin: 0; color: #f59e0b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+      🏷️ အထူးတွဲဖက် လျှော့ဈေး စီမံခန့်ခွဲခြင်း (Combo Deals)
+    </h3>
+    <button type="button" onclick="loadComboDealsFromRTDB()" style="background: #334155; color: #94a3b8; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Combo Deal Form -->
+  <input type="hidden" id="comboEditId" value="">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 14px;">
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">အဓိက ပစ္စည်း ရွေးပါ (Main Product):</label>
+      <select id="comboMainProduct" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+        <option value="">-- အဓိက ပစ္စည်း ရွေးချယ်ပါ --</option>
+      </select>
+    </div>
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">တွဲဖက်ရောင်းမည့် ပစ္စည်း (Bundle Product):</label>
+      <select id="comboBundleProduct" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+        <option value="">-- တွဲဖက်မည့် ပစ္စည်း ရွေးချယ်ပါ --</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: flex-end; margin-bottom: 16px;">
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">လျှော့ဈေး ရာခိုင်နှုန်း (% Discount):</label>
+      <input type="number" id="comboDiscountPercent" placeholder="ဥပမာ - 10" min="1" max="90" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; height: 42px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem;">
+        <input type="checkbox" id="comboIsActive" checked style="width: 18px; height: 18px; accent-color: #10b981;">
+        <span id="comboActiveLabel" style="color: #10b981; font-weight: bold;">ဖွင့်ထားမည်</span>
+      </label>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px;">
+    <button type="button" id="comboSaveBtn" onclick="saveComboDeal()" style="flex: 1; padding: 12px; background: #d97706; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+      + Combo Deal အသစ် သိမ်းဆည်းမည်
+    </button>
+    <button type="button" id="comboCancelBtn" onclick="resetComboForm()" style="display: none; padding: 12px 20px; background: #475569; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      မလုပ်တော့ပါ
+    </button>
+  </div>
+
+  <!-- Combo Deals List -->
+  <div style="margin-top: 24px;">
+    <h4 style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 12px;">📋 လက်ရှိ ပြုလုပ်ထားသော Combo Deals စာရင်း</h4>
+    <div id="comboDealsListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 15px;">Combo Deal များ မရှိသေးပါ</div>
+    </div>
+  </div>
+</div>
         <div style="background:rgba(212, 175, 55, 0.08); border:1px solid var(--gold); padding:12px; border-radius:8px; margin-bottom:14px;">
           <h5 style="color:var(--gold); font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-crown"></i> VIP & Repeat Customer အထူးလျှော့စျေး သတ်မှတ်ချက်</h5>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
@@ -4361,7 +4419,291 @@ function scrollCategories(amount) {
       localStorage.setItem('tm_vip_config', JSON.stringify(vipConfig));
       alert('VIP & Repeat Customer စည်းမျဉ်းများကို သိမ်းဆည်းပြီးပါပြီ!');
     }
+    // ==================== COMBO DEALS MANAGEMENT LOGIC ====================
+let comboDeals = [];
 
+// ၁။ Dropdown များထဲသို့ ပစ္စည်းစာရင်း ထည့်သွင်းခြင်း
+function populateComboProductDropdowns() {
+  const mainSelect = document.getElementById('comboMainProduct');
+  const bundleSelect = document.getElementById('comboBundleProduct');
+  if (!mainSelect || !bundleSelect || !Array.isArray(products)) return;
+
+  const currentMain = mainSelect.value;
+  const currentBundle = bundleSelect.value;
+
+  mainSelect.innerHTML = '<option value="">-- အဓိက ပစ္စည်း ရွေးချယ်ပါ --</option>';
+  bundleSelect.innerHTML = '<option value="">-- တွဲဖက်မည့် ပစ္စည်း ရွေးချယ်ပါ --</option>';
+
+  products.forEach(p => {
+   const pName = p.name ? p.name.substring(0, 35) : 'Unnamed';
+    const priceText = p.price ? `${Number(p.price).toLocaleString()} Ks` : '';
+    const optText = `${pName} (${priceText})`;
+
+    mainSelect.innerHTML += `<option value="${p.id}">${optText}</option>`;
+    bundleSelect.innerHTML += `<option value="${p.id}">${optText}</option>`;
+  });
+
+  mainSelect.value = currentMain;
+  bundleSelect.value = currentBundle;
+}
+
+// ၂။ Firebase RTDB မှ Combo Deals များ ဆွဲယူဖတ်ရှုခြင်း
+async function loadComboDealsFromRTDB() {
+  populateComboProductDropdowns();
+  const container = document.getElementById('comboDealsListContainer');
+  if (container) container.innerHTML = '<div style="color: #94a3b8; text-align: center; padding: 10px;">ဒေတာ ရယူနေပါသည်...</div>';
+
+  try {
+    const res = await fetch("https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/combo_deals.json");
+    if (!res.ok) throw new Error("Fetch failed");
+    const data = await res.json();
+    
+    comboDeals = [];
+    if (data) {
+      Object.keys(data).forEach(key => {
+        if (data[key]) comboDeals.push({ id: key, ...data[key] });
+      });
+    }
+    renderComboDealsList();
+  } catch (err) {
+    console.error("Load Combo Deals Error:", err);
+    if (container) container.innerHTML = '<div style="color: #ef4444; text-align: center; padding: 10px;">Combo Deals များ ဆွဲယူ၍ မရပါ</div>';
+  }
+}
+
+// ၃။ Admin UI တွင် Combo Deals စာရင်း ပြသခြင်း
+function renderComboDealsList() {
+  const container = document.getElementById('comboDealsListContainer');
+  if (!container) return;
+
+  if (comboDeals.length === 0) {
+    container.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 15px;">Combo Deal များ မရှိသေးပါ</div>';
+    return;
+  }
+
+  container.innerHTML = comboDeals.map(deal => {
+    const mainP = products.find(p => String(p.id) === String(deal.mainProductId)) || { name: 'ဖျက်လိုက်သော ပစ္စည်း', price: 0 };
+    const bundleP = products.find(p => String(p.id) === String(deal.bundleProductId)) || { name: 'ဖျက်လိုက်သော ပစ္စည်း', price: 0 };
+    
+    const origTotal = Number(mainP.price || 0) + Number(bundleP.price || 0);
+    const saveAmt = Math.round((origTotal * Number(deal.discountPercent)) / 100);
+    const finalPrice = origTotal - saveAmt;
+
+    const isActive = deal.isActive !== false;
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #0f172a; border-radius: 8px; border: 1px solid ${isActive ? '#334155' : '#450a0a'};">
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <span style="background: #dc2626; color: white; font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; font-weight: bold;">
+              ${deal.discountPercent}% OFF
+            </span>
+            <strong style="color: #fff; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${mainP.name.substring(0, 25)} + ${bundleP.name.substring(0, 25)}
+            </strong>
+          </div>
+          <div style="font-size: 0.8rem; color: #94a3b8;">
+            <span style="text-decoration: line-through;">${origTotal.toLocaleString()} Ks</span>
+            <span style="color: #10b981; font-weight: bold; margin-left: 6px;">${finalPrice.toLocaleString()} MMK</span>
+            <span style="color: #f59e0b; margin-left: 6px;">(${saveAmt.toLocaleString()} Ks သက်သာမည်)</span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: 12px;">
+          <button type="button" onclick="toggleComboStatus('${deal.id}', ${!isActive})" style="padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 0.75rem; font-weight: bold; background: ${isActive ? '#065f46' : '#374151'}; color: ${isActive ? '#34d399' : '#9ca3af'};">
+            ${isActive ? '🟢 ဖွင့်ထားသည်' : '⚪ ပိတ်ထားသည်'}
+          </button>
+          <button type="button" onclick="editComboDeal('${deal.id}')" style="background: #1e293b; color: #38bdf8; border: 1px solid #475569; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">
+            ပြင်မည်
+          </button>
+          <button type="button" onclick="deleteComboDeal('${deal.id}')" style="background: #1e293b; color: #ef4444; border: 1px solid #475569; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem;">
+            ဖျက်မည်
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ၄။ Combo Deal အသစ်ထည့်ခြင်း / ပြင်ဆင်ခြင်း သိမ်းဆည်းရန်
+async function saveComboDeal() {
+  const editId = document.getElementById('comboEditId').value;
+  const mainProductId = document.getElementById('comboMainProduct').value;
+  const bundleProductId = document.getElementById('comboBundleProduct').value;
+  const discountPercent = Number(document.getElementById('comboDiscountPercent').value);
+  const isActive = document.getElementById('comboIsActive').checked;
+
+  if (!mainProductId || !bundleProductId) {
+    alert("အဓိက ပစ္စည်းနှင့် တွဲဖက်မည့် ပစ္စည်း ၂ မျိုးလုံး ရွေးချယ်ပေးပါ");
+    return;
+  }
+  if (mainProductId === bundleProductId) {
+    alert("အဓိက ပစ္စည်းနှင့် တွဲဖက်မည့် ပစ္စည်းသည် မတူညီသော ပစ္စည်းများ ဖြစ်ရပါမည်");
+    return;
+  }
+  if (!discountPercent || discountPercent <= 0 || discountPercent >= 100) {
+    alert("လျှော့ဈေး ရာခိုင်နှုန်း (၁ မှ ၉၉ ကြား) အမှန် ရိုက်ထည့်ပေးပါ");
+    return;
+  }
+
+  const dealPayload = {
+    mainProductId,
+    bundleProductId,
+    discountPercent,
+    isActive,
+    updatedAt: Date.now()
+  };
+
+  const saveBtn = document.getElementById('comboSaveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = "သိမ်းဆည်းနေပါသည်...";
+
+  try {
+    const dealId = editId ? editId : `combo_${Date.now()}`;
+    const url = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/combo_deals/${dealId}.json`;
+    
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dealPayload)
+    });
+
+    if (!res.ok) throw new Error("Save failed");
+
+    alert("Combo Deal သိမ်းဆည်းပြီးပါပြီ!");
+    resetComboForm();
+    await loadComboDealsFromRTDB();
+  } catch (err) {
+    console.error("Save Combo Error:", err);
+    alert("သိမ်းဆည်း၍ မရပါ: " + err.message);
+  } finally {
+    saveBtn.disabled = false;
+  }
+}
+
+// ၅။ ဖွင့်/ပိတ် Toggle ခလုတ်
+async function toggleComboStatus(dealId, newStatus) {
+  try {
+    const url = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/combo_deals/${dealId}/isActive.json`;
+    await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newStatus)
+    });
+    const d = comboDeals.find(x => x.id === dealId);
+    if (d) d.isActive = newStatus;
+    renderComboDealsList();
+  } catch (err) {
+    alert("အခြေအနေ ပြောင်းလဲ၍ မရပါ");
+  }
+}
+
+// ၆။ ပြင်ဆင်ရန် Form ထဲ ဖြည့်သွင်းခြင်း
+function editComboDeal(dealId) {
+  const deal = comboDeals.find(x => x.id === dealId);
+  if (!deal) return;
+
+  document.getElementById('comboEditId').value = deal.id;
+  document.getElementById('comboMainProduct').value = deal.mainProductId;
+  document.getElementById('comboBundleProduct').value = deal.bundleProductId;
+  document.getElementById('comboDiscountPercent').value = deal.discountPercent;
+  document.getElementById('comboIsActive').checked = deal.isActive !== false;
+
+  document.getElementById('comboSaveBtn').textContent = "💾 Combo Deal ပြင်ဆင်ချက် သိမ်းမည်";
+  document.getElementById('comboCancelBtn').style.display = "inline-block";
+}
+
+// ၇။ Form ကို မူလအခြေအနေသို့ ပြန်ထားခြင်း
+function resetComboForm() {
+  document.getElementById('comboEditId').value = "";
+  document.getElementById('comboMainProduct').value = "";
+  document.getElementById('comboBundleProduct').value = "";
+  document.getElementById('comboDiscountPercent').value = "";
+  document.getElementById('comboIsActive').checked = true;
+  document.getElementById('comboSaveBtn').textContent = "+ Combo Deal အသစ် သိမ်းဆည်းမည်";
+  document.getElementById('comboCancelBtn').style.display = "none";
+}
+
+// ၈။ ဖျက်ပစ်ခြင်း
+async function deleteComboDeal(dealId) {
+  if (!confirm("ဤ Combo Deal ကို အပြီးတိုင် ဖျက်ပစ်ရန် သေချာပါသလား?")) return;
+  try {
+    const url = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/combo_deals/${dealId}.json`;
+    await fetch(url, { method: "DELETE" });
+    comboDeals = comboDeals.filter(x => x.id !== dealId);
+    renderComboDealsList();
+  } catch (err) {
+    alert("ဖျက်၍ မရပါ");
+  }
+}
+
+// ==================== STOREFRONT COMBO DEAL RENDER LOGIC ====================
+async function checkAndRenderProductComboDeal(mainProduct) {
+  const comboContainer = document.getElementById('comboDealBox');
+  if (!comboContainer || !mainProduct) return;
+
+  comboContainer.style.display = 'none';
+
+  try {
+    if (!comboDeals || comboDeals.length === 0) {
+      const res = await fetch("https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/combo_deals.json");
+      if (res.ok) {
+        const data = await res.json();
+        comboDeals = [];
+        if (data) {
+          Object.keys(data).forEach(k => {
+            if (data[k]) comboDeals.push({ id: k, ...data[k] });
+          });
+        }
+      }
+    }
+
+    const activeDeal = comboDeals.find(d => 
+      String(d.mainProductId) === String(mainProduct.id) && d.isActive !== false
+    );
+
+    if (activeDeal) {
+      const bundleItem = products.find(p => String(p.id) === String(activeDeal.bundleProductId));
+      if (bundleItem) {
+        const origTotal = Number(mainProduct.price || 0) + Number(bundleItem.price || 0);
+        const discountAmt = Math.round((origTotal * Number(activeDeal.discountPercent)) / 100);
+        const finalPrice = origTotal - discountAmt;
+
+        const percentBadge = document.getElementById('comboDiscountBadge');
+        if (percentBadge) percentBadge.textContent = `${activeDeal.discountPercent}% OFF`;
+
+        const bundleTitle = document.getElementById('comboBundleTitle');
+        if (bundleTitle) bundleTitle.textContent = bundleItem.name || 'တွဲဖက်ပစ္စည်း';
+
+        const bundleImg = document.getElementById('comboBundleImg');
+        if (bundleImg) {
+          bundleImg.src = bundleItem.image || bundleItem.imageUrl || (bundleItem.images && bundleItem.images[0]) || '';
+        }
+
+        const origPriceEl = document.getElementById('comboOriginalPrice');
+        if (origPriceEl) origPriceEl.textContent = `${origTotal.toLocaleString()} Ks`;
+
+        const finalPriceEl = document.getElementById('comboFinalPrice');
+        if (finalPriceEl) finalPriceEl.textContent = `${finalPrice.toLocaleString()} MMK`;
+
+        const saveAmtEl = document.getElementById('comboSaveAmount');
+        if (saveAmtEl) saveAmtEl.textContent = `(သီးသန့်ဝယ်တာထက် ${discountAmt.toLocaleString()} Ks သက်သာမည်)`;
+
+        const buyComboBtn = document.getElementById('btnBuyCombo');
+        if (buyComboBtn) {
+          buyComboBtn.onclick = () => {
+            addToCart(mainProduct.id, 1);
+            addToCart(bundleItem.id, 1);
+            alert(`${mainProduct.name} နှင့် ${bundleItem.name} တို့ကို Combo လျှော့ဈေးဖြင့် ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!`);
+          };
+        }
+        comboContainer.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    console.error("Check Combo Deal Error:", err);
+  }
+}
     function formatExactDateTime(dateInput) {
       const d = dateInput ? new Date(dateInput) : new Date();
       if (isNaN(d.getTime())) return String(dateInput || '-');
@@ -5267,7 +5609,8 @@ function renderRecommendedProducts(currentProduct) {
       if (!p) return;
       currentDetailProduct = p;
       if (typeof trackRecentlyViewed === 'function') trackRecentlyViewed(id);
-
+      checkAndRenderProductComboDeal(p);
+      
       // Modal ပွင့်တိုင်း အပေါ်ဆုံးမှ အမြဲ စတင်ပြသစေရန်
       const modalContentBox = document.querySelector('#productDetailModal .modal-content');
       if (modalContentBox) modalContentBox.scrollTop = 0;
@@ -5504,10 +5847,6 @@ if (socBox) {
       if (notifyBox) notifyBox.style.display = 'none';
     }
       
-      // 1-Click Bundle Deal ကို Display လုပ်ပေးခြင်း
-  if (typeof render1ClickBundleDeal === 'function') {
-    render1ClickBundleDeal(p);
-    }
     // Smart Product Recommendations တွက်ချက်ပြသခြင်း
   renderRecommendedProducts(p);
   openModal('productDetailModal');
@@ -5589,86 +5928,6 @@ function submitBackInStockAlert(prodId, prodName) {
   if (box) box.style.display = 'none';
 }
 
-// ==========================================
-// 1-CLICK BUNDLE / COMBO DEALS LOGIC
-// ==========================================
-function render1ClickBundleDeal(currentProd) {
-  const container = document.getElementById('detailCrossSellBox');
-  if (!container || !currentProd || typeof products === 'undefined') return;
-
-  const bundlePartner = products.find(p => p.id !== currentProd.id && (p.stock === undefined || Number(p.stock) > 0));
-  if (!bundlePartner) {
-    container.style.display = 'none';
-    return;
-  }
-
-  const p1Price = Number(currentProd.price) || 0;
-  const p2Price = Number(bundlePartner.price) || 0;
-  const originalComboTotal = p1Price + p2Price;
-  const discountedComboTotal = Math.round(originalComboTotal * 0.90);
-  const saveAmount = originalComboTotal - discountedComboTotal;
-
-  const p1Img = (Array.isArray(currentProd.images) && currentProd.images[0]) ? currentProd.images[0] : (currentProd.image || 'logo.png');
-  const p2Img = (Array.isArray(bundlePartner.images) && bundlePartner.images[0]) ? bundlePartner.images[0] : (bundlePartner.image || 'logo.png');
-
-  container.innerHTML = `
-    <div style="background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(16,185,129,0.12)); border: 1.5px dashed #f59e0b; border-radius: 12px; padding: 12px; margin-top: 15px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-weight:bold; font-size:13px; color:#f59e0b;"><i class="fas fa-tags"></i> အထူးတွဲဖက် လျှော့ဈေး (Combo Deal)</span>
-        <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:bold; padding:2px 6px; border-radius:4px;">10% OFF</span>
-      </div>
-      
-      <div style="display:flex; align-items:center; justify-content:space-around; gap:6px; margin: 10px 0;">
-        <div style="text-align:center; flex:1;">
-          <img src="${p1Img}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #444;" onerror="this.src='logo.png'">
-          <div style="font-size:10.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; margin-top:3px;">${currentProd.name}</div>
-        </div>
-        <div style="font-size:18px; font-weight:bold; color:#f59e0b;">+</div>
-        <div style="text-align:center; flex:1;">
-          <img src="${p2Img}" style="width:50px; height:50px; object-fit:cover; border-radius:8px; border:1px solid #444;" onerror="this.src='logo.png'">
-          <div style="font-size:10.5px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px; margin-top:3px;">${bundlePartner.name}</div>
-        </div>
-      </div>
-
-      <div style="text-align:center; margin-bottom:8px;">
-        <span style="text-decoration:line-through; color:#94a3b8; font-size:12px;">${originalComboTotal.toLocaleString()} Ks</span>
-        <span style="font-size:15px; font-weight:bold; color:#10b981; margin-left:6px;">${discountedComboTotal.toLocaleString()} MMK</span>
-        <div style="font-size:10.5px; color:#34d399;">(သီးသန့်ဝယ်တာထက် ${saveAmount.toLocaleString()} Ks သက်သာမည်)</div>
-      </div>
-
-      <button type="button" onclick="add1ClickBundleToCart('${currentProd.id}', '${bundlePartner.id}')" style="width:100%; background:linear-gradient(to right, #f59e0b, #d97706); border:none; color:#fff; font-weight:bold; font-size:12.5px; padding:9px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 3px 8px rgba(245,158,11,0.3);">
-        <i class="fas fa-cart-plus"></i> ၂ မျိုးလုံးကို Combo ဈေးဖြင့် ဝယ်မည်
-      </button>
-    </div>
-  `;
-  container.style.display = 'block';
-}
-
-function add1ClickBundleToCart(id1, id2) {
-  if (typeof products === 'undefined' || typeof cart === 'undefined') return;
-  const p1 = products.find(x => x.id === id1);
-  const p2 = products.find(x => x.id === id2);
-  if (!p1 || !p2) return;
-
-  const p1Discounted = Math.round(Number(p1.price) * 0.90);
-  const p2Discounted = Math.round(Number(p2.price) * 0.90);
-
-  const existing1 = cart.find(i => i.id === p1.id);
-  if (existing1) { existing1.qty += 1; } else {
-    cart.push({ id: p1.id, name: p1.name, price: p1Discounted, qty: 1, sku: p1.sku || '-', color: (p1.colors && p1.colors[0]) || '' });
-  }
-
-  const existing2 = cart.find(i => i.id === p2.id);
-  if (existing2) { existing2.qty += 1; } else {
-    cart.push({ id: p2.id, name: p2.name, price: p2Discounted, qty: 1, sku: p2.sku || '-', color: (p2.colors && p2.colors[0]) || '' });
-  }
-
-  if (typeof saveCart === 'function') saveCart();
-  if (typeof updateCartBadge === 'function') updateCartBadge();
-  if (typeof renderCartUI === 'function') renderCartUI();
-
-  alert(`🎉 Combo Deal အောင်မြင်ပါသည်!\n"${p1.name}" နှင့် "${p2.name}" တို့ကို 10% လျှော့ဈေးဖြင့် ခြင်းတောင်းထဲ ထည့်သွင်းပြီးပါပြီခင်ဗျာ။`);
-}
 
     function selectDetailGalleryImage(src, el) {
       const main = document.getElementById('detailMainImgView');
@@ -8912,6 +9171,9 @@ function closeModal(id) {
 
       if (tId === 'liveChatAdminTab') {
         renderAdminChatSessionsList();
+      }
+      if (tId === 'discountTab') {
+    loadComboDealsFromRTDB();
       }
       // Settings Tab ကို နှိပ်ပါက Firebase မှ FOC အချက်အလက်များ တန်းဖြည့်ပေးခြင်း
       if (tId === 'settingsTab') {
