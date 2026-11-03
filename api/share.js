@@ -24,7 +24,6 @@ export default async function handler(req, res) {
       let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
-      // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL Generator
       // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL
       const getSafeImg = (item) => {
         if (!item) return '';
@@ -32,12 +31,10 @@ export default async function handler(req, res) {
         if (typeof item.image === 'string' && item.image.trim()) url = item.image.trim();
         else if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) url = item.imageUrl.trim();
         else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') url = item.images[0].trim();
-        
         return url;
       };
-      
 
-      // ၁။ ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
+      // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
       if (product) {
         const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
         if (item) {
@@ -53,6 +50,7 @@ export default async function handler(req, res) {
       else if (cat) {
         const rawSlug = decodeURIComponent(String(cat)).trim().toLowerCase();
 
+        // အမျိုးအစား သတ်မှတ်ချက်များ (ခေါင်းစဉ် နှင့် သီးသန့် ရှာဖွေရမည့် စာလုံးများ)
         const categoryMap = {
           'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
           'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
@@ -74,6 +72,7 @@ export default async function handler(req, res) {
         title = `${config.title} - Tolimoli Myanmar`;
         description = `${config.title} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
+        // Category ထဲတွင် တိကျစွာ ကိုက်ညီမှုကို ဦးစွာရှာဖွေခြင်း
         let matchedItem = productsList.find(p => {
           if (!p || !getSafeImg(p)) return false;
           const pCat = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')}`.toLowerCase();
@@ -82,6 +81,7 @@ export default async function handler(req, res) {
           return config.include.some(inc => pCat.includes(inc.toLowerCase()));
         });
 
+        // Category ထဲ မတွေ့ပါက ပစ္စည်းအမည် (name) ထဲတွင် ရှာဖွေခြင်း
         if (!matchedItem) {
           matchedItem = productsList.find(p => {
             if (!p || !getSafeImg(p)) return false;
@@ -102,7 +102,6 @@ export default async function handler(req, res) {
     console.error("RTDB Fetch Error:", err);
   }
 
-  // Viber/Telegram scraper များ ချက်ချင်း cache ရယူနိုင်ရန် Header များ သတ်မှတ်ခြင်း
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
 
@@ -112,7 +111,7 @@ export default async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${title}</title>
   
-  <!-- Open Graph (Viber / Facebook) -->
+  <!-- Open Graph Meta Tags (Viber / Facebook) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
