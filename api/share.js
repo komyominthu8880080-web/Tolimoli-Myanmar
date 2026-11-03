@@ -1,12 +1,10 @@
 export default async function handler(req, res) {
   const { product, cat } = req.query;
 
-  // Viber crawler သည် og:url ကို အဓိက လိုက်ဖတ်သောကြောင့် api/share link ကိုသာ ပေးပို့ခြင်း
-  const canonicalUrl = product 
-    ? `https://www.tolimolimyanmar.com/api/share?product=${encodeURIComponent(product)}`
-    : (cat ? `https://www.tolimolimyanmar.com/api/share?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
+  // Viber/Telegram cache မလွဲစေရန် Request URL အပြည့်အစုံကို Canonical အဖြစ် သတ်မှတ်ခြင်း
+  const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
 
-  // Website ပွင့်သည့်အခါ တကယ့် web app သို့ လမ်းညွှန်ပေးမည့် target URL
+  // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုဒ် UI သို့ ဦးတည်မည့် target URL
   const targetUrl = product 
     ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
     : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
@@ -24,7 +22,7 @@ export default async function handler(req, res) {
       let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
-      // Viber နှင့် Telegram နှစ်မျိုးလုံး တိုက်ရိုက်ဆွဲယူနိုင်သော Image URL
+      // ပစ္စည်းပုံ URL ရယူခြင်း
       const getSafeImg = (item) => {
         if (!item) return '';
         let url = '';
@@ -50,7 +48,7 @@ export default async function handler(req, res) {
       else if (cat) {
         const rawSlug = decodeURIComponent(String(cat)).trim().toLowerCase();
 
-        // အမျိုးအစား သတ်မှတ်ချက်များ (ခေါင်းစဉ် နှင့် သီးသန့် ရှာဖွေရမည့် စာလုံးများ)
+        // အမျိုးအစား သတ်မှတ်ချက်များ
         const categoryMap = {
           'lube': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
           'lubricant': { title: 'ချောဆီ', include: ['ချောဆီ', 'lube', 'lubricant'], exclude: ['အတု', 'dildo'] },
