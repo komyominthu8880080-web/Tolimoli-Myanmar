@@ -8490,18 +8490,18 @@ function toggleAdminCategoryChip(catName) {
     }
 
     function setAdminColors(colorsList) {
-      if (Array.isArray(colorsList) && colorsList.length > 0) {
-        adminProductVariants = colorsList.map(c => {
-          if (typeof c === 'object' && c !== null) {
-            return { color: c.color || c.name || '', qty: Number(c.qty) || 0 };
-          }
-          return { color: String(c), qty: 0 };
-        });
-      } else {
-        adminProductVariants = [{ color: '', qty: 0 }];
+  if (Array.isArray(colorsList) && colorsList.length > 0) {
+    adminProductVariants = colorsList.map(c => {
+      if (typeof c === 'object' && c !== null) {
+        return { color: c.color || c.name || '', qty: Number(c.qty !== undefined ? c.qty : (c.stock || 0)) || 0 };
       }
-      renderAdminColorInputs();
-    }
+      return { color: String(c), qty: 0 };
+    }).filter(v => v.color && v.color.trim() !== '');
+  } else {
+    adminProductVariants = [];
+  }
+  renderAdminColorInputs();
+}
 
     // --- DYNAMIC ADMIN IMAGES MANAGEMENT ---
     var adminProductImages = [''];
