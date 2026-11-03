@@ -9404,7 +9404,7 @@ function fallbackCopyText(text, successMsg) {
       const p = products.find(x => x.id === productId);
       if (!p) return;
       const key = p.sku ? encodeURIComponent(p.sku) : p.id;
-      const url = window.location.origin + window.location.pathname + '?item=' + key;
+      const url = `${window.location.origin}/api/share?product=${encodeURIComponent(key)}`;
       copyTextToClipboard(url, `"${p.name.substring(0, 20)}..." Link ကူးပြီးပါပြီ!`);
     }
 
