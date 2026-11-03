@@ -18,13 +18,18 @@ export default async function handler(req, res) {
       let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
       if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
-      // ပုံလင့်ခ်ကို စစ်ဆေးထုတ်ယူသည့် function
+      // ပုံလင့်ခ်ကို Telegram ဖတ်နိုင်သော CDN format ဖြင့် ထုတ်ပေးခြင်း
       const getImg = (item) => {
         if (!item) return '';
-        if (typeof item.image === 'string' && item.image.trim()) return item.image.trim();
-        if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) return item.imageUrl.trim();
-        if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') return item.images[0].trim();
-        return '';
+        let url = '';
+        if (typeof item.image === 'string' && item.image.trim()) url = item.image.trim();
+        else if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) url = item.imageUrl.trim();
+        else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') url = item.images[0].trim();
+        
+        if (url && url.includes('i.ibb.co')) {
+          return `https://wsrv.nl/?url=${encodeURIComponent(url)}&output=jpg`;
+        }
+        return url;
       };
 
       // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
@@ -64,7 +69,7 @@ export default async function handler(req, res) {
         title = `${myanmarCatName} - Tolimoli Myanmar`;
         description = `${myanmarCatName} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
 
-        // Debug တွင် အောင်မြင်ခဲ့သော match logic အတိုင်း ပစ္စည်းကို ရှာဖွေခြင်း
+        // ကျင့်ပြောင်း သို့မဟုတ် category နာမည် ပါဝင်သော ပစ္စည်းကို ရှာဖွေခြင်း
         const catItem = productsList.find(p => {
           if (!p) return false;
           const str = JSON.stringify(p);
@@ -91,13 +96,14 @@ export default async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${title}</title>
   
-  <!-- Open Graph -->
+  <!-- Open Graph / Telegram / Viber -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${image}">
   <meta property="og:image:secure_url" content="${image}">
+  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:url" content="${targetUrl}">
 
   <!-- Telegram Large Card -->
