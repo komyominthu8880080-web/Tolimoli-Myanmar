@@ -1,12 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/",
+      "source": "/(.*)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(TelegramBot|facebookexternalhit|Facebot|Twitterbot|Viber|WhatsApp|LinkedInBot).*"
+          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
         },
         {
           "type": "query",
@@ -16,12 +16,12 @@
       "destination": "/api/share"
     },
     {
-      "source": "/",
+      "source": "/(.*)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(TelegramBot|facebookexternalhit|Facebot|Twitterbot|Viber|WhatsApp|LinkedInBot).*"
+          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
         },
         {
           "type": "query",
@@ -31,12 +31,12 @@
       "destination": "/api/share"
     },
     {
-      "source": "/",
+      "source": "/(.*)",
       "has": [
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(TelegramBot|facebookexternalhit|Facebot|Twitterbot|Viber|WhatsApp|LinkedInBot).*"
+          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
         },
         {
           "type": "query",
