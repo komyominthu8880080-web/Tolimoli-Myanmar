@@ -6,7 +6,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
+          "value": ".*(TelegramBot|twitterbot|facebookexternalhit|Facebot|Viber|WhatsApp).*"
         },
         {
           "type": "query",
@@ -21,7 +21,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
+          "value": ".*(TelegramBot|twitterbot|facebookexternalhit|Facebot|Viber|WhatsApp).*"
         },
         {
           "type": "query",
@@ -36,7 +36,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": "(?i).*(telegrambot|twitterbot|facebookexternalhit|facebot|viber|whatsapp).*"
+          "value": ".*(TelegramBot|twitterbot|facebookexternalhit|Facebot|Viber|WhatsApp).*"
         },
         {
           "type": "query",
