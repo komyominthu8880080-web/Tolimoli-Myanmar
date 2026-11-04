@@ -8,6 +8,26 @@
     {
       "source": "/p/:product",
       "destination": "/api/share?product=:product"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "article"
+        }
+      ],
+      "destination": "/api/share.js"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "product"
+        }
+      ],
+      "destination": "/api/share.js"
     }
   ]
 }
