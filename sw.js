@@ -1,11 +1,10 @@
-const STATIC_CACHE = 'tolimoli-static-v4';
-const DYNAMIC_CACHE = 'tolimoli-dynamic-v4';
+const STATIC_CACHE = 'tolimoli-static-v5';
+const DYNAMIC_CACHE = 'tolimoli-dynamic-v5';
 
 const STATIC_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './logo.png'
+  '/',
+  '/manifest.json',
+  '/logo.png'
 ];
 
 self.addEventListener('install', (e) => {
