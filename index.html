@@ -8437,28 +8437,30 @@ function toggleAdminCategoryChip(catName) {
     
     // --- DYNAMIC ADMIN COLORS MANAGEMENT ---
     // --- DYNAMIC ADMIN COLORS & VARIANT STOCK MANAGEMENT ---
-    var adminProductVariants = [{ color: '', qty: 0 }];
+    var adminProductVariants = [];
 
-    function renderAdminColorInputs() {
-      const box = document.getElementById('adminColorsListContainer');
-      if (!box) return;
-      if (!adminProductVariants || adminProductVariants.length === 0) {
-        adminProductVariants = [{ color: '', qty: 0 }];
-      }
+function renderAdminColorInputs() {
+  const box = document.getElementById('adminColorsListContainer');
+  if (!box) return;
 
-      box.innerHTML = adminProductVariants.map((item, idx) => `
-        <div class="dynamic-color-row" style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:5px 8px; margin-bottom:5px;">
-          <span style="font-size:0.75rem; color:var(--gold);">🎨</span>
-          <input type="text" value="${(item.color || '').replace(/"/g, '&quot;')}" placeholder="အရောင် အမည် (ဥပမာ- အနက်၊ အနီ)..." oninput="adminProductVariants[${idx}].color = this.value;" style="flex:2; padding:6px 8px; font-size:0.75rem; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:5px; outline:none;">
-          <input type="number" min="0" value="${item.qty !== undefined ? item.qty : 0}" placeholder="အရေအတွက်" oninput="adminProductVariants[${idx}].qty = Number(this.value) || 0; calculateTotalStockFromVariants();" style="width:85px; padding:6px 8px; font-size:0.75rem; background:#0f172a; border:1px solid #10b981; color:#00ff88; font-weight:bold; border-radius:5px; text-align:center; outline:none;">
-          <button type="button" class="btn-row-del" onclick="removeAdminColorRow(${idx})" title="ဖျက်မည်" style="width:28px; height:28px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#ef4444; border-radius:6px; cursor:pointer;">
-            <i class="fas fa-trash-alt"></i>
-          </button>
-        </div>
-      `).join('');
+  if (!adminProductVariants || adminProductVariants.length === 0) {
+    box.innerHTML = '<div style="font-size:12px; color:#888; padding:6px 0;">အရောင်ခွဲ မရှိပါ (လိုအပ်ပါက "+ အရောင်ထပ်တိုးမည်" ကို နှိပ်ပါ)</div>';
+    return;
+  }
 
-      calculateTotalStockFromVariants();
-    }
+  box.innerHTML = adminProductVariants.map((item, idx) => `
+    <div class="dynamic-color-row" style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:5px 8px; margin-bottom:6px;">
+      <span style="font-size:0.75rem; color:var(--gold);">${idx + 1}</span>
+      <input type="text" value="${(item.color || '').replace(/"/g, '&quot;')}" placeholder="အရောင် အမည် (ဥပမာ- အနက်၊ အနီ)..." oninput="adminProductVariants[${idx}].color = this.value; calculateTotalStockFromVariants();" style="flex:2; padding:6px 8px; background:#121620; border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; font-size:12px;">
+      <input type="number" min="0" value="${item.qty !== undefined ? item.qty : 0}" placeholder="အရေအတွက်" oninput="adminProductVariants[${idx}].qty = Number(this.value) || 0; calculateTotalStockFromVariants();" style="flex:1; padding:6px 8px; background:#121620; border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; font-size:12px;">
+      <button type="button" class="btn-row-del" onclick="removeAdminColorRow(${idx})" title="ဖျက်မည်" style="width:28px; height:28px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#ef4444; border-radius:4px; cursor:pointer;">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </div>
+  `).join('');
+
+  calculateTotalStockFromVariants();
+}
 
     function addAdminColorRow(initialColor = '', initialQty = 0) {
       adminProductVariants.push({ color: initialColor, qty: initialQty });
@@ -8466,13 +8468,10 @@ function toggleAdminCategoryChip(catName) {
     }
 
     function removeAdminColorRow(idx) {
-      if (adminProductVariants.length <= 1) {
-        adminProductVariants = [{ color: '', qty: 0 }];
-      } else {
-        adminProductVariants.splice(idx, 1);
-      }
-      renderAdminColorInputs();
-    }
+  adminProductVariants.splice(idx, 1);
+  renderAdminColorInputs();
+  calculateTotalStockFromVariants();
+}
 
     function calculateTotalStockFromVariants() {
       let sum = 0;
