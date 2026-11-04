@@ -3051,10 +3051,13 @@ function scrollCategories(amount) {
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <input type="file" id="artCoverFileInput" accept="image/*" onchange="uploadArticleImage(this)" style="font-size:12px; color:#aaa;">
           <span style="font-size:11px; color:#666;">သို့မဟုတ် URL တိုက်ရိုက်ထည့်ပါ:</span>
-          <input type="text" id="artCover" placeholder="https://..." style="flex:1; min-width:200px; padding:7px 10px; background:#151821; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box;">
-        </div>
-        <div id="artCoverUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:6px; display:none;">ဓာတ်ပုံ တင်နေပါသည်... ခေတ္တစောင့်ပါ</div>
-      </div>
+          <input type="text" id="artCover" oninput="previewArticleCover(this.value)" placeholder="https://..." style="flex:1; min-width:200px; padding:7px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:4px; color:#fff; font-size:12px;">
+    </div>
+    <div id="artCoverUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:6px; display:none;">ဓာတ်ပုံ တင်နေပါသည်... ခေတ္တစောင့်ပါ</div>
+    <div id="artCoverPreviewBox" style="display:none; margin-top:8px;">
+      <img id="artCoverPreviewImg" src="" style="width:100px; height:100px; object-fit:cover; border-radius:6px; border:1px solid rgba(255,255,255,0.2);">
+    </div>
+  </div>
 
       <!-- VIDEO UPLOAD / DIRECT LINK -->
       <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px dashed rgba(255,255,255,0.15);">
@@ -13818,6 +13821,7 @@ async function uploadArticleImage(input) {
     const data = await res.json();
     if (data && data.data && data.data.url) {
       document.getElementById('artCover').value = data.data.url;
+      previewArticleCover(data.data.url);
       if (statusEl) {
         statusEl.textContent = '✓ ဓာတ်ပုံ တင်ယူပြီးပါပြီ!';
         statusEl.style.color = '#4ade80';
@@ -13871,25 +13875,30 @@ async function uploadArticleVideo(input) {
 }
 
 // ၃။ Multiple Social Links (+ နှိပ်ပြီး တိုး/ဖျက်နိုင်သော စနစ်)
-function addArticleLinkRow(platform = 'youtube', url = '') {
+function addArticleLinkRow(platform = 'youtube', url = '', label = '') {
   const container = document.getElementById('articleLinksContainer');
   if (!container) return;
   const rowId = 'link_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
   const row = document.createElement('div');
   row.id = rowId;
-  row.style.cssText = 'display:flex; gap:8px; align-items:center;';
+  row.style.cssText = 'background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; gap:6px; margin-bottom:6px;';
   row.innerHTML = `
-    <select class="art-link-platform" style="padding:6px 8px; background:#151821; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:12px;">
-      <option value="youtube" ${platform === 'youtube' ? 'selected' : ''}>YouTube</option>
-      <option value="facebook" ${platform === 'facebook' ? 'selected' : ''}>Facebook</option>
-      <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
-      <option value="telegram" ${platform === 'telegram' ? 'selected' : ''}>Telegram</option>
-      <option value="website" ${platform === 'website' ? 'selected' : ''}>External Link</option>
-    </select>
-    <input type="text" class="art-link-url" value="${url}" placeholder="Link လိပ်စာ ထည့်ပါ..." style="flex:1; padding:6px 10px; background:#151821; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:12px;">
-    <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
-      <i class="fas fa-trash"></i>
-    </button>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" class="art-link-label" value="${label}" placeholder="အပိုင်း / စာတန်း ဥပမာ- အပိုင်း (၁) လက်တွေ့သုံးပြချက်" style="flex:1; padding:6px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:4px; color:#d4af37; font-size:12px;">
+      <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+        <i class="fas fa-trash"></i> ဖျက်မည်
+      </button>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <select class="art-link-platform" style="padding:6px 8px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:4px; color:#fff; font-size:12px;">
+        <option value="youtube" ${platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+        <option value="telegram" ${platform === 'telegram' ? 'selected' : ''}>Telegram</option>
+        <option value="facebook" ${platform === 'facebook' ? 'selected' : ''}>Facebook</option>
+        <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+        <option value="website" ${platform === 'website' ? 'selected' : ''}>Website / အခြား Link</option>
+      </select>
+      <input type="text" class="art-link-url" value="${url}" placeholder="Video / Link လိပ်စာ ထည့်ပါ..." style="flex:1; padding:6px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:4px; color:#fff; font-size:12px;">
+    </div>
   `;
   container.appendChild(row);
 }
@@ -13898,11 +13907,27 @@ function getArticleLinksData() {
   const rows = document.querySelectorAll('#articleLinksContainer > div');
   const links = [];
   rows.forEach(r => {
+    const label = r.querySelector('.art-link-label')?.value.trim() || '';
     const platform = r.querySelector('.art-link-platform')?.value;
     const url = r.querySelector('.art-link-url')?.value.trim();
-    if (url) links.push({ platform, url });
+    if (url) links.push({ label, platform, url });
   });
   return links;
+}
+
+// ဓာတ်ပုံ Link ရိုက်ထည့်ချိန် သို့မဟုတ် Upload ပြီးချိန်တွင် Preview တန်းပြပေးမည့် function
+function previewArticleCover(url) {
+  const box = document.getElementById('artCoverPreviewBox');
+  const img = document.getElementById('artCoverPreviewImg');
+  if (box && img) {
+    if (url && url.trim().length > 5) {
+      img.src = url.trim();
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
+      img.src = '';
+    }
+  }
 }
 
 // ၄။ Rich Text Helpers (Bold, Header, Bullet Points)
@@ -14117,7 +14142,7 @@ function openArticleModal(id) {
 
   let linksHtml = '';
   if (Array.isArray(art.socialLinks) && art.socialLinks.length > 0) {
-    linksHtml = '<div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0;">' + 
+    linksHtml = '<div style="display:flex; flex-direction:column; gap:10px; margin:16px 0;">' + 
       art.socialLinks.map(l => {
         let icon = 'fa-link';
         let bg = '#2563eb';
@@ -14125,9 +14150,17 @@ function openArticleModal(id) {
         if (l.platform === 'facebook') { icon = 'fa-facebook'; bg = '#1877f2'; }
         if (l.platform === 'tiktok') { icon = 'fa-tiktok'; bg = '#000000'; }
         if (l.platform === 'telegram') { icon = 'fa-telegram'; bg = '#0088cc'; }
-        return `<a href="${l.url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:${bg}; color:#fff; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500;">
-          <i class="fab ${icon}"></i> <span>${l.platform.toUpperCase()} တွင်ကြည့်ရန်</span>
-        </a>`;
+
+        return `
+          <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:13px; color:#fff; font-weight:500;">
+              ${l.label ? `<i class="fas fa-play-circle" style="color:var(--gold,#d4af37); margin-right:6px;"></i> ${l.label}` : `<i class="fas fa-external-link-alt" style="margin-right:6px;"></i> ${l.platform.toUpperCase()}`}
+            </div>
+            <a href="${l.url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:${bg}; color:#fff; text-decoration:none; padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;">
+              <i class="fab ${icon}"></i> <span>ကြည့်ရှုရန်</span>
+            </a>
+          </div>
+        `;
       }).join('') + '</div>';
   }
 
