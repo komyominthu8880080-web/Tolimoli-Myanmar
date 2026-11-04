@@ -14374,13 +14374,13 @@ function openArticleModal(id) {
       <!-- Direct Video (ရှိခဲ့လျှင်) -->
       ${art.directVideo ? `<div style="margin-bottom:18px; border-radius:10px; overflow:hidden;"><video src="${art.directVideo}" controls style="width:100%; max-height:380px; background:#000;"></video></div>` : ''}
 
-      <!-- အပိုင်းများ / Links (အပိုင်း ၁၊ အပိုင်း ၂ ခလုတ်များ) -->
-      ${linksHtml}
-
       <!-- စာပိုဒ်ကြားထဲတွင် ပုံ/ဗီဒီယိုများ ညှပ်ထည့်ထားသော ဆောင်းပါး အပြည့်အစုံ -->
-      <div style="font-size:14.5px; line-height:1.85; color:#e2e8f0; margin-top:18px; word-break:break-word;">
-        ${formattedContent}
-      </div>
+    <div style="font-size:14.5px; line-height:1.85; color:#e2e8f0; margin-top:18px; word-break:break-word;">
+      ${formattedContent}
+    </div>
+
+    <!-- Telegram, Youtube အစရှိသည့် Social Media Link ခလုတ်များကို အောက်သို့ ရွှေ့ထားခြင်း -->
+    ${linksHtml}
 
       <!-- ဆက်စပ်ပစ္စည်း (Related Product) -->
       ${relatedHtml}
