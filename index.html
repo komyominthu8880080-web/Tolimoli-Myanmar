@@ -14453,12 +14453,15 @@ function checkUrlForArticle() {
 <!-- STOREFRONT KNOWLEDGE BASE LIST MODAL -->
 <div id="knowledgeListModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9998; backdrop-filter:blur(6px); overflow-y:auto; padding:16px;">
   <div style="max-width:680px; margin:24px auto; background:#151821; border:1px solid rgba(255,255,255,0.1); border-radius:12px; overflow:hidden; position:relative; box-shadow:0 12px 30px rgba(0,0,0,0.5); padding:20px;">
-    
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
-      <h3 style="margin:0; color:var(--gold, #d4af37); font-size:1.1rem;">
-        <i class="fas fa-newspaper"></i> ဗဟုသုတနှင့် ဆောင်းပါးများ
-      </h3>
-    </div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.1);">
+  <h3 style="margin:0; color:var(--gold,#d4af37); font-size:1.1rem; display:flex; align-items:center; gap:8px;">
+    <i class="fas fa-newspaper"></i> ဗဟုသုတနှင့် ဆောင်းပါးများ
+  </h3>
+  <!-- ပိတ်သည့် (✕) Close ခလုတ် -->
+  <button type="button" onclick="closeKnowledgeListModal();" style="background:#dc2626; color:#ffffff; border:2px solid #ffffff; width:32px; height:32px; border-radius:50%; font-size:16px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.4);" title="ပိတ်မည်">
+    ✕
+  </button>
+</div>
 
     <!-- ဆောင်းပါး ရှာဖွေရန် Search Bar -->
 <div style="margin-bottom:14px;">
