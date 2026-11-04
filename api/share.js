@@ -1,13 +1,15 @@
 export default async function handler(req, res) {
-  const { product, cat } = req.query;
+  const { product, cat, article } = req.query;
 
   // Viber cache မလွဲစေရန် Canonical URL သတ်မှတ်ခြင်း
   const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
 
   // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုဒ် UI သို့ ဦးတည်မည့် target URL
-  const targetUrl = product
-    ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
-    : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : `https://www.tolimolimyanmar.com/`);
+  const targetUrl = article
+    ? `https://www.tolimolimyanmar.com/?article=${encodeURIComponent(article)}`
+    : (product
+      ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
+      : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : 'https://www.tolimolimyanmar.com/'));
 
   let title = "Tolimoli Myanmar Adult Toys Shop";
   let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် ရှာယူရရှိနိုင်ပါသည်။";
@@ -60,6 +62,24 @@ export default async function handler(req, res) {
   const RTDB_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/shop_products.json";
 
   try {
+    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက (Database မှ ဆောင်းပါး Title, Summary, Cover ပုံ ဆွဲယူမည်)
+    if (article) {
+      const artUrl = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/articles/${encodeURIComponent(article)}.json`;
+      const response = await fetch(artUrl);
+      if (response.ok) {
+        const artData = await response.json();
+        if (artData) {
+          if (artData.title) title = artData.title;
+          if (artData.summary) {
+            description = artData.summary;
+          } else if (artData.content) {
+            description = artData.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+          }
+          if (artData.coverImage) image = artData.coverImage;
+        }
+      }
+    } else
+      
     // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက (Database မှ တိုက်ရိုက်ဆွဲယူမည်)
     if (product) {
       const response = await fetch(RTDB_URL);
