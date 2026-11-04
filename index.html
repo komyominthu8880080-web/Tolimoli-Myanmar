@@ -13861,140 +13861,293 @@ function closeKnowledgeListModal() {
 
 let appArticles = [];
 
-// 1. YouTube Link to Embed Link Converter
-function formatYoutubeEmbed(url) {
-  if (!url) return '';
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+// ==================== KNOWLEDGE BASE & ARTICLE LOGIC (ALL FEATURES) ====================
+
+// ၁။ ဖုန်းပေါ်မှ ဓာတ်ပုံ တိုက်ရိုက် Upload စနစ် (ImgBB API)
+async function uploadArticleImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById('artCoverUploadStatus');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'ဓာတ်ပုံ တင်နေပါသည်... ခေတ္တစောင့်ပါ';
+    statusEl.style.color = '#d4af37';
+  }
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const res = await fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa5ad3ac2222c825a', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data && data.data && data.data.url) {
+      document.getElementById('artCover').value = data.data.url;
+      if (statusEl) {
+        statusEl.textContent = '✓ ဓာတ်ပုံ တင်ယူပြီးပါပြီ!';
+        statusEl.style.color = '#4ade80';
+      }
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch (err) {
+    alert('ဓာတ်ပုံ Upload တင်မရဖြစ်နေပါသည်။ Link ကို တိုက်ရိုက် ထည့်သွင်းပေးပါခင်ဗျာ။');
+    if (statusEl) statusEl.style.display = 'none';
+  }
 }
 
-// 3. Save or Update Article
+// ၂။ ဖုန်းပေါ်မှ ဗီဒီယို တိုက်ရိုက် Upload စနစ် (Cloudinary API)
+async function uploadArticleVideo(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const statusEl = document.getElementById('artVideoUploadStatus');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.textContent = 'ဗီဒီယို တင်နေပါသည်... ဖိုင်ဆိုဒ်အလိုက် ခေတ္တစောင့်ပေးပါ';
+    statusEl.style.color = '#d4af37';
+  }
+
+  const cloudName = 'doxaqx4v9';
+  const uploadPreset = 'ml_default';
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+
+  try {
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/video/upload`, {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data && data.secure_url) {
+      document.getElementById('artDirectVideo').value = data.secure_url;
+      if (statusEl) {
+        statusEl.textContent = '✓ ဗီဒီယို တင်ယူပြီးပါပြီ!';
+        statusEl.style.color = '#4ade80';
+      }
+    } else {
+      throw new Error('Video upload failed');
+    }
+  } catch (err) {
+    alert('ဗီဒီယိုဖိုင် တင်မရပါက YouTube သို့မဟုတ် အခြား Video Link ကို တိုက်ရိုက် အသုံးပြုပေးပါခင်ဗျာ။');
+    if (statusEl) statusEl.style.display = 'none';
+  }
+}
+
+// ၃။ Multiple Social Links (+ နှိပ်ပြီး တိုး/ဖျက်နိုင်သော စနစ်)
+function addArticleLinkRow(platform = 'youtube', url = '') {
+  const container = document.getElementById('articleLinksContainer');
+  if (!container) return;
+  const rowId = 'link_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+  const row = document.createElement('div');
+  row.id = rowId;
+  row.style.cssText = 'display:flex; gap:8px; align-items:center;';
+  row.innerHTML = `
+    <select class="art-link-platform" style="padding:6px 8px; background:#151821; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:12px;">
+      <option value="youtube" ${platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+      <option value="facebook" ${platform === 'facebook' ? 'selected' : ''}>Facebook</option>
+      <option value="tiktok" ${platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+      <option value="telegram" ${platform === 'telegram' ? 'selected' : ''}>Telegram</option>
+      <option value="website" ${platform === 'website' ? 'selected' : ''}>External Link</option>
+    </select>
+    <input type="text" class="art-link-url" value="${url}" placeholder="Link လိပ်စာ ထည့်ပါ..." style="flex:1; padding:6px 10px; background:#151821; border:1px solid rgba(255,255,255,0.12); border-radius:4px; color:#fff; font-size:12px;">
+    <button type="button" onclick="document.getElementById('${rowId}').remove()" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+      <i class="fas fa-trash"></i>
+    </button>
+  `;
+  container.appendChild(row);
+}
+
+function getArticleLinksData() {
+  const rows = document.querySelectorAll('#articleLinksContainer > div');
+  const links = [];
+  rows.forEach(r => {
+    const platform = r.querySelector('.art-link-platform')?.value;
+    const url = r.querySelector('.art-link-url')?.value.trim();
+    if (url) links.push({ platform, url });
+  });
+  return links;
+}
+
+// ၄။ Rich Text Helpers (Bold, Header, Bullet Points)
+function insertArticleFormat(type) {
+  const textarea = document.getElementById('artContent');
+  if (!textarea) return;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const text = textarea.value;
+  const selected = text.substring(start, end);
+
+  let replacement = '';
+  if (type === 'bold') replacement = `<b>${selected || 'စာလုံးမည်း'}</b>`;
+  if (type === 'header') replacement = `\n<h3>${selected || 'ခေါင်းစဉ်ငယ်'}</h3>\n`;
+  if (type === 'bullet') replacement = `\n• ${selected || 'အချက်အလက်'}\n`;
+
+  textarea.value = text.substring(0, start) + replacement + text.substring(end);
+  textarea.focus();
+}
+
+// ၅။ Save or Update Article (Firebase Realtime Database)
 function saveArticle() {
-  const artId = document.getElementById('editArticleId').value || 'art_' + Date.now();
+  const idInput = document.getElementById('editArticleId');
+  const artId = idInput.value || ('art_' + Date.now());
   const title = document.getElementById('artTitle').value.trim();
   const type = document.getElementById('artType').value;
   const category = document.getElementById('artCategory').value.trim() || 'ဗဟုသုတ';
+  const status = document.getElementById('artStatus').value;
+  const relatedProduct = document.getElementById('artRelatedProduct').value.trim();
   const coverImage = document.getElementById('artCover').value.trim();
-  let videoUrl = document.getElementById('artVideo').value.trim();
+  const directVideo = document.getElementById('artDirectVideo').value.trim();
   const summary = document.getElementById('artSummary').value.trim();
   const content = document.getElementById('artContent').value.trim();
+  const socialLinks = getArticleLinksData();
 
-  if (videoUrl) {
-    videoUrl = formatYoutubeEmbed(videoUrl);
-  }
-
-  const articlePayload = {
+  const payload = {
     title,
     type,
     category,
+    status,
+    relatedProduct,
     coverImage,
-    videoUrl,
+    directVideo,
     summary,
     content,
-    updatedAt: new Date().toISOString()
+    socialLinks,
+    updatedAt: Date.now()
   };
 
-  database.ref('articles/' + artId).update(articlePayload)
+  database.ref('articles/' + artId).update(payload)
     .then(() => {
-      alert('ဆောင်းပါး သိမ်းဆည်းပြီးပါပြီခင်ဗျာ။');
+      alert('ဆောင်းပါး အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီခင်ဗျာ!');
       resetArticleForm();
     })
-    .catch((err) => {
-      alert('Error: ' + err.message);
-    });
+    .catch((err) => alert('သိမ်းဆည်းမရပါ: ' + err.message));
 }
 
-// 4. Reset Admin Form
+// ၆။ Reset Form
 function resetArticleForm() {
-  const form = document.getElementById('articleForm');
-  if (form) form.reset();
-  const editId = document.getElementById('editArticleId');
-  if (editId) editId.value = '';
-  const header = document.getElementById('articleFormHeader');
-  if (header) header.innerHTML = '<i class="fas fa-newspaper"></i> ဗဟုသုတ / ဆောင်းပါး / ဗီဒီယို အသစ်တင်ရန်';
-  const btnSubmit = document.getElementById('btnSubmitArticle');
-  if (btnSubmit) btnSubmit.innerHTML = '<i class="fas fa-save"></i> ဆောင်းပါး သိမ်းဆည်းမည်';
-  const btnCancel = document.getElementById('btnCancelArticleEdit');
-  if (btnCancel) btnCancel.style.display = 'none';
+  document.getElementById('editArticleId').value = '';
+  document.getElementById('artTitle').value = '';
+  document.getElementById('artCategory').value = '';
+  document.getElementById('artCover').value = '';
+  document.getElementById('artDirectVideo').value = '';
+  document.getElementById('artRelatedProduct').value = '';
+  document.getElementById('artSummary').value = '';
+  document.getElementById('artContent').value = '';
+  document.getElementById('artStatus').value = 'published';
+  document.getElementById('articleLinksContainer').innerHTML = '';
+  document.getElementById('saveArticleBtn').textContent = 'ဆောင်းပါး သိမ်းဆည်းမည်';
+
+  const imgStatus = document.getElementById('artCoverUploadStatus');
+  if (imgStatus) imgStatus.style.display = 'none';
+  const vidStatus = document.getElementById('artVideoUploadStatus');
+  if (vidStatus) vidStatus.style.display = 'none';
+
+  addArticleLinkRow('youtube', '');
 }
 
-// 5. Render Admin Articles Table
-function renderAdminArticleList() {
-  const container = document.getElementById('adminArticleTableContainer');
+// ၇။ Admin Articles List & Search Filter
+function renderAdminArticleList(filteredList = null) {
+  const container = document.getElementById('adminArticleListContainer');
   if (!container) return;
+  const list = filteredList !== null ? filteredList : (typeof appArticles !== 'undefined' ? appArticles : []);
 
-  if (appArticles.length === 0) {
-    container.innerHTML = '<div style="color:#777; font-size:12px; padding:10px 0;">ဆောင်းပါးများ မရှိသေးပါ။</div>';
+  if (list.length === 0) {
+    container.innerHTML = '<div style="color:#888; font-size:12px; text-align:center; padding:16px;">ဆောင်းပါး မရှိသေးပါ (သို့မဟုတ် မတွေ့ရှိပါ)။</div>';
     return;
   }
 
-  let html = `<table style="width:100%; border-collapse:collapse; font-size:12px; color:#ddd; text-align:left;">
-    <thead>
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.1); color:#aaa;">
-        <th style="padding:8px;">ခေါင်းစဉ်</th>
-        <th style="padding:8px;">အမျိုးအစား</th>
-        <th style="padding:8px;">ကဏ္ဍ</th>
-        <th style="padding:8px; text-align:right;">လုပ်ဆောင်ချက်</th>
-      </tr>
-    </thead>
-    <tbody>`;
-
-  appArticles.forEach((art) => {
-    html += `
-      <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-        <td style="padding:8px; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${art.title}</td>
-        <td style="padding:8px;"><span style="background:rgba(212,175,55,0.15); color:var(--gold,#d4af37); padding:2px 6px; border-radius:4px;">${art.type}</span></td>
-        <td style="padding:8px;">${art.category}</td>
-        <td style="padding:8px; text-align:right;">
-          <button type="button" onclick="editArticle('${art.id}')" style="background:#3b82f6; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; margin-right:4px;">Edit</button>
-          <button type="button" onclick="deleteArticle('${art.id}')" style="background:#ef4444; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">Delete</button>
-        </td>
-      </tr>`;
-  });
-
-  html += `</tbody></table>`;
-  container.innerHTML = html;
+  container.innerHTML = list.map(art => `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#10131a; padding:10px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+      <div style="flex:1; min-width:0; margin-right:12px;">
+        <div style="font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          ${art.title} 
+          <span style="font-size:10px; padding:2px 6px; border-radius:4px; margin-left:6px; ${art.status === 'draft' ? 'background:rgba(239,68,68,0.2); color:#ef4444;' : 'background:rgba(34,197,94,0.2); color:#22c55e;'}">${art.status === 'draft' ? 'Draft' : 'Published'}</span>
+        </div>
+        <div style="font-size:11px; color:#888; margin-top:3px; display:flex; gap:8px; flex-wrap:wrap;">
+          <span style="color:var(--gold,#d4af37);">${art.category}</span>
+          <span>•</span>
+          <span>${art.type}</span>
+          ${art.relatedProduct ? `<span>• SKU: <b style="color:#fff;">${art.relatedProduct}</b></span>` : ''}
+          ${Array.isArray(art.socialLinks) && art.socialLinks.length > 0 ? `<span>• Links: ${art.socialLinks.length} ခု</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button type="button" onclick="editArticle('${art.id}')" style="background:#2563eb; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+          <i class="fas fa-edit"></i> ပြင်မည်
+        </button>
+        <button type="button" onclick="deleteArticle('${art.id}')" style="background:#dc2626; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+          <i class="fas fa-trash"></i> ဖျက်မည်
+        </button>
+      </div>
+    </div>
+  `).join('');
 }
 
-// 6. Edit & Delete Functions
-function editArticle(id) {
-  const art = appArticles.find((a) => a.id === id);
-  if (!art) return;
+function filterAdminArticles() {
+  const q = (document.getElementById('adminArticleSearchInput')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('adminArticleFilterType')?.value || 'all';
 
+  const list = typeof appArticles !== 'undefined' ? appArticles : [];
+  const filtered = list.filter(a => {
+    const matchStatus = (statusFilter === 'all') || (statusFilter === 'draft' && a.status === 'draft') || (statusFilter === 'published' && a.status !== 'draft');
+    const matchQuery = (a.title || '').toLowerCase().includes(q) ||
+                       (a.category || '').toLowerCase().includes(q) ||
+                       (a.relatedProduct || '').toLowerCase().includes(q);
+    return matchStatus && (!q || matchQuery);
+  });
+  renderAdminArticleList(filtered);
+}
+
+// ၈။ Edit & Delete Article
+function editArticle(id) {
+  const art = (typeof appArticles !== 'undefined' ? appArticles : []).find(a => a.id === id);
+  if (!art) return;
   document.getElementById('editArticleId').value = art.id;
   document.getElementById('artTitle').value = art.title || '';
-  document.getElementById('artType').value = art.type || 'long_article';
+  document.getElementById('artType').value = art.type || 'ဆောင်းပါးရှည် (Article)';
   document.getElementById('artCategory').value = art.category || '';
+  document.getElementById('artStatus').value = art.status || 'published';
   document.getElementById('artCover').value = art.coverImage || '';
-  document.getElementById('artVideo').value = art.videoUrl || '';
+  document.getElementById('artDirectVideo').value = art.directVideo || '';
+  document.getElementById('artRelatedProduct').value = art.relatedProduct || '';
   document.getElementById('artSummary').value = art.summary || '';
   document.getElementById('artContent').value = art.content || '';
 
-  document.getElementById('articleFormHeader').innerHTML = '<i class="fas fa-edit"></i> ဆောင်းပါး ပြင်ဆင်ရန် - ' + art.title;
-  document.getElementById('btnSubmitArticle').innerHTML = '<i class="fas fa-sync-alt"></i> ပြင်ဆင်ချက် သိမ်းဆည်းမည်';
-  document.getElementById('btnCancelArticleEdit').style.display = 'inline-block';
-  document.getElementById('adminArticleSection').scrollIntoView({ behavior: 'smooth' });
+  const linksContainer = document.getElementById('articleLinksContainer');
+  linksContainer.innerHTML = '';
+  if (Array.isArray(art.socialLinks) && art.socialLinks.length > 0) {
+    art.socialLinks.forEach(l => addArticleLinkRow(l.platform, l.url));
+  } else {
+    addArticleLinkRow('youtube', '');
+  }
+
+  document.getElementById('saveArticleBtn').textContent = 'ဆောင်းပါး ပြင်ဆင်ချက် သိမ်းမည်';
+  document.getElementById('articleTab').scrollIntoView({ behavior: 'smooth' });
 }
 
 function deleteArticle(id) {
-  if (confirm('ဤဆောင်းပါးကို ဖျက်ရန် သေချာပါသလား?')) {
+  if (confirm('ဤဆောင်းပါးကို အပြီးဖျက်ရန် သေချာပါသလား?')) {
     database.ref('articles/' + id).remove();
   }
 }
 
-// 7. Storefront Article Card Rendering (With Search Filter)
+// ၉။ Storefront Articles (ဝယ်သူများဘက်တွင် ပြသခြင်း - Draft များကို ဖျောက်ထားမည်)
 function renderStorefrontArticles(filteredList = null) {
   const container = document.getElementById('storefrontArticleContainer');
   if (!container) return;
+  const rawList = filteredList !== null ? filteredList : (typeof appArticles !== 'undefined' ? appArticles : []);
+  const list = rawList.filter(a => a.status !== 'draft');
 
-  const listToRender = filteredList !== null ? filteredList : appArticles;
-
-  if (listToRender.length === 0) {
+  if (list.length === 0) {
     container.innerHTML = '<div style="color:#aaa; text-align:center; padding:24px; font-size:13px;">ကိုက်ညီသော ဗဟုသုတ / ဆောင်းပါး မတွေ့ရှိပါ။</div>';
     return;
   }
 
-  container.innerHTML = listToRender.map((art) => `
+  container.innerHTML = list.map(art => `
     <div onclick="openArticleModal('${art.id}')" style="background:#1a1e29; border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; cursor:pointer; margin-bottom:12px; transition:transform 0.15s ease;">
       ${art.coverImage ? `<img src="${art.coverImage}" style="width:100%; height:150px; object-fit:cover;" loading="lazy">` : ''}
       <div style="padding:14px;">
@@ -14009,44 +14162,68 @@ function renderStorefrontArticles(filteredList = null) {
   `).join('');
 }
 
-// Real-time Search Filter Function
 function filterStorefrontArticles() {
   const query = (document.getElementById('articleSearchInput')?.value || '').toLowerCase().trim();
-  if (!query) {
-    renderStorefrontArticles();
-    return;
-  }
-  const filtered = appArticles.filter((art) => {
-    const titleMatch = (art.title || '').toLowerCase().includes(query);
-    const categoryMatch = (art.category || '').toLowerCase().includes(query);
-    const summaryMatch = (art.summary || '').toLowerCase().includes(query);
-    const contentMatch = (art.content || '').toLowerCase().includes(query);
-    return titleMatch || categoryMatch || summaryMatch || contentMatch;
+  if (!query) { renderStorefrontArticles(); return; }
+  const filtered = (typeof appArticles !== 'undefined' ? appArticles : []).filter(art => {
+    return (art.title || '').toLowerCase().includes(query) ||
+           (art.category || '').toLowerCase().includes(query) ||
+           (art.summary || '').toLowerCase().includes(query) ||
+           (art.content || '').toLowerCase().includes(query);
   });
   renderStorefrontArticles(filtered);
 }
 
-// 8. Open Article Detail Modal & Handle SEO Link
+// ၁၀။ ဝယ်သူများ ဆောင်းပါးဖတ်ရှုမည့် Modal
 function openArticleModal(id) {
-  const art = appArticles.find((a) => a.id === id);
+  const art = (typeof appArticles !== 'undefined' ? appArticles : []).find(a => a.id === id);
   if (!art) return;
 
-  window.history.pushState({ articleId: id }, '', `?article=${id}`);
+  window.history.pushState({ articleId: id }, '', '?article=' + id);
   document.title = `${art.title} | Tolimoli Myanmar`;
 
+  let linksHtml = '';
+  if (Array.isArray(art.socialLinks) && art.socialLinks.length > 0) {
+    linksHtml = '<div style="display:flex; gap:8px; flex-wrap:wrap; margin:14px 0;">' + 
+      art.socialLinks.map(l => {
+        let icon = 'fa-link';
+        let bg = '#2563eb';
+        if (l.platform === 'youtube') { icon = 'fa-youtube'; bg = '#dc2626'; }
+        if (l.platform === 'facebook') { icon = 'fa-facebook'; bg = '#1877f2'; }
+        if (l.platform === 'tiktok') { icon = 'fa-tiktok'; bg = '#000000'; }
+        if (l.platform === 'telegram') { icon = 'fa-telegram'; bg = '#0088cc'; }
+        return `<a href="${l.url}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:${bg}; color:#fff; text-decoration:none; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:500;">
+          <i class="fab ${icon}"></i> <span>${l.platform.toUpperCase()} တွင်ကြည့်ရန်</span>
+        </a>`;
+      }).join('') + '</div>';
+  }
+
+  let relatedHtml = '';
+  if (art.relatedProduct) {
+    relatedHtml = `
+      <div style="margin-top:20px; background:#10131a; border:1px solid var(--gold,#d4af37); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <div style="font-size:11px; color:var(--gold,#d4af37);">ဤဆောင်းပါးတွင် ပါဝင်သောပစ္စည်း</div>
+          <div style="font-size:13px; font-weight:600; color:#fff;">SKU / အမည်: ${art.relatedProduct}</div>
+        </div>
+        <button type="button" onclick="closeArticleModal(); if(typeof filterProducts==='function'){filterProducts('${art.relatedProduct}');}" style="background:linear-gradient(135deg, #d4af37, #aa820a); border:none; padding:7px 14px; border-radius:6px; color:#000; font-size:12px; font-weight:600; cursor:pointer;">
+          ပစ္စည်းအား ကြည့်ရှုဝယ်ယူရန်
+        </button>
+      </div>
+    `;
+  }
+
   let bodyHtml = `
-    ${art.coverImage ? `<img src="${art.coverImage}" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:16px;">` : ''}
+    ${art.coverImage ? `<img src="${art.coverImage}" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:14px;">` : ''}
     <div style="display:flex; gap:8px; margin-bottom:10px;">
       <span style="background:rgba(212,175,55,0.15); color:var(--gold,#d4af37); font-size:12px; padding:3px 8px; border-radius:4px;">${art.category}</span>
+      <span style="color:#888; font-size:12px; padding:3px 0;">• ${art.type}</span>
     </div>
-    <h2 style="color:#fff; font-size:1.4rem; margin-top:0; margin-bottom:12px; line-height:1.3;">${art.title}</h2>
-    ${art.videoUrl ? `
-      <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin-bottom:18px;">
-        <iframe src="${art.videoUrl}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
-      </div>` : ''}
-    <div style="font-size:14px; color:#ccc; white-space:pre-line; line-height:1.8;">
-      ${art.content}
-    </div>
+    <h2 style="color:#fff; font-size:18px; margin:0 0 12px 0; line-height:1.4;">${art.title}</h2>
+    ${art.directVideo ? `<video src="${art.directVideo}" controls style="width:100%; max-height:360px; border-radius:8px; margin-bottom:14px; background:#000;"></video>` : ''}
+    ${linksHtml}
+    <div style="color:#ccc; font-size:14px; line-height:1.7; white-space:pre-line; margin-bottom:16px;">${art.content}</div>
+    ${relatedHtml}
   `;
 
   document.getElementById('articleModalBody').innerHTML = bodyHtml;
@@ -14055,13 +14232,13 @@ function openArticleModal(id) {
 }
 
 function closeArticleModal() {
-  document.getElementById('articleDetailModal').style.display = 'none';
+  const modal = document.getElementById('articleDetailModal');
+  if (modal) modal.style.display = 'none';
   document.body.style.overflow = 'auto';
   window.history.pushState({}, '', window.location.pathname);
   document.title = 'Tolimoli Myanmar';
 }
 
-// 9. Check Direct Link on Page Load
 function checkUrlForArticle() {
   const params = new URLSearchParams(window.location.search);
   const articleId = params.get('article');
