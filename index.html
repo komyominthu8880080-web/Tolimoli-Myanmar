@@ -3072,19 +3072,7 @@ function scrollCategories(amount) {
         <div id="artVideoUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:6px; display:none;">ဗီဒီယို တင်နေပါသည်... ဖိုင်အရွယ်အစားအလိုက် ခေတ္တစောင့်ပေးပါ</div>
       </div>
 
-      <!-- DYNAMIC SOCIAL & OTHER LINKS -->
-      <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <label style="font-size:12px; color:var(--gold,#d4af37);"><i class="fas fa-link"></i> Social Media & External Links (YouTube, Facebook, TikTok, Telegram, etc.)</label>
-          <button type="button" onclick="addArticleLinkRow()" style="background:#232733; color:#fff; border:1px solid rgba(255,255,255,0.2); padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
-            <i class="fas fa-plus"></i> + Link ထပ်တိုးမည်
-          </button>
-        </div>
-        <div id="articleLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
-          <!-- Dynamic link rows -->
-        </div>
-      </div>
-
+    
       <!-- Summary -->
       <div style="grid-column: span 2;">
         <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">အကျဉ်းချုပ် (SEO & List View Display)</label>
@@ -3112,6 +3100,19 @@ function scrollCategories(amount) {
         </div>
         </div>
         <textarea id="artContent" rows="7" required placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:10px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box; line-height:1.6;"></textarea>
+      </div>
+      
+      <!-- DYNAMIC SOCIAL & OTHER LINKS -->
+      <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label style="font-size:12px; color:var(--gold,#d4af37);"><i class="fas fa-link"></i> Social Media & External Links (YouTube, Facebook, TikTok, Telegram, etc.)</label>
+          <button type="button" onclick="addArticleLinkRow()" style="background:#232733; color:#fff; border:1px solid rgba(255,255,255,0.2); padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+            <i class="fas fa-plus"></i> + Link ထပ်တိုးမည်
+          </button>
+        </div>
+        <div id="articleLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Dynamic link rows -->
+        </div>
       </div>
 
       <!-- Buttons -->
