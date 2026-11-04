@@ -3101,7 +3101,7 @@ function scrollCategories(amount) {
         </div>
         <textarea id="artContent" rows="7" required placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:10px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box; line-height:1.6;"></textarea>
       </div>
-      
+
       <!-- DYNAMIC SOCIAL & OTHER LINKS -->
       <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
@@ -14375,13 +14375,13 @@ function openArticleModal(id) {
       <!-- Direct Video (ရှိခဲ့လျှင်) -->
       ${art.directVideo ? `<div style="margin-bottom:18px; border-radius:10px; overflow:hidden;"><video src="${art.directVideo}" controls style="width:100%; max-height:380px; background:#000;"></video></div>` : ''}
 
-      <!-- အပိုင်းများ / Links (အပိုင်း ၁၊ အပိုင်း ၂ ခလုတ်များ) -->
-      ${linksHtml}
-
       <!-- စာပိုဒ်ကြားထဲတွင် ပုံ/ဗီဒီယိုများ ညှပ်ထည့်ထားသော ဆောင်းပါး အပြည့်အစုံ -->
-      <div style="font-size:14.5px; line-height:1.85; color:#e2e8f0; margin-top:18px; word-break:break-word;">
-        ${formattedContent}
-      </div>
+    <div style="font-size:14.5px; line-height:1.85; color:#e2e8f0; margin-top:18px; word-break:break-word;">
+      ${formattedContent}
+    </div>
+
+    <!-- Telegram, Youtube အစရှိသည့် Social Media Link ခလုတ်များ -->
+    ${linksHtml}
 
       <!-- ဆက်စပ်ပစ္စည်း (Related Product) -->
       ${relatedHtml}
