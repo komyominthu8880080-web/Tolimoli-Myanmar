@@ -14017,19 +14017,34 @@ function insertInlineVideoPrompt() {
   textarea.value = original.substring(0, start) + embedHtml + original.substring(end);
 }
 // ၅။ Save or Update Article (Firebase Realtime Database)
-function saveArticle() {
+function saveArticle(e) {
+  if (e && e.preventDefault) e.preventDefault();
+
   const idInput = document.getElementById('editArticleId');
-  const artId = idInput.value || ('art_' + Date.now());
-  const title = document.getElementById('artTitle').value.trim();
-  const type = document.getElementById('artType').value;
-  const category = document.getElementById('artCategory').value.trim() || 'ဗဟုသုတ';
-  const status = document.getElementById('artStatus').value;
-  const relatedProduct = document.getElementById('artRelatedProduct').value.trim();
-  const coverImage = document.getElementById('artCover').value.trim();
-  const directVideo = document.getElementById('artDirectVideo').value.trim();
-  const summary = document.getElementById('artSummary').value.trim();
-  const content = document.getElementById('artContent').value.trim();
-  const socialLinks = getArticleLinksData();
+  const artId = (idInput && idInput.value && idInput.value.trim() !== '') ? idInput.value.trim() : ('art_' + Date.now());
+  const title = (document.getElementById('artTitle')?.value || '').trim();
+  const type = document.getElementById('artType')?.value || 'ဆောင်းပါးတို (Article)';
+  const category = (document.getElementById('artCategory')?.value || '').trim() || 'ဗဟုသုတ';
+  const status = document.getElementById('artStatus')?.value || 'published';
+  const relatedProduct = (document.getElementById('artRelatedProduct')?.value || '').trim();
+  const coverImage = (document.getElementById('artCover')?.value || '').trim();
+  const directVideo = (document.getElementById('artDirectVideo')?.value || '').trim();
+  const summary = (document.getElementById('artSummary')?.value || '').trim();
+  const content = (document.getElementById('artContent')?.value || '').trim();
+
+  if (!title) {
+    alert('ဆောင်းပါး ခေါင်းစဉ် ထည့်သွင်းပေးပါခင်ဗျာ။');
+    return false;
+  }
+
+  let socialLinks = [];
+  try {
+    if (typeof getArticleLinksData === 'function') {
+      socialLinks = getArticleLinksData() || [];
+    }
+  } catch (err) {
+    console.error('Links parse error:', err);
+  }
 
   const payload = {
     title,
@@ -14045,12 +14060,42 @@ function saveArticle() {
     updatedAt: Date.now()
   };
 
-  database.ref('articles/' + artId).update(payload)
+  // Firebase Database instance ကို safe ဖြစ်အောင် စစ်ဆေး၍ သိမ်းဆည်းခြင်း
+  const dbRef = (typeof db !== 'undefined' && db.ref) 
+    ? db.ref('articles/' + artId) 
+    : (typeof firebase !== 'undefined' && firebase.database) 
+      ? firebase.database().ref('articles/' + artId) 
+      : (typeof database !== 'undefined' && database.ref) 
+        ? database.ref('articles/' + artId) 
+        : null;
+
+  if (!dbRef) {
+    alert('Database ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
+    return false;
+  }
+
+  const saveBtn = document.getElementById('saveArticleBtn');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'သိမ်းဆည်းနေပါသည်...';
+  }
+
+  dbRef.update(payload)
     .then(() => {
       alert('ဆောင်းပါး အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီခင်ဗျာ!');
-      resetArticleForm();
+      if (typeof resetArticleForm === 'function') resetArticleForm();
     })
-    .catch((err) => alert('သိမ်းဆည်းမရပါ: ' + err.message));
+    .catch((err) => {
+      alert('သိမ်းဆည်းမရပါ: ' + err.message);
+    })
+    .finally(() => {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'ဆောင်းပါး သိမ်းဆည်းမည်';
+      }
+    });
+
+  return false;
 }
 
 // ၆။ Reset Form
@@ -14101,16 +14146,52 @@ function renderAdminArticleList(filteredList = null) {
           ${Array.isArray(art.socialLinks) && art.socialLinks.length > 0 ? `<span>• Links: ${art.socialLinks.length} ခု</span>` : ''}
         </div>
       </div>
-      <div style="display:flex; gap:6px;">
-        <button type="button" onclick="editArticle('${art.id}')" style="background:#2563eb; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
-          <i class="fas fa-edit"></i> ပြင်မည်
-        </button>
-        <button type="button" onclick="deleteArticle('${art.id}')" style="background:#dc2626; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
-          <i class="fas fa-trash"></i> ဖျက်မည်
-        </button>
-      </div>
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                  <!-- Hide / Show Toggle ခလုတ် -->
+                  <button type="button" onclick="toggleArticleStatus('${art.id}', '${art.status || 'published'}')" style="background:${art.status === 'draft' ? '#475569' : '#16a34a'}; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:11px; display:inline-flex; align-items:center; gap:4px;" title="ကလစ်နှိပ်၍ ဖျောက်/ပြ လုပ်နိုင်ပါသည်">
+                    <i class="fas ${art.status === 'draft' ? 'fa-eye-slash' : 'fa-eye'}"></i> ${art.status === 'draft' ? 'ဝှက်ထားသည်' : 'ပြသထားသည်'}
+                  </button>
+                  <button type="button" onclick="editArticle('${art.id}')" style="background:#2563eb; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+                    <i class="fas fa-edit"></i> ပြင်မည်
+                  </button>
+                  <button type="button" onclick="deleteArticle('${art.id}')" style="background:#dc2626; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+                    <i class="fas fa-trash"></i> ဖျက်မည်
+                  </button>
+                </div>
     </div>
   `).join('');
+}
+
+// ဆောင်းပါးကို ဝှက်ခြင်း/ပြန်ပြခြင်း (Hide/Show Toggle)
+function toggleArticleStatus(id, currentStatus) {
+  const newStatus = (currentStatus === 'draft') ? 'published' : 'draft';
+  const actionText = (newStatus === 'published') ? 'ဝဘ်ဆိုက်ပေါ်တွင် ပြန်လည်ပြသ' : 'ဝယ်သူများမမြင်ရအောင် ဝှက်ထား';
+  
+  const dbRef = (typeof db !== 'undefined' && db.ref)
+    ? db.ref('articles/' + id)
+    : (typeof firebase !== 'undefined' && firebase.database)
+      ? firebase.database().ref('articles/' + id)
+      : (typeof database !== 'undefined' && database.ref)
+        ? database.ref('articles/' + id)
+        : null;
+
+  if (!dbRef) {
+    alert('Database ချိတ်ဆက်မှု မတွေ့ရှိပါ။');
+    return;
+  }
+
+  dbRef.update({ status: newStatus, updatedAt: Date.now() })
+    .then(() => {
+      // appArticles cache ထဲတွင်လည်း ချက်ချင်း update ဖြစ်စေရန်
+      if (typeof appArticles !== 'undefined' && Array.isArray(appArticles)) {
+        const target = appArticles.find(a => a.id === id);
+        if (target) target.status = newStatus;
+      }
+      if (typeof renderAdminArticleList === 'function') renderAdminArticleList();
+    })
+    .catch(err => {
+      alert('အခြေအနေ ပြောင်းလဲမရပါ: ' + err.message);
+    });
 }
 
 function filterAdminArticles() {
@@ -14250,8 +14331,19 @@ function openArticleModal(id) {
   // Helloဆရာဝန် ပုံစံအတိုင်း ခေါင်းစဉ်ကို အပေါ်ဆုံးထားပြီး စာသား/ပုံ/ဗီဒီယိုများ အစဉ်လိုက် ပြသခြင်း
   let formattedContent = (art.content || '').replace(/\n/g, '<br>');
 
+  const articleShareUrl = window.location.origin + window.location.pathname + '?article=' + art.id;
+  const encodedUrl = encodeURIComponent(articleShareUrl);
+  const encodedTitle = encodeURIComponent(art.title || 'Tolimoli Myanmar ဆောင်းပါး');
+
   let bodyHtml = `
-    <div style="max-width:760px; margin:0 auto; padding:6px 4px;">
+    <!-- Floating / Sticky ထင်ရှားသည့် X ပိတ်ခလုတ် -->
+    <div style="position:sticky; top:0; z-index:99; display:flex; justify-content:flex-end; padding:6px 0; margin-bottom:4px; pointer-events:none;">
+      <button type="button" onclick="closeArticleModal()" style="pointer-events:auto; background:#dc2626; color:#ffffff; border:2px solid #ffffff; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.5); transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="ပိတ်မည်">
+        ✕
+      </button>
+    </div>
+
+    <div style="max-width:760px; margin:0 auto; padding:0 4px 16px 4px;">
       <!-- Category & Date Badge -->
       <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; font-size:12px; color:var(--gold,#d4af37);">
         <span style="background:rgba(212,175,55,0.15); padding:3px 10px; border-radius:12px;"><i class="fas fa-tag"></i> ${art.category || art.type || 'ဗဟုသုတ'}</span>
@@ -14259,7 +14351,37 @@ function openArticleModal(id) {
       </div>
 
       <!-- ဆောင်းပါး ခေါင်းစဉ် (Title) -->
-      <h1 style="font-size:22px; font-weight:700; line-height:1.45; color:#fff; margin:0 0 16px 0;">${art.title || ''}</h1>
+      <h1 style="font-size:22px; font-weight:700; line-height:1.45; color:#fff; margin:0 0 14px 0;">${art.title || ''}</h1>
+
+      <!-- Social Media Share Bar -->
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:18px; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px;">
+        <span style="font-size:12px; color:#aaa; margin-right:4px;"><i class="fas fa-share-alt"></i> မျှဝေရန်:</span>
+        
+        <!-- Native Share (ဖုန်းသုံးသူများအတွက် App အကုန်ဖြင့် share ရန်) -->
+        <button type="button" onclick="shareArticleNative('${art.title ? art.title.replace(/'/g, "\\'") : ''}', '${articleShareUrl}')" style="background:#2563eb; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+          <i class="fas fa-share"></i> Share
+        </button>
+
+        <!-- Facebook Share -->
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener noreferrer" style="background:#1877f2; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+          <i class="fab fa-facebook"></i> Facebook
+        </a>
+
+        <!-- Telegram Share -->
+        <a href="https://t.me/share/url?url=${encodedUrl}&text=${encodedTitle}" target="_blank" rel="noopener noreferrer" style="background:#0088cc; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+          <i class="fab fa-telegram-plane"></i> Telegram
+        </a>
+
+        <!-- Viber Share -->
+        <a href="viber://forward?text=${encodedTitle}%20${encodedUrl}" target="_blank" rel="noopener noreferrer" style="background:#7360f2; color:#fff; text-decoration:none; padding:5px 10px; border-radius:6px; font-size:11px; display:inline-flex; align-items:center; gap:4px;">
+          <i class="fab fa-viber"></i> Viber
+        </a>
+
+        <!-- Copy Link -->
+        <button type="button" onclick="copyArticleLink('${articleShareUrl}', this)" style="background:#334155; color:#cbd5e1; border:none; padding:5px 10px; border-radius:6px; font-size:11px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+          <i class="fas fa-copy"></i> <span>Copy Link</span>
+        </button>
+      </div>
       
       <!-- မျက်နှာဖုံးပုံ (Cover Image) -->
       ${art.coverImage ? `<div style="margin-bottom:18px; text-align:center;"><img src="${art.coverImage}" style="width:100%; max-height:380px; object-fit:cover; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,0.4);" /></div>` : ''}
@@ -14292,6 +14414,32 @@ function closeArticleModal() {
   window.history.pushState({}, '', window.location.pathname);
   document.title = 'Tolimoli Myanmar';
 }
+// Native Web Share (ဖုန်းများတွင် Messenger, Viber, etc. အကုန်ဖြင့် share ရန်)
+function shareArticleNative(title, url) {
+  if (navigator.share) {
+    navigator.share({
+      title: title || 'Tolimoli Myanmar ဆောင်းပါး',
+      url: url
+    }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('ဆောင်းပါး Link ကို ကူးယူပြီးပါပြီခင်ဗျာ!');
+    });
+  }
+}
+
+// Copy Link ခလုတ်
+function copyArticleLink(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check" style="color:#22c55e;"></i> Copied!';
+    setTimeout(() => {
+      btn.innerHTML = originalText;
+    }, 2000);
+  }).catch(() => {
+    prompt('Link ကို Copy ကူးယူပါ-', url);
+  });
+}
 
 function checkUrlForArticle() {
   const params = new URLSearchParams(window.location.search);
@@ -14310,9 +14458,6 @@ function checkUrlForArticle() {
       <h3 style="margin:0; color:var(--gold, #d4af37); font-size:1.1rem;">
         <i class="fas fa-newspaper"></i> ဗဟုသုတနှင့် ဆောင်းပါးများ
       </h3>
-      <button type="button" onclick="closeKnowledgeListModal();" style="background:rgba(255,255,255,0.1); color:#fff; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; cursor:pointer;">
-        &times;
-      </button>
     </div>
 
     <!-- ဆောင်းပါး ရှာဖွေရန် Search Bar -->
