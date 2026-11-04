@@ -2776,6 +2776,9 @@ function scrollCategories(amount) {
         <button type="button" class="admin-nav-btn" onclick="switchAdminTab('logisticsTab', this)">
   <i class="fas fa-truck"></i> Settings & Logistics
 </button>
+        <button type="button" class="admin-nav-btn" onclick="switchAdminTab('articleTab', this)">
+      <i class="fas fa-newspaper"></i> သတင်းနှင့် ဗဟုသုတ
+    </button>
       </div>
 
       <!-- Tab 1: Products -->
@@ -4104,6 +4107,147 @@ function scrollCategories(amount) {
       <div id="communityPostsContainer" style="max-height:46vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
     </div>
   </div>
+
+  <!-- Tab: Articles & Knowledge Base -->
+<div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;">
+  <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
+    
+    <!-- Section Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px; flex-wrap:wrap; gap:10px;">
+      <h3 style="margin:0; font-size:15px; color:var(--gold,#d4af37); display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-newspaper"></i> ဗဟုသုတ / ဆောင်းပါး / သတင်းများ စီမံခန့်ခွဲမှု
+      </h3>
+      <button type="button" onclick="resetArticleForm()" style="background:rgba(255,255,255,0.08); color:#ccc; border:none; padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer;">
+        <i class="fas fa-plus"></i> ဆောင်းပါးအသစ်ရေးမည်
+      </button>
+    </div>
+
+    <!-- ARTICLE FORM -->
+    <form id="adminArticleForm" onsubmit="event.preventDefault(); saveArticle();" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px;">
+      <input type="hidden" id="editArticleId" value="">
+
+      <!-- Title -->
+      <div style="grid-column: span 2;">
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ဆောင်းပါး ခေါင်းစဉ် *</label>
+        <input type="text" id="artTitle" required placeholder="ဥပမာ- ပစ္စည်းအသုံးပြုနည်းနှင့် ရေရှည်ထိန်းသိမ်းနည်း အပြည့်အစုံ" style="width:100%; padding:9px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+
+      <!-- Type -->
+      <div>
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">အမျိုးအစား (Type) *</label>
+        <select id="artType" style="width:100%; padding:9px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+          <option value="ဆောင်းပါးရှည် (Article)">ဆောင်းပါးရှည် (Article)</option>
+          <option value="ဗီဒီယိုလမ်းညွှန် (Video)">ဗီဒီယိုလမ်းညွှန် (Video)</option>
+          <option value="အမြန်သတင်း (News)">အမြန်သတင်း (News)</option>
+          <option value="အမေးများသောမေးခွန်း (FAQ)">အမေးများသောမေးခွန်း (FAQ)</option>
+        </select>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ကဏ္ဍ (Category) *</label>
+        <input type="text" id="artCategory" required placeholder="ဥပမာ- အသုံးပြုနည်းလမ်းညွှန်၊ ကျန်းမာရေးဗဟုသုတ" style="width:100%; padding:9px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+
+      <!-- Status & Related Product -->
+      <div>
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ဆောင်းပါး အခြေအနေ (Status)</label>
+        <select id="artStatus" style="width:100%; padding:9px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+          <option value="published">တိုက်ရိုက်လွှင့်တင်မည် (Published)</option>
+          <option value="draft">မူကြမ်းအဖြစ်သိမ်းမည် (Draft)</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ချိတ်ဆက်မည့် ဆိုင်ရှိပစ္စည်း SKU / အမည် (Related Product)</label>
+        <input type="text" id="artRelatedProduct" placeholder="ဥပမာ- SKU-001 သို့မဟုတ် ပစ္စည်းအမည်" style="width:100%; padding:9px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+
+      <!-- COVER IMAGE UPLOAD / URL (ImgBB) -->
+      <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px dashed rgba(255,255,255,0.15);">
+        <label style="font-size:12px; color:var(--gold,#d4af37); display:block; margin-bottom:6px;">
+          <i class="fas fa-image"></i> မျက်နှာဖုံးဓာတ်ပုံ (ဖုန်းထဲမှ တိုက်ရိုက်တင်ရန် သို့မဟုတ် URL ထည့်ရန်)
+        </label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="file" id="artCoverFileInput" accept="image/*" onchange="uploadArticleImage(this)" style="font-size:12px; color:#aaa;">
+          <span style="font-size:11px; color:#666;">သို့မဟုတ် URL တိုက်ရိုက်ထည့်ပါ:</span>
+          <input type="text" id="artCover" placeholder="https://..." style="flex:1; min-width:200px; padding:7px 10px; background:#151821; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box;">
+        </div>
+        <div id="artCoverUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:6px; display:none;">ဓာတ်ပုံ တင်နေပါသည်... ခေတ္တစောင့်ပါ</div>
+      </div>
+
+      <!-- VIDEO UPLOAD / DIRECT LINK -->
+      <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px dashed rgba(255,255,255,0.15);">
+        <label style="font-size:12px; color:var(--gold,#d4af37); display:block; margin-bottom:6px;">
+          <i class="fas fa-video"></i> ဗီဒီယိုဖိုင် (ဖုန်းထဲမှ Video File တိုက်ရိုက်တင်ရန် သို့မဟုတ် Link ထည့်ရန်)
+        </label>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <input type="file" id="artVideoFileInput" accept="video/*" onchange="uploadArticleVideo(this)" style="font-size:12px; color:#aaa;">
+          <span style="font-size:11px; color:#666;">သို့မဟုတ် Video Direct URL / Embed:</span>
+          <input type="text" id="artDirectVideo" placeholder="https://..." style="flex:1; min-width:200px; padding:7px 10px; background:#151821; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box;">
+        </div>
+        <div id="artVideoUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:6px; display:none;">ဗီဒီယို တင်နေပါသည်... ဖိုင်အရွယ်အစားအလိုက် ခေတ္တစောင့်ပေးပါ</div>
+      </div>
+
+      <!-- DYNAMIC SOCIAL & OTHER LINKS -->
+      <div style="grid-column: span 2; background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label style="font-size:12px; color:var(--gold,#d4af37);"><i class="fas fa-link"></i> Social Media & External Links (YouTube, Facebook, TikTok, Telegram, etc.)</label>
+          <button type="button" onclick="addArticleLinkRow()" style="background:#232733; color:#fff; border:1px solid rgba(255,255,255,0.2); padding:4px 10px; border-radius:4px; font-size:11px; cursor:pointer;">
+            <i class="fas fa-plus"></i> + Link ထပ်တိုးမည်
+          </button>
+        </div>
+        <div id="articleLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
+          <!-- Dynamic link rows -->
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div style="grid-column: span 2;">
+        <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">အကျဉ်းချုပ် (SEO & List View Display)</label>
+        <input type="text" id="artSummary" placeholder="စာကြောင်းရေ ၁ သို့မဟုတ် ၂ ကြောင်းဖြင့် အနှစ်ချုပ် ရေးပါ..." style="width:100%; padding:8px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
+      </div>
+
+      <!-- Rich Text Quick Tools & Content -->
+      <div style="grid-column: span 2;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <label style="font-size:12px; color:#aaa;">ဆောင်းပါး အပြည့်အစုံ စာသား *</label>
+          <div style="display:flex; gap:6px;">
+            <button type="button" onclick="insertArticleFormat('bold')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;"><b>B</b></button>
+            <button type="button" onclick="insertArticleFormat('header')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">H3</button>
+            <button type="button" onclick="insertArticleFormat('bullet')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">• Bullet</button>
+          </div>
+        </div>
+        <textarea id="artContent" rows="7" required placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:10px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box; line-height:1.6;"></textarea>
+      </div>
+
+      <!-- Buttons -->
+      <div style="grid-column: span 2; display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" onclick="resetArticleForm()" style="padding:9px 16px; background:rgba(255,255,255,0.08); color:#ccc; border:none; border-radius:6px; font-size:13px; cursor:pointer;">မလုပ်တော့ပါ</button>
+        <button type="submit" id="saveArticleBtn" style="padding:9px 20px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:600; border:none; border-radius:6px; font-size:13px; cursor:pointer;">ဆောင်းပါး သိမ်းဆည်းမည်</button>
+      </div>
+    </form>
+
+    <!-- ADMIN ARTICLE LIST WITH LIVE SEARCH & FILTER -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <h4 style="margin:0; font-size:14px; color:#fff;">တင်ထားသော ဗဟုသုတ / သတင်းများ စာရင်း</h4>
+        <div style="display:flex; gap:8px; width:340px; max-width:100%;">
+          <select id="adminArticleFilterType" onchange="filterAdminArticles()" style="padding:6px 8px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#aaa; font-size:12px; outline:none;">
+            <option value="all">အားလုံး</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          <input type="text" id="adminArticleSearchInput" oninput="filterAdminArticles()" placeholder="🔍 ရှာဖွေရန် (ခေါင်းစဉ်/ကဏ္ဍ/SKU)..." style="flex:1; padding:6px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box; outline:none;">
+        </div>
+      </div>
+      <div id="adminArticleListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:450px; overflow-y:auto; padding-right:4px;">
+        <!-- Loaded dynamically via JS -->
+      </div>
+    </div>
+
+  </div>
+</div>
 
   <!-- 13. VIP MYSTERY BOX MODAL -->
   <div class="modal-overlay" id="mysteryBoxModal" style="z-index: 10008;">
@@ -9262,28 +9406,33 @@ function closeModal(id) {
     }
 
     function switchAdminTab(tId, btn) {
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById(tId).classList.add('active');
-      btn.classList.add('active');
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tId).classList.add('active');
+  btn.classList.add('active');
 
-      if (tId === 'liveChatAdminTab') {
-        renderAdminChatSessionsList();
-      }
-      if (tId === 'discountTab') {
+  if (tId === 'liveChatAdminTab') {
+    renderAdminChatSessionsList();
+  }
+  if (tId === 'discountTab') {
     loadComboDealsFromRTDB();
-      }
-      // Settings Tab ကို နှိပ်ပါက Firebase မှ FOC အချက်အလက်များ တန်းဖြည့်ပေးခြင်း
-      if (tId === 'settingsTab') {
-        if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
-        if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
-      }
-      if (tid === 'productsTab') {
+  }
+  // Settings Tab ကို နှိပ်ပါက Firebase မှ FOC အချက်အလက်များ တန်းဖြည့်ပေးခြင်း
+  if (tId === 'settingsTab') {
+    if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
+    if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
+  }
+  if (tId === 'productsTab') {
     if (typeof syncSearchCategoryDropdown === 'function') {
       syncSearchCategoryDropdown();
     }
   }
+  if (tId === 'articleTab') {
+    if (typeof renderAdminArticleList === 'function') {
+      renderAdminArticleList();
     }
+  }
+}
 
     function loadCentralSettings() {
       document.getElementById('cfgTgBotToken').value = botConfig.tgToken || '';
