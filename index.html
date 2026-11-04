@@ -2989,7 +2989,7 @@ function scrollCategories(amount) {
       </div>
       
       <!-- Tab: Articles & Knowledge Base -->
-<div class="admin-tab" id="articleTab" style="padding:12px 0;">
+  <div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;"></div>
   <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
     
     <!-- Section Header -->
@@ -9333,36 +9333,37 @@ function closeModal(id) {
     }
 
     function switchAdminTab(tId, btn) {
-  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
+  document.querySelectorAll('.admin-tab').forEach(t => {
+    t.classList.remove('active');
+    t.style.display = 'none';
+  });
   document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tId).classList.add('active');
-  btn.classList.add('active');
 
-  if (tId === 'liveChatAdminTab') {
+  // ရွေးချယ်လိုက်သော Tab ကို active ပေးပြီး ပြသမည်
+  const targetTab = document.getElementById(tId);
+  if (targetTab) {
+    targetTab.classList.add('active');
+    targetTab.style.display = 'block';
+  }
+  if (btn) btn.classList.add('active');
+
+  // သက်ဆိုင်ရာ Tab အလိုက် Function များ ခေါ်ယူခြင်း
+  if (tId === 'liveChatAdminTab' && typeof renderAdminChatSessionsList === 'function') {
     renderAdminChatSessionsList();
   }
-  if (tId === 'discountTab') {
+  if (tId === 'discountTab' && typeof loadComboDealsFromRTDB === 'function') {
     loadComboDealsFromRTDB();
   }
-  // Settings Tab ကို နှိပ်ပါက Firebase မှ FOC အချက်အလက်များ တန်းဖြည့်ပေးခြင်း
   if (tId === 'settingsTab') {
     if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
     if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
   }
-  if (tId === 'productsTab') {
-    if (typeof syncSearchCategoryDropdown === 'function') {
-      syncSearchCategoryDropdown();
-    }
+  if (tId === 'productsTab' && typeof syncSearchCategoryDropdown === 'function') {
+    syncSearchCategoryDropdown();
   }
-  if (tId === 'articleTab') {
-    const art = document.getElementById('articleTab');
-    if (art) art.style.display = 'block';
-    if (typeof renderAdminArticleList === 'function') {
-      renderAdminArticleList();
-    }
-  } else {
-    const art = document.getElementById('articleTab');
-    if (art) art.style.display = 'none';
+  if (tId === 'articleTab' && typeof renderAdminArticleList === 'function') {
+    renderAdminArticleList();
   }
 }
 
