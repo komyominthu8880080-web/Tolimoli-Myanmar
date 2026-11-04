@@ -4,18 +4,18 @@ export default async function handler(req, res) {
   // Viber cache မလွဲစေရန် Canonical URL သတ်မှတ်ခြင်း
   const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
 
-  // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုက် UI သို့ ဦးတည်မည့် target URL
+  // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုဒ် UI သို့ ဦးတည်မည့် target URL
   const targetUrl = article
     ? `https://www.tolimolimyanmar.com/?article=${encodeURIComponent(article)}`
     : (product
       ? `https://www.tolimolimyanmar.com/?product=${encodeURIComponent(product)}`
       : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : 'https://www.tolimolimyanmar.com/'));
 
-  let title = "Tolimoli Myanmar | Adult Toys Shop";
-  let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် ရှာယူရရှိနိုင်ပါသည်။";
+  let title = "Tolimoli Myanmar – Adult Toys Shop";
+  let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် မှာယူရရှိနိုင်ပါသည်။";
   let image = "https://www.tolimolimyanmar.com/logo.png";
 
-  // Category များအတွက် Fast-Lookup ဇယား (Viber bot ချက်ချင်း ဖတ်ရှုနိုင်ရန်)
+  // Category များအတွက် Fast-Lookup ဇယား (Viber bot ချက်ချင်း ဖတ်ယူနိုင်ရန်)
   const CATEGORY_PREVIEWS = {
     'pump': {
       title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar',
@@ -38,19 +38,19 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/VMy4k6s/vibrator.jpg'
     },
     'masturbator': {
-      title: 'မတု / ဂျာတု - Tolimoli Myanmar',
-      desc: 'မတု / ဂျာတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
+      title: 'မတု / ဂျာထု - Tolimoli Myanmar',
+      desc: 'မတု / ဂျာထု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      img: 'https://i.ibb.co/0VpQ2Jt/masturbator.jpg'
     },
     'condom': {
-      title: 'စီလီကွန်းအစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်းအစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
+      title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
+      desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      img: 'https://i.ibb.co/8b7vFfH/condom.jpg'
     },
     'sleeve': {
-      title: 'စီလီကွန်းအစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်းအစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
+      title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
+      desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      img: 'https://i.ibb.co/8b7vFfH/condom.jpg'
     },
     'ring': {
       title: 'သုတ်ထိန်းကွင်း - Tolimoli Myanmar',
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
   const RTDB_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/shop_products.json";
 
   try {
-    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက (Database မှ ဆောင်းပါး Title, Summary, Cover ပုံ ဆွဲယူမည်)
+    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက (Firebase Database မှ ဆောင်းပါး Title, Summary, Cover ပုံ ဆွဲယူမည်)
     if (article) {
       const artUrl = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/articles/${encodeURIComponent(article)}.json`;
       const response = await fetch(artUrl);
@@ -97,15 +97,14 @@ export default async function handler(req, res) {
           if (typeof item.image === 'string' && item.image.trim()) pImg = item.image.trim();
           else if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) pImg = item.imageUrl.trim();
           else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') pImg = item.images[0].trim();
-
+          
           if (pImg) image = pImg;
         }
       }
-    }
+    } 
     // ၂။ Category Link ဖြစ်ပါက (Instant Lookup ဖြင့် အရင်စစ်ဆေးပြီး လိုအပ်ပါက DB ဆွဲမည်)
     else if (cat) {
       const slugKey = decodeURIComponent(String(cat)).trim().toLowerCase();
-
       if (CATEGORY_PREVIEWS[slugKey]) {
         title = CATEGORY_PREVIEWS[slugKey].title;
         description = CATEGORY_PREVIEWS[slugKey].desc;
@@ -130,7 +129,7 @@ export default async function handler(req, res) {
           if (typeof matchedItem.image === 'string' && matchedItem.image.trim()) catImg = matchedItem.image.trim();
           else if (typeof matchedItem.imageUrl === 'string' && matchedItem.imageUrl.trim()) catImg = matchedItem.imageUrl.trim();
           else if (Array.isArray(matchedItem.images) && matchedItem.images.length > 0 && typeof matchedItem.images[0] === 'string') catImg = matchedItem.images[0].trim();
-
+          
           if (catImg) image = catImg;
         }
       }
@@ -147,8 +146,8 @@ export default async function handler(req, res) {
 <head>
   <meta charset="UTF-8">
   <title>${title}</title>
-
-  <!-- Open Graph Meta Tags (Telegram / Viber / Facebook) -->
+  
+  <!-- Open Graph Meta Tags (Viber / Facebook / Telegram) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
@@ -166,8 +165,8 @@ export default async function handler(req, res) {
   <meta name="twitter:image" content="${image}">
 
   <style>
-    body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #0b0f19; color: #fff; }
-    .card { background: #1e293b; padding: 24px; border-radius: 12px; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); text-align: center; }
+    body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 80vh; text-align: center; padding: 20px; background: #0f172a; color: white; }
+    .card { background: #1e293b; padding: 24px; border-radius: 12px; max-width: 400px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
     img { width: 100%; border-radius: 8px; margin-bottom: 16px; object-fit: cover; max-height: 280px; }
     h2 { font-size: 1.1rem; margin-bottom: 8px; }
     p { color: #f59e0b; font-weight: bold; margin-bottom: 20px; }
