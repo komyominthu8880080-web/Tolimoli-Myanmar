@@ -2984,79 +2984,6 @@ function scrollCategories(amount) {
           </div>
         </form>
 
-        <!-- ADMIN ARTICLE MANAGEMENT SECTION -->
-<div id="adminArticleSection" style="background:#1a1e29; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:18px; margin-top:20px;">
-  <h3 id="articleFormHeader" style="color:var(--gold, #d4af37); margin-top:0; margin-bottom:14px; font-size:1.1rem;">
-    <i class="fas fa-newspaper"></i> ဗဟုသုတ / ဆောင်းပါး / ဗီဒီယို အသစ်တင်ရန်
-  </h3>
-
-  <form id="articleForm" onsubmit="event.preventDefault(); saveArticle();" style="display:flex; flex-direction:column; gap:12px;">
-    <input type="hidden" id="editArticleId" value="">
-
-    <!-- Title -->
-    <div>
-      <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">ဆောင်းပါး ခေါင်းစဉ် *</label>
-      <input type="text" id="artTitle" required placeholder="ဥပမာ- ပစ္စည်းအသုံးပြုနည်းနှင့် ရေရှည်ထိန်းသိမ်းနည်း အပြည့်အစုံ" style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-    </div>
-
-    <!-- Category & Type -->
-    <div style="display:flex; gap:10px;">
-      <div style="flex:1;">
-        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">အမျိုးအစား (Type) *</label>
-        <select id="artType" style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-          <option value="long_article">ဆောင်းပါးရှည် (Long Article)</option>
-          <option value="short_tip">အကြံပြုချက်တို (Short Tip)</option>
-          <option value="video">ဗီဒီယို လမ်းညွှန် (Video Guide / Review)</option>
-          <option value="faq">အမေးအဖြေ (FAQ)</option>
-        </select>
-      </div>
-      <div style="flex:1;">
-        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">ကဏ္ဍ (Category) *</label>
-        <input type="text" id="artCategory" placeholder="ဥပမာ- အသုံးပြုနည်းလမ်းညွှန်၊ ကျန်းမာရေးဗဟုသုတ" style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-      </div>
-    </div>
-
-    <!-- Cover Image & Video URL -->
-    <div style="display:flex; gap:10px;">
-      <div style="flex:1;">
-        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">မျက်နှာဖုံးပုံ URL (Cover Image Link)</label>
-        <input type="url" id="artCover" placeholder="https://..." style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-      </div>
-      <div style="flex:1;">
-        <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">YouTube Video URL (သို့မဟုတ် Embed Link)</label>
-        <input type="url" id="artVideo" placeholder="https://www.youtube.com/watch?v=..." style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-      </div>
-    </div>
-
-    <!-- Summary -->
-    <div>
-      <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">အကျဉ်းချုပ် (SEO & Card Display အတွက် အရေးကြီးပါသည်)</label>
-      <input type="text" id="artSummary" placeholder="စာကြောင်းရေ ၁ ကြောင်း သို့မဟုတ် ၂ ကြောင်းဖြင့် အနှစ်ချုပ် ရေးပါ..." style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box;">
-    </div>
-
-    <!-- Full Content -->
-    <div>
-      <label style="display:block; font-size:12px; color:#aaa; margin-bottom:4px;">ဆောင်းပါး အပြည့်အစုံ စာသား</label>
-      <textarea id="artContent" rows="6" placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:9px 12px; background:#121620; border:1px solid rgba(255,255,255,0.12); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box; line-height:1.6;"></textarea>
-    </div>
-
-    <!-- Action Buttons -->
-    <div style="display:flex; gap:10px; margin-top:6px;">
-      <button type="submit" id="btnSubmitArticle" style="flex:1; padding:10px; background:var(--gold, #d4af37); color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer;">
-        <i class="fas fa-save"></i> ဆောင်းပါး သိမ်းဆည်းမည်
-      </button>
-      <button type="button" id="btnCancelArticleEdit" onclick="resetArticleForm();" style="display:none; padding:10px 18px; background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:6px; cursor:pointer;">
-        မလုပ်တော့ပါ
-      </button>
-    </div>
-  </form>
-
-  <!-- Article Table List -->
-  <div style="margin-top:24px;">
-    <h4 style="color:#aaa; font-size:13px; margin-bottom:10px;">တင်ထားပြီးသော ဆောင်းပါးများ စာရင်း</h4>
-    <div id="adminArticleTableContainer" style="overflow-x:auto;"></div>
-  </div>
-</div>
         <h4 style="color:#fff; margin:14px 0 6px; font-size:0.85rem;">လက်ရှိ ကုန်ပစ္စည်းများ စာရင်း</h4>
         <div id="adminProductTableContainer" style="overflow-x:auto;"></div>
       </div>
@@ -4109,7 +4036,7 @@ function scrollCategories(amount) {
   </div>
 
   <!-- Tab: Articles & Knowledge Base -->
-<div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;">
+<div class="admin-tab" id="articleTab" style="padding:12px 0;">
   <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
     
     <!-- Section Header -->
@@ -9428,9 +9355,14 @@ function closeModal(id) {
     }
   }
   if (tId === 'articleTab') {
+    const art = document.getElementById('articleTab');
+    if (art) art.style.display = 'block';
     if (typeof renderAdminArticleList === 'function') {
       renderAdminArticleList();
     }
+  } else {
+    const art = document.getElementById('articleTab');
+    if (art) art.style.display = 'none';
   }
 }
 
