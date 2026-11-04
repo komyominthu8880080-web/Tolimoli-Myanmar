@@ -4420,6 +4420,26 @@ function scrollCategories(amount) {
     firebase.initializeApp(firebaseConfig);
     const fbDb = firebase.database();
     const database = fbDb;
+    // Fetch Articles from Firebase
+function fetchArticles() {
+  if (typeof database === 'undefined') return;
+  database.ref('articles').on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (typeof appArticles !== 'undefined') {
+      appArticles = [];
+    } else {
+      window.appArticles = [];
+    }
+    if (data) {
+      Object.keys(data).forEach((key) => {
+        appArticles.push({ id: key, ...data[key] });
+      });
+    }
+    if (typeof renderAdminArticleList === 'function') renderAdminArticleList();
+    if (typeof renderStorefrontArticles === 'function') renderStorefrontArticles();
+    if (typeof checkUrlForArticle === 'function') checkUrlForArticle();
+  });
+}
 fetchArticles();
 
     fbDb.ref('shop_admin_pin').on('value', snap => {
@@ -13697,23 +13717,6 @@ function formatYoutubeEmbed(url) {
   if (!url) return '';
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
   return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
-
-// 2. Fetch Articles from Firebase
-function fetchArticles() {
-  if (typeof database === 'undefined') return;
-  database.ref('articles').on('value', (snapshot) => {
-    const data = snapshot.val();
-    appArticles = [];
-    if (data) {
-      Object.keys(data).forEach((key) => {
-        appArticles.push({ id: key, ...data[key] });
-      });
-    }
-    renderAdminArticleList();
-    renderStorefrontArticles();
-    checkUrlForArticle();
-  });
 }
 
 // 3. Save or Update Article
