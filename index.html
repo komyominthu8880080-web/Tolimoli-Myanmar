@@ -3095,12 +3095,22 @@ function scrollCategories(amount) {
       <div style="grid-column: span 2;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
           <label style="font-size:12px; color:#aaa;">ဆောင်းပါး အပြည့်အစုံ စာသား *</label>
-          <div style="display:flex; gap:6px;">
-            <button type="button" onclick="insertArticleFormat('bold')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;"><b>B</b></button>
-            <button type="button" onclick="insertArticleFormat('header')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">H3</button>
--             <button type="button" onclick="insertArticleFormat('bullet')" style="background:#202533; color:#ccc; border:1px solid rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px; font-size:11px; cursor:pointer;">Bullet
-</button>
-          </div>
+          <div style="display:inline-flex; gap:6px; align-items:center; flex-wrap:wrap;">
+          <button type="button" onclick="insertArticleFormat('bold')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid #444; border-radius:4px; cursor:pointer;"><b>B</b></button>
+          <button type="button" onclick="insertArticleFormat('header')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid #444; border-radius:4px; cursor:pointer;"><b>H3</b></button>
+          <button type="button" onclick="insertArticleFormat('bullet')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid #444; border-radius:4px; cursor:pointer;">Bullet</button>
+          
+          <!-- စာပိုဒ်ကြား ပုံတင်မည့် ခလုတ် -->
+          <label style="padding:4px 8px; font-size:11px; background:#1e3a5f; color:#38bdf8; border:1px solid #0284c7; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; margin:0;">
+            <i class="fas fa-image"></i> + ပုံထည့်မည်
+            <input type="file" accept="image/*" onchange="insertInlineImage(this)" style="display:none;">
+          </label>
+
+          <!-- စာပိုဒ်ကြား Video ထည့်မည့် ခလုတ် -->
+          <button type="button" onclick="insertInlineVideoPrompt()" style="padding:4px 8px; font-size:11px; background:#3b1e54; color:#d8b4fe; border:1px solid #9333ea; border-radius:4px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+            <i class="fas fa-video"></i> + Video ထည့်မည်
+          </button>
+        </div>
         </div>
         <textarea id="artContent" rows="7" required placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:10px 12px; background:#10131a; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff; font-size:13px; box-sizing:border-box; line-height:1.6;"></textarea>
       </div>
@@ -13947,7 +13957,65 @@ function insertArticleFormat(type) {
   textarea.value = text.substring(0, start) + replacement + text.substring(end);
   textarea.focus();
 }
+// စာပိုဒ်ကြားထဲသို့ ပုံ Upload တင်ပြီး ညှပ်ထည့်ပေးသည့် စနစ်
+async function insertInlineImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  const textarea = document.getElementById('artContent');
+  if (!textarea) return;
 
+  const originalText = textarea.value;
+  const start = textarea.selectionStart;
+  const placeholder = '\n\n[ဓာတ်ပုံ တင်နေပါသည်... ခေတ္တစောင့်ပါ]\n\n';
+  textarea.value = originalText.substring(0, start) + placeholder + originalText.substring(start);
+
+  const formData = new FormData();
+  formData.append('image', file);
+
+  try {
+    const res = await fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa5ad3ac2222c825a', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data && data.data && data.data.url) {
+      const imgHtml = `\n<div style="text-align:center; margin:16px 0;"><img src="${data.data.url}" style="max-width:100%; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);" /></div>\n`;
+      textarea.value = textarea.value.replace(placeholder, imgHtml);
+    } else {
+      throw new Error('Upload failed');
+    }
+  } catch (err) {
+    alert('ဓာတ်ပုံ Upload တင်မရဖြစ်နေပါသည်။');
+    textarea.value = textarea.value.replace(placeholder, '');
+  }
+  input.value = '';
+}
+
+// စာပိုဒ်ကြားထဲသို့ YouTube သို့မဟုတ် Video Link ညှပ်ထည့်သည့် စနစ်
+function insertInlineVideoPrompt() {
+  const url = prompt('YouTube သို့မဟုတ် Video Direct Link ကို ထည့်ပါ-');
+  if (!url) return;
+  const textarea = document.getElementById('artContent');
+  if (!textarea) return;
+
+  let embedHtml = '';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) {
+    let videoId = '';
+    if (url.includes('youtu.be/')) {
+      videoId = url.split('youtu.be/')[1].split('?')[0];
+    } else if (url.includes('v=')) {
+      videoId = url.split('v=')[1].split('&')[0];
+    }
+    embedHtml = `\n<div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:8px; margin:16px 0;"><iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe></div>\n`;
+  } else {
+    embedHtml = `\n<div style="margin:16px 0; border-radius:8px; overflow:hidden;"><video src="${url}" controls style="width:100%; max-height:400px; background:#000;"></video></div>\n`;
+  }
+
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const original = textarea.value;
+  textarea.value = original.substring(0, start) + embedHtml + original.substring(end);
+}
 // ၅။ Save or Update Article (Firebase Realtime Database)
 function saveArticle() {
   const idInput = document.getElementById('editArticleId');
@@ -14179,17 +14247,37 @@ function openArticleModal(id) {
     `;
   }
 
+  // Helloဆရာဝန် ပုံစံအတိုင်း ခေါင်းစဉ်ကို အပေါ်ဆုံးထားပြီး စာသား/ပုံ/ဗီဒီယိုများ အစဉ်လိုက် ပြသခြင်း
+  let formattedContent = (art.content || '').replace(/\n/g, '<br>');
+
   let bodyHtml = `
-    ${art.coverImage ? `<img src="${art.coverImage}" style="width:100%; max-height:300px; object-fit:cover; border-radius:8px; margin-bottom:14px;">` : ''}
-    <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <span style="background:rgba(212,175,55,0.15); color:var(--gold,#d4af37); font-size:12px; padding:3px 8px; border-radius:4px;">${art.category}</span>
-      <span style="color:#888; font-size:12px; padding:3px 0;">• ${art.type}</span>
+    <div style="max-width:760px; margin:0 auto; padding:6px 4px;">
+      <!-- Category & Date Badge -->
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px; font-size:12px; color:var(--gold,#d4af37);">
+        <span style="background:rgba(212,175,55,0.15); padding:3px 10px; border-radius:12px;"><i class="fas fa-tag"></i> ${art.category || art.type || 'ဗဟုသုတ'}</span>
+        ${art.createdAt ? `<span>•</span><span><i class="far fa-calendar-alt"></i> ${art.createdAt}</span>` : ''}
+      </div>
+
+      <!-- ဆောင်းပါး ခေါင်းစဉ် (Title) -->
+      <h1 style="font-size:22px; font-weight:700; line-height:1.45; color:#fff; margin:0 0 16px 0;">${art.title || ''}</h1>
+      
+      <!-- မျက်နှာဖုံးပုံ (Cover Image) -->
+      ${art.coverImage ? `<div style="margin-bottom:18px; text-align:center;"><img src="${art.coverImage}" style="width:100%; max-height:380px; object-fit:cover; border-radius:10px; box-shadow:0 4px 14px rgba(0,0,0,0.4);" /></div>` : ''}
+
+      <!-- Direct Video (ရှိခဲ့လျှင်) -->
+      ${art.directVideo ? `<div style="margin-bottom:18px; border-radius:10px; overflow:hidden;"><video src="${art.directVideo}" controls style="width:100%; max-height:380px; background:#000;"></video></div>` : ''}
+
+      <!-- အပိုင်းများ / Links (အပိုင်း ၁၊ အပိုင်း ၂ ခလုတ်များ) -->
+      ${linksHtml}
+
+      <!-- စာပိုဒ်ကြားထဲတွင် ပုံ/ဗီဒီယိုများ ညှပ်ထည့်ထားသော ဆောင်းပါး အပြည့်အစုံ -->
+      <div style="font-size:14.5px; line-height:1.85; color:#e2e8f0; margin-top:18px; word-break:break-word;">
+        ${formattedContent}
+      </div>
+
+      <!-- ဆက်စပ်ပစ္စည်း (Related Product) -->
+      ${relatedHtml}
     </div>
-    <h2 style="color:#fff; font-size:18px; margin:0 0 12px 0; line-height:1.4;">${art.title}</h2>
-    ${art.directVideo ? `<video src="${art.directVideo}" controls style="width:100%; max-height:360px; border-radius:8px; margin-bottom:14px; background:#000;"></video>` : ''}
-    ${linksHtml}
-    <div style="color:#ccc; font-size:14px; line-height:1.7; white-space:pre-line; margin-bottom:16px;">${art.content}</div>
-    ${relatedHtml}
   `;
 
   document.getElementById('articleModalBody').innerHTML = bodyHtml;
