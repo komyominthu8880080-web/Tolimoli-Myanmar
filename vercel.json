@@ -2,6 +2,10 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/a/:article",
+      "destination": "/api/share?article=:article"
+    },
+    {
       "source": "/c/:cat",
       "destination": "/api/share?cat=:cat"
     },
