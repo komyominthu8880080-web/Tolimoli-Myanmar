@@ -14290,7 +14290,7 @@ function openArticleModal(id) {
           <div style="font-size:11px; color:var(--gold,#d4af37);">ဤဆောင်းပါးတွင် ပါဝင်သောပစ္စည်း</div>
           <div style="font-size:13px; font-weight:600; color:#fff;">SKU / အမည်: ${art.relatedProduct}</div>
         </div>
-        <button type="button" onclick="closeArticleModal(); if(typeof closeArticleListModal === 'function') closeArticleListModal(); const artListMod = document.getElementById('articlesModal') || document.getElementById('articleListModal') || document.getElementById('allArticlesModal'); if(artListMod) artListMod.style.display = 'none'; document.body.style.overflow = ''; setTimeout(() => { const searchInput = document.getElementById('searchInput') || document.querySelector('input[type=search]') || document.querySelector('input[placeholder*=\'ရှာဖွေ\']'); if(searchInput){ searchInput.value = '${art.relatedProduct}'; searchInput.dispatchEvent(new Event('input')); } if(typeof filterProducts === 'function'){ filterProducts('${art.relatedProduct}'); } const targetSec = document.getElementById('productsSection') || document.getElementById('products') || document.querySelector('.products-grid') || searchInput; if(targetSec){ targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 250);" style="display:inline-block; margin-top:8px; padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:bold; font-size:12px; border:none; border-radius:6px; cursor:pointer;">
+        <button type="button" onclick="goToRelatedProduct('${art.relatedProduct}')" style="display:inline-block; margin-top:8px; padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:bold; font-size:12px; border:none; border-radius:6px; cursor:pointer;">
           ပစ္စည်းအား ကြည့်ရှု့ဝယ်ယူရန်
         </button>
       </div>
@@ -14382,6 +14382,45 @@ function closeArticleModal() {
   document.body.style.overflow = 'auto';
   window.history.pushState({}, '', window.location.pathname);
   document.title = 'Tolimoli Myanmar';
+}
+function goToRelatedProduct(sku) {
+  // ၁။ ဆောင်းပါး Modal အားလုံးကို အပြီးပိတ်ပါ
+  closeArticleModal();
+  if (typeof closeArticleListModal === 'function') closeArticleListModal();
+  
+  const modalsToClose = ['articlesModal', 'articleListModal', 'allArticlesModal', 'articleDetailModal'];
+  modalsToClose.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  document.body.style.overflow = 'auto';
+
+  if (!sku) return;
+
+  // ၂။ Search Box တွင် SKU ထည့်ပြီး ပစ္စည်းနေရာသို့ Scroll ဆင်းပါ
+  setTimeout(() => {
+    const searchInput = document.getElementById('searchInput') || 
+                        document.querySelector('input[type=search]') || 
+                        document.querySelector('input[placeholder*="ရှာဖွေ"]');
+    
+    if (searchInput) {
+      searchInput.value = sku;
+      searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    if (typeof filterProducts === 'function') {
+      filterProducts(sku);
+    }
+
+    const targetSec = document.getElementById('productsSection') || 
+                      document.getElementById('products') || 
+                      document.querySelector('.products-grid') || 
+                      searchInput;
+                      
+    if (targetSec) {
+      targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 200);
 }
 // Native Web Share (ဖုန်းများတွင် Messenger, Viber, etc. အကုန်ဖြင့် share ရန်)
 function shareArticleNative(title, url) {
