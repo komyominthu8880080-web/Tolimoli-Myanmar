@@ -5183,24 +5183,56 @@ function selectSearchSuggestion(productId) {
   }
 }
 
-// Search input တွင် စာရိုက်တိုင်း suggestions စစ်ဆေးပြသခြင်း
-document.addEventListener('DOMContentLoaded', () => {
-  const searchInput = document.getElementById('searchInput');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      renderSearchSuggestions(e.target.value);
-    });
-  }
-
-  // အပြင်ဘက်ကို ကလစ်နှိပ်ပါက suggestion box ကို ပိတ်ပေးခြင်း
-  document.addEventListener('click', (e) => {
-    const box = document.getElementById('searchSuggestionsBox');
+// Search input တွင် စာရိုက်တိုင်း suggestions စစ်ဆေးပြသခြင်း နှင့် Back button ချိတ်ဆက်မှု
+  document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
-    if (box && searchInput && !searchInput.contains(e.target) && !box.contains(e.target)) {
-      box.style.display = 'none';
+    let isSearchPushed = false;
+
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        renderSearchSuggestions(val);
+
+        // စာရိုက်လိုက်ချိန်တွင် မူလအခြေအနေမှ Back ပြန်ဆုတ်နိုင်ရန် History State တစ်ခု မှတ်ထားမည်
+        if (val.trim() !== '' && !isSearchPushed) {
+          window.history.pushState({ searchActive: true }, '');
+          isSearchPushed = true;
+        } else if (val.trim() === '' && isSearchPushed) {
+          isSearchPushed = false;
+        }
+      });
     }
+
+    // ဖုန်း၏ Back Button ကို နှိပ်လိုက်ပါက Search Box ကို ရှင်းပြီး မူလပစ္စည်းများ ပြန်ပြမည်
+    window.addEventListener('popstate', (e) => {
+      if (searchInput && searchInput.value.trim() !== '') {
+        searchInput.value = '';
+        isSearchPushed = false;
+
+        // Suggestions box ပိတ်ခြင်း
+        const box = document.getElementById('searchSuggestionsBox');
+        if (box) box.style.display = 'none';
+
+        // မူလ ပစ္စည်းများ အကုန် ပြန်ပြသရန် filter refresh လုပ်ခြင်း
+        if (typeof filterProducts === 'function') {
+          filterProducts();
+        } else if (typeof renderProducts === 'function') {
+          renderProducts(products);
+        } else {
+          searchInput.dispatchEvent(new Event('input'));
+        }
+      }
+    });
+
+    // အပြင်ဘက်ကို ကလစ်နှိပ်ပါက suggestion box ကို ပိတ်ပေးခြင်း
+    document.addEventListener('click', (e) => {
+      const box = document.getElementById('searchSuggestionsBox');
+      const searchInput = document.getElementById('searchInput');
+      if (box && searchInput && !searchInput.contains(e.target) && !box.contains(e.target)) {
+        box.style.display = 'none';
+      }
+    });
   });
-});
     // ==========================================
 // PRODUCT COMPARISON TOOL LOGIC
 // ==========================================
