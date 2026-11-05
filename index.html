@@ -14384,20 +14384,21 @@ function closeArticleModal() {
   document.title = 'Tolimoli Myanmar';
 }
 function goToRelatedProduct(sku) {
-  // ၁။ ဆောင်းပါး Modal အားလုံးကို အပြီးပိတ်ပါ
+  // ၁။ ဆောင်းပါးနှင့် စာရင်း Modal နှစ်ခုစလုံးကို အပြီးပိတ်ပါ
   closeArticleModal();
-  if (typeof closeArticleListModal === 'function') closeArticleListModal();
+  if (typeof closeKnowledgeListModal === 'function') closeKnowledgeListModal();
   
-  const modalsToClose = ['articlesModal', 'articleListModal', 'allArticlesModal', 'articleDetailModal'];
-  modalsToClose.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = 'none';
-  });
+  const km = document.getElementById('knowledgeListModal');
+  if (km) km.style.display = 'none';
+  
+  const dm = document.getElementById('articleDetailModal');
+  if (dm) dm.style.display = 'none';
+
   document.body.style.overflow = 'auto';
 
   if (!sku) return;
 
-  // ၂။ Search Box တွင် SKU ထည့်ပြီး ပစ္စည်းနေရာသို့ Scroll ဆင်းပါ
+  // ၂။ Search Box တွင် SKU ထည့်ပြီး ပစ္စည်းဆီသို့ Scroll ဆင်းပါ
   setTimeout(() => {
     const searchInput = document.getElementById('searchInput') || 
                         document.querySelector('input[type=search]') || 
@@ -14420,7 +14421,7 @@ function goToRelatedProduct(sku) {
     if (targetSec) {
       targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, 200);
+  }, 250);
 }
 // Native Web Share (ဖုန်းများတွင် Messenger, Viber, etc. အကုန်ဖြင့် share ရန်)
 function shareArticleNative(title, url) {
