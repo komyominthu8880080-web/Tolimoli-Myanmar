@@ -2922,7 +2922,7 @@ function scrollCategories(amount) {
             </div>
             <div class="form-group">
               <label style="color:#f59e0b;"><i class="fas fa-calendar-alt"></i> Expired Date (Admin သီးသန့်)</label>
-              <input type="date" id="pExpiryDate" style="color:#fde047; font-weight:600;">
+              <input type="text" id="pExpiryDate" placeholder="DD/MM/YYYY (ဥပမာ- 01/03/2029)" maxlength="10" inputmode="numeric" oninput="formatExpiryInput(this)" style="color:#fde047; font-weight:600;">
             </div>
           </div>
 
@@ -5786,6 +5786,17 @@ function formatToDMY(dateStr) {
     if (parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`; // YYYY-MM-DD -> DD/MM/YYYY
   }
   return dateStr;
+}
+// Admin input တွင် နံပါတ်ရိုက်ထည့်စဉ် DD/MM/YYYY အဖြစ် အလိုအလျောက် format ချပေးခြင်း
+function formatExpiryInput(input) {
+  let v = input.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length >= 5) {
+    input.value = `${v.slice(0, 2)}/${v.slice(2, 4)}/${v.slice(4)}`;
+  } else if (v.length >= 3) {
+    input.value = `${v.slice(0, 2)}/${v.slice(2)}`;
+  } else {
+    input.value = v;
+  }
 }
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
