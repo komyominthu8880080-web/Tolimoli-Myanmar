@@ -2175,6 +2175,11 @@ function scrollCategories(amount) {
                   <span>⚖️ အလေးချိန် (Weight)</span>
                   <b id="specWeightVal" style="color:#38bdf8;">-</b>
                 </div>
+                <!-- Expired Date အကွက် အသစ် -->
+                <div class="spec-grid-item" id="specExpiryBox" style="grid-column: span 2; display:none;">
+                  <span>📅 သက်တမ်းကုန်ဆုံးရက် (Expired Date)</span>
+                  <b id="specExpiryVal" style="color:#f59e0b;">-</b>
+                </div>
               </div>
 
       <!-- MULTI-COLOR QUANTITY VARIANT PICKER -->
@@ -5766,6 +5771,22 @@ function renderRecommendedProducts(currentProduct) {
     `;
   }).join('');
 }
+// ရက်စွဲကို DD/MM/YYYY ပုံစံပြောင်းပေးမည့် Helper Function
+function formatToDMY(dateStr) {
+  if (!dateStr || String(dateStr).trim() === '' || dateStr === '-') return '';
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+  const parts = String(dateStr).split(/[-/]/);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) return `${parts[2]}/${parts[1]}/${parts[0]}`; // YYYY-MM-DD -> DD/MM/YYYY
+  }
+  return dateStr;
+}
     function openProductDetail(id) {
       const p = products.find(x => x.id === id);
       if (!p) return;
@@ -5889,15 +5910,20 @@ function setSpecDisplay(boxId, valId, val) {
 }
 
 const hasLen = setSpecDisplay('specLengthBox', 'specLengthVal', p.length);
-const hasWid = setSpecDisplay('specWidthBox', 'specWidthVal', p.width);
-const hasGir = setSpecDisplay('specGirthBox', 'specGirthVal', p.girth);
-const hasWgt = setSpecDisplay('specWeightBox', 'specWeightVal', p.weight);
+    const hasWid = setSpecDisplay('specWidthBox', 'specWidthVal', p.width);
+    const hasGir = setSpecDisplay('specGirthBox', 'specGirthVal', p.girth);
+    const hasWgt = setSpecDisplay('specWeightBox', 'specWeightVal', p.weight);
 
-// ၄ ခုစလုံး မရှိပါက ဘောင်အကွက်တစ်ခုလုံး (Grid) ကိုပါ အပြီးဖျောက်ထားမည်
-const specsGrid = document.getElementById('detailSpecsGrid');
-if (specsGrid) {
-  specsGrid.style.display = (hasLen || hasWid || hasGir || hasWgt) ? 'grid' : 'none';
-}
+    // Expired Date စစ်ဆေးပြီး DD/MM/YYYY ဖြင့် ပြသခြင်း
+    const rawExpiry = p.expiryDate || p.expiredDate || p.expDate || p.expiry;
+    const formattedExpiry = typeof formatToDMY === 'function' ? formatToDMY(rawExpiry) : (rawExpiry || '');
+    const hasExp = setSpecDisplay('specExpiryBox', 'specExpiryVal', formattedExpiry);
+
+    // ၅ ခုထဲမှ အနည်းဆုံး ၁ ခု ရှိမှသာ Grid ဘောင်ကို ပြသမည်
+    const specsGrid = document.getElementById('detailSpecsGrid');
+    if (specsGrid) {
+      specsGrid.style.display = (hasLen || hasWid || hasGir || hasWgt || hasExp) ? 'grid' : 'none';
+    }
 
       // --- Multi-Color Quantities Setup ---
       window.detailColorQuantities = {};
