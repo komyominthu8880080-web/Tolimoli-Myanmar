@@ -3102,6 +3102,14 @@ function scrollCategories(amount) {
             </div>
           </div>
 
+          <!-- 📌 Pin to Top Checkbox -->
+              <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px; background:rgba(212,175,55,0.08); border:1px dashed var(--gold,#d4af37); padding:8px 12px; border-radius:8px;">
+                <input type="checkbox" id="articleIsPinned" style="width:18px; height:18px; accent-color:var(--gold,#d4af37); cursor:pointer;">
+                <label for="articleIsPinned" style="font-size:13px; font-weight:600; color:var(--gold,#d4af37); cursor:pointer; margin:0; display:flex; align-items:center; gap:6px;">
+                  <i class="fas fa-thumbtack"></i> ဤသတင်းကို ထိပ်ဆုံးတွင် Pin ချိတ်ထားမည်
+                </label>
+              </div>
+
           <!-- Form Buttons -->
           <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
             <button type="button" onclick="resetArticleForm()" style="padding:10px 16px; background:rgba(255,255,255,0.08); color:#ccc; border:none; border-radius:6px; font-size:12px; cursor:pointer;">မလုပ်တော့ပါ</button>
@@ -14107,6 +14115,7 @@ function saveArticle(e) {
   }
 
   const payload = {
+    isPinned: document.getElementById('articleIsPinned')?.checked || false,
     title,
     type,
     category,
@@ -14161,6 +14170,7 @@ function saveArticle(e) {
 // ၆။ Reset Form
 function resetArticleForm() {
   document.getElementById('editArticleId').value = '';
+  if (document.getElementById('articleIsPinned')) document.getElementById('articleIsPinned').checked = false;
   document.getElementById('artTitle').value = '';
   document.getElementById('artCategory').value = '';
   document.getElementById('artCover').value = '';
@@ -14283,6 +14293,7 @@ function editArticle(id) {
   document.getElementById('artRelatedProduct').value = art.relatedProduct || '';
   document.getElementById('artSummary').value = art.summary || '';
   document.getElementById('artContent').value = art.content || '';
+  if (document.getElementById('articleIsPinned')) document.getElementById('articleIsPinned').checked = !!art.isPinned;
 
   const linksContainer = document.getElementById('articleLinksContainer');
   linksContainer.innerHTML = '';
@@ -14306,22 +14317,27 @@ function deleteArticle(id) {
 function renderStorefrontArticles(filteredList = null) {
   const container = document.getElementById('storefrontArticleContainer');
   if (!container) return;
-  const rawList = filteredList !== null ? filteredList : (typeof appArticles !== 'undefined' ? appArticles : []);
-  const list = rawList.filter(a => a.status !== 'draft');
 
-  if (list.length === 0) {
-    container.innerHTML = '<div style="color:#aaa; text-align:center; padding:24px; font-size:13px;">ကိုက်ညီသော ဗဟုသုတ / ဆောင်းပါး မတွေ့ရှိပါ။</div>';
-    return;
-  }
+  let rawList = filteredList !== null ? filteredList : (typeof appArticles !== 'undefined' ? appArticles : []);
+  
+  // 📌 Pin ချိတ်ထားသော သတင်းများကို ထိပ်ဆုံးရောက်အောင် စီတန်းခြင်း
+  let list = [...rawList].sort((a, b) => {
+    const aPin = a.isPinned ? 1 : 0;
+    const bPin = b.isPinned ? 1 : 0;
+    return bPin - aPin;
+  });
 
   container.innerHTML = list.map(art => `
     <div onclick="openArticleModal('${art.id}')" style="background:#1a1e29; border:1px solid rgba(255,255,255,0.08); border-radius:10px; overflow:hidden; cursor:pointer; margin-bottom:12px; transition:transform 0.15s ease;">
       ${art.coverImage ? `<img src="${art.coverImage}" style="width:100%; height:150px; object-fit:cover;" loading="lazy">` : ''}
       <div style="padding:14px;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-          <span style="font-size:11px; color:var(--gold,#d4af37); background:rgba(212,175,55,0.1); padding:2px 6px; border-radius:4px;">${art.category}</span>
-          <span style="font-size:11px; color:#888;">${art.type}</span>
-        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  ${art.isPinned ? `<span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#000; font-size:10px; font-weight:700; padding:2px 8px; border-radius:12px; display:inline-flex; align-items:center; gap:3px;"><i class="fas fa-thumbtack"></i> PINNED</span>` : ''}
+                  <span style="font-size:11px; color:var(--gold,#d4af37); background:rgba(212,175,55,0.1); padding:2px 6px; border-radius:4px;">${art.category || ''}</span>
+                </div>
+                <span style="font-size:11px; color:#888;">${art.type || ''}</span>
+              </div>
         <h4 style="margin:0 0 6px 0; color:#fff; font-size:14px; line-height:1.4;">${art.title}</h4>
         <p style="margin:0; font-size:12px; color:#aaa; line-height:1.5;">${art.summary || (art.content ? art.content.slice(0, 80) + '...' : '')}</p>
       </div>
