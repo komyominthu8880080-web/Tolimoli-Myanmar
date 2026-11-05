@@ -8786,7 +8786,7 @@ function renderAdminColorInputs() {
       document.getElementById('pCost').value = p.cost || 0;
       document.getElementById('pStock').value = (p.stock !== undefined && p.stock !== null) ? p.stock : 0;
       document.getElementById('pWeight').value = p.weight || '';
-      document.getElementById('pExpiryDate').value = p.expiryDate || '';
+      document.getElementById('pExpiryDate').value = formatToDMY(p.expiryDate || p.expiredDate || '');
       document.getElementById('pLength').value = p.length || '';
       document.getElementById('pWidth').value = p.width || '';
       document.getElementById('pGirth').value = p.girth || '';
