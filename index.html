@@ -2989,7 +2989,7 @@ function scrollCategories(amount) {
       </div>
       
       <!-- Tab: Articles & Knowledge Base -->
-  <div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;"></div>
+  <div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;">
   <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
     
     <!-- Section Header -->
@@ -3117,12 +3117,13 @@ function scrollCategories(amount) {
           <input type="text" id="adminArticleSearchInput" oninput="filterAdminArticles()" placeholder="🔍 ရှာဖွေရန် (ခေါင်းစဉ်/ကဏ္ဍ/SKU)..." style="flex:1; padding:6px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box; outline:none;">
         </div>
       </div>
-      <div id="adminArticleListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:450px; overflow-y:auto; padding-right:4px;">
+      <div id="adminArticleListContainer" style="display:flex; flex-direction:column; gap:10px; max-height:500px; overflow-y:auto; width:100%; box-sizing:border-box;">
         <!-- Loaded dynamically via JS -->
       </div>
     </div>
   </div>
-
+  </div>
+  
       <!-- Tab 2: Stock Inventory -->
       <div class="admin-tab" id="stockTab">
         <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
