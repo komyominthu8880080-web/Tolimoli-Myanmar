@@ -2158,24 +2158,24 @@ function scrollCategories(amount) {
 
       <div id="detailStockUrgency"></div>
 
-      <div class="detail-specs-grid">
-        <div class="spec-grid-item">
-          <span>📏 အရှည် (Length)</span>
-          <b id="specLengthVal">-</b>
-        </div>
-        <div class="spec-grid-item">
-          <span>📐 အကျယ် (Width)</span>
-          <b id="specWidthVal">-</b>
-        </div>
-        <div class="spec-grid-item">
-          <span>⭕ လုံးပတ် (Girth)</span>
-          <b id="specGirthVal">-</b>
-        </div>
-        <div class="spec-grid-item">
-          <span>⚖️ အလေးချိန် (Weight)</span>
-          <b id="specWeightVal" style="color:#38bdf8;">-</b>
-        </div>
-      </div>
+      <div class="detail-specs-grid" id="detailSpecsGrid">
+                <div class="spec-grid-item" id="specLengthBox">
+                  <span>📏 အရှည် (Length)</span>
+                  <b id="specLengthVal">-</b>
+                </div>
+                <div class="spec-grid-item" id="specWidthBox">
+                  <span>📐 အကျယ် (Width)</span>
+                  <b id="specWidthVal">-</b>
+                </div>
+                <div class="spec-grid-item" id="specGirthBox">
+                  <span>⭕ လုံးပတ် (Girth)</span>
+                  <b id="specGirthVal">-</b>
+                </div>
+                <div class="spec-grid-item" id="specWeightBox">
+                  <span>⚖️ အလေးချိန် (Weight)</span>
+                  <b id="specWeightVal" style="color:#38bdf8;">-</b>
+                </div>
+              </div>
 
       <!-- MULTI-COLOR QUANTITY VARIANT PICKER -->
       <div style="margin: 8px 0;">
@@ -5872,10 +5872,32 @@ function renderRecommendedProducts(currentProduct) {
         urgencyDiv.innerHTML = noticeHtml;
       }
 
-      document.getElementById('specLengthVal').textContent = p.length || '-';
-      document.getElementById('specWidthVal').textContent = p.width || '-';
-      document.getElementById('specGirthVal').textContent = p.girth || '-';
-      document.getElementById('specWeightVal').textContent = p.weight || '-';
+      // အတိုင်းအတာ တန်ဖိုးရှိမှသာ သက်ဆိုင်ရာ Box ကို ပြသပြီး မရှိလျှင် ဖျောက်ထားမည့် Logic
+function setSpecDisplay(boxId, valId, val) {
+  const box = document.getElementById(boxId);
+  const valEl = document.getElementById(valId);
+  const clean = (val !== null && val !== undefined) ? String(val).trim() : '';
+
+  if (clean && clean !== '-' && clean !== 'undefined' && clean !== 'null') {
+    if (box) box.style.display = 'block';
+    if (valEl) valEl.textContent = clean;
+    return true;
+  } else {
+    if (box) box.style.display = 'none';
+    return false;
+  }
+}
+
+const hasLen = setSpecDisplay('specLengthBox', 'specLengthVal', p.length);
+const hasWid = setSpecDisplay('specWidthBox', 'specWidthVal', p.width);
+const hasGir = setSpecDisplay('specGirthBox', 'specGirthVal', p.girth);
+const hasWgt = setSpecDisplay('specWeightBox', 'specWeightVal', p.weight);
+
+// ၄ ခုစလုံး မရှိပါက ဘောင်အကွက်တစ်ခုလုံး (Grid) ကိုပါ အပြီးဖျောက်ထားမည်
+const specsGrid = document.getElementById('detailSpecsGrid');
+if (specsGrid) {
+  specsGrid.style.display = (hasLen || hasWid || hasGir || hasWgt) ? 'grid' : 'none';
+}
 
       // --- Multi-Color Quantities Setup ---
       window.detailColorQuantities = {};
