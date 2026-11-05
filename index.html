@@ -3123,7 +3123,7 @@ function scrollCategories(amount) {
     </div>
   </div>
   </div>
-  
+
       <!-- Tab 2: Stock Inventory -->
       <div class="admin-tab" id="stockTab">
         <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
@@ -14101,8 +14101,8 @@ function renderAdminArticleList(filteredList = null) {
   }
 
   container.innerHTML = list.map(art => `
-    <div style="display:flex; justify-content:space-between; align-items:center; background:#10131a; padding:10px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
-      <div style="flex:1; min-width:0; margin-right:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; background:#10131a; padding:10px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); margin-bottom:8px;">
+  <div style="flex:1 1 220px; min-width:0;">
         <div style="font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
           ${art.title} 
           <span style="font-size:10px; padding:2px 6px; border-radius:4px; margin-left:6px; ${art.status === 'draft' ? 'background:rgba(239,68,68,0.2); color:#ef4444;' : 'background:rgba(34,197,94,0.2); color:#22c55e;'}">${art.status === 'draft' ? 'Draft' : 'Published'}</span>
@@ -14115,7 +14115,7 @@ function renderAdminArticleList(filteredList = null) {
           ${Array.isArray(art.socialLinks) && art.socialLinks.length > 0 ? `<span>• Links: ${art.socialLinks.length} ခု</span>` : ''}
         </div>
       </div>
-      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+      <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-left:auto;">
                   <!-- Hide / Show Toggle ခလုတ် -->
                   <button type="button" onclick="toggleArticleStatus('${art.id}', '${art.status || 'published'}')" style="background:${art.status === 'draft' ? '#475569' : '#16a34a'}; color:#fff; border:none; padding:6px 10px; border-radius:6px; cursor:pointer; font-size:11px; display:inline-flex; align-items:center; gap:4px;" title="ကလစ်နှိပ်၍ ဖျောက်/ပြ လုပ်နိုင်ပါသည်">
                     <i class="fas ${art.status === 'draft' ? 'fa-eye-slash' : 'fa-eye'}"></i> ${art.status === 'draft' ? 'ဝှက်ထားသည်' : 'ပြသထားသည်'}
