@@ -14492,5 +14492,54 @@ function checkUrlForArticle() {
   </div>
 </div>
 
+<!-- SMART AUTO BACK BUTTON FOR ALL MODALS -->
+<script>
+(function() {
+  let modalStack = [];
+  let isBackTriggered = false;
+
+  function isVisible(el) {
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+  }
+
+  const observer = new MutationObserver(() => {
+    const allModals = Array.from(document.querySelectorAll('.modal-overlay, .modal, [id*="Modal"]'));
+    const currentlyOpen = allModals.filter(m => isVisible(m));
+
+    if (currentlyOpen.length > modalStack.length && !isBackTriggered) {
+      const newlyOpened = currentlyOpen.filter(m => !modalStack.includes(m));
+      newlyOpened.forEach(m => {
+        history.pushState({ isModal: true }, '');
+        modalStack.push(m);
+      });
+    } else if (currentlyOpen.length < modalStack.length && !isBackTriggered) {
+      modalStack = modalStack.filter(m => isVisible(m));
+    }
+  });
+
+  observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['style', 'class'] });
+
+  window.addEventListener('popstate', function() {
+    if (modalStack.length > 0) {
+      isBackTriggered = true;
+      const topModal = modalStack.pop();
+      
+      const closeBtn = topModal.querySelector('.close-modal, .close-btn, button[onclick*="close"], button[onclick*="Close"]') ||
+                       Array.from(topModal.querySelectorAll('button, span')).find(b => b.innerText.trim() === '×' || b.textContent.trim() === '✕');
+      
+      if (closeBtn) {
+        closeBtn.click();
+      } else {
+        topModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+
+      setTimeout(() => { isBackTriggered = false; }, 150);
+    }
+  });
+})();
+</script>
 </body>
 </html>
