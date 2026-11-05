@@ -14290,9 +14290,9 @@ function openArticleModal(id) {
           <div style="font-size:11px; color:var(--gold,#d4af37);">ဤဆောင်းပါးတွင် ပါဝင်သောပစ္စည်း</div>
           <div style="font-size:13px; font-weight:600; color:#fff;">SKU / အမည်: ${art.relatedProduct}</div>
         </div>
-        <button type="button" onclick="closeArticleModal(); setTimeout(() => { const searchInput = document.getElementById('searchInput') || document.querySelector('input[type=search]') || document.querySelector('input[placeholder*=\\'ရှာဖွေ\\']'); if(searchInput){ searchInput.value = '${art.relatedProduct}'; searchInput.dispatchEvent(new Event('input')); } if(typeof filterProducts === 'function'){ filterProducts('${art.relatedProduct}'); } const targetSec = document.getElementById('productsSection') || document.getElementById('products') || document.querySelector('.products-grid') || searchInput; if(targetSec){ targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 200);" style="display:inline-block; margin-top:8px; padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:bold; font-size:12px; border:none; border-radius:6px; cursor:pointer;">
-  ပစ္စည်းအား ကြည့်ရှု့ဝယ်ယူရန်
-</button>
+        <button type="button" onclick="closeArticleModal(); if(typeof closeArticleListModal === 'function') closeArticleListModal(); const artListMod = document.getElementById('articlesModal') || document.getElementById('articleListModal') || document.getElementById('allArticlesModal'); if(artListMod) artListMod.style.display = 'none'; document.body.style.overflow = ''; setTimeout(() => { const searchInput = document.getElementById('searchInput') || document.querySelector('input[type=search]') || document.querySelector('input[placeholder*=\'ရှာဖွေ\']'); if(searchInput){ searchInput.value = '${art.relatedProduct}'; searchInput.dispatchEvent(new Event('input')); } if(typeof filterProducts === 'function'){ filterProducts('${art.relatedProduct}'); } const targetSec = document.getElementById('productsSection') || document.getElementById('products') || document.querySelector('.products-grid') || searchInput; if(targetSec){ targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }, 250);" style="display:inline-block; margin-top:8px; padding:8px 16px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:bold; font-size:12px; border:none; border-radius:6px; cursor:pointer;">
+          ပစ္စည်းအား ကြည့်ရှု့ဝယ်ယူရန်
+        </button>
       </div>
     `;
   }
