@@ -4350,6 +4350,8 @@ function scrollCategories(amount) {
 }
 
     function handleTownshipSelect() {
+      const dynBadge = document.getElementById('logisticsDynamicBadge');
+  if (dynBadge) dynBadge.style.setProperty('display', 'none', 'important');
       document.getElementById('townshipRequiredAlert') && (document.getElementById('townshipRequiredAlert').style.display = 'none');
       document.getElementById('custTownshipInput') && (document.getElementById('custTownshipInput').style.border = '', document.getElementById('custTownshipInput').style.boxShadow = '');
       const input = document.getElementById('custTownshipInput');
@@ -4382,8 +4384,8 @@ function scrollCategories(amount) {
     const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
       const compName = (matchedComp && matchedComp.name) ? matchedComp.name : '';
-      const isYangonOrHome = compName.includes('ရန်ကုန်') || compName.includes('Royal') || compName.includes('အိမ်အရောက်') || compName.includes('Door');
-      
+      const isYangonOrHome = compName.includes('ရန်ကုန်') || compName.includes('Royal') || compName.includes('အိမ်အရောက်');
+
       if (isYangonOrHome) {
         busGateSec.style.display = 'none';
       } else {
@@ -6707,7 +6709,7 @@ setTimeout(() => {
     const badgeEta = document.getElementById('logisticsEtaText');
 
     if (badge && selectedTownship) {
-      badge.style.display = 'block';
+      badge.style.display = 'none';
 
       if (isYgn || isMdy) {
         const cityName = isYgn ? 'ရန်ကုန်' : 'မန္တလေး';
