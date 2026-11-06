@@ -2328,7 +2328,9 @@ function scrollCategories(amount) {
   </label>
   <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" onfocus="if(typeof initTownshipDatalist==='function') initTownshipDatalist()" placeholder="ဥပမာ- လှိုင်၊ မန္တလေး၊ အောင်မင်္ဂလာဂိတ်..." autocomplete="off" style="width:100%; padding:8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:#fff; font-size:12.5px;">
   <datalist id="townshipList"></datalist>
-
+  <small id="townshipRequiredAlert" style="display:none; color:#ef4444; font-size:11px; font-weight:600; margin-top:4px;">
+  * ပို့ဆောင်ခ တွက်ချက်နိုင်ရန် စာရင်းထဲမှ မြို့နယ် / ကားဂိတ် ကို ရွေးချယ်ပေးပါ
+</small>
   <!-- DYNAMIC LOGISTICS INFO BADGE -->
 <div id="logisticsDynamicBadge" style="display: none; margin-top: 6px; padding: 8px 10px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 6px; font-size: 0.75rem; color: #f3f4f6;">
   <div id="logisticsDeliveryTypeText" style="font-weight: bold; color: var(--gold, #d4af37);"></div>
@@ -4348,6 +4350,8 @@ function scrollCategories(amount) {
 }
 
     function handleTownshipSelect() {
+      document.getElementById('townshipRequiredAlert') && (document.getElementById('townshipRequiredAlert').style.display = 'none');
+      document.getElementById('custTownshipInput') && (document.getElementById('custTownshipInput').style.border = '', document.getElementById('custTownshipInput').style.boxShadow = '');
       const input = document.getElementById('custTownshipInput');
       const val = input ? input.value.trim() : '';
       const notice = document.getElementById('deliveryNotice');
@@ -6868,6 +6872,27 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       const trxId = document.getElementById('slipTrxIdInput')?.value.trim();
       const file = document.getElementById('slipFileInput')?.files[0];
 
+      // 🚚 မြို့နယ် မရွေးဘဲ ကျော်သွားခြင်း စစ်ဆေးတားမြစ်ချက်
+    const townInput = document.getElementById('custTownshipInput');
+    const townAlert = document.getElementById('townshipRequiredAlert');
+    const hasValidDelivery = typeof currentDeliveryFee !== 'undefined' && currentDeliveryFee > 0;
+
+    if (!township || !hasValidDelivery) {
+      if (townAlert) townAlert.style.display = 'block';
+      if (townInput) {
+        townInput.style.border = '1px solid #ef4444';
+        townInput.style.boxShadow = '0 0 8px rgba(239, 68, 68, 0.4)';
+        townInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        townInput.focus();
+      }
+      return; // အော်ဒါ ဆက်မတက်အောင် ရပ်တန့်မည်
+    } else {
+      if (townAlert) townAlert.style.display = 'none';
+      if (townInput) {
+        townInput.style.border = '';
+        townInput.style.boxShadow = '';
+      }
+    }
       if (!name || !phone || !address) return alert('ကျေးဇူးပြု၍ လိုအပ်သော အချက်အလက်များ အားလုံး ဖြည့်ပါ');
 
       // ဖုန်းနံပါတ် တိကျစွာ စစ်ဆေးခြင်း
