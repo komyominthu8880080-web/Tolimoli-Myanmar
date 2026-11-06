@@ -10253,7 +10253,20 @@ function copyProductLink(productId) {
       currentDeliveryFee = currentVipStatus.isFreeDelivery ? 0 : (Number(comp.fee) || 0);
       currentEstimatedDays = comp.days || '2 - 3 ရက်';
       currentSelectedTownship = townshipName;
+      // 🚍 ရန်ကုန်မြို့တွင်း (သို့မဟုတ်) အိမ်အရောက် Deli ဖြစ်ပါက ကားဂိတ်အကွက် လုံးဝ ဖျောက်ရန်
+    const busSec = document.getElementById('customerBusGateSection');
+    if (busSec) {
+      const cName = comp && comp.name ? comp.name : '';
+      const tName = townshipName || '';
+      const isBusGate = cName.includes('ကားဂိတ်') || cName.includes('ဂိတ်ချ') || cName.includes('Gate');
+      const isYangonOrHome = tName.includes('လှိုင်') || tName.includes('ကမာရွတ်') || tName.includes('ရန်ကုန်') || cName.includes('ရန်ကုန်') || cName.includes('Royal') || cName.includes('အိမ်အရောက်') || cName.includes('Deli');
 
+      if (isYangonOrHome || !isBusGate) {
+        busSec.style.display = 'none'; // ရန်ကုန်မြို့တွင်း/အိမ်အရောက်ဆိုလျှင် ကားဂိတ်အကွက် လုံးဝ ဖျောက်မည်
+      } else {
+        busSec.style.display = 'block'; // နယ် ကားဂိတ်တင်ပို့ဆောင်မှုမှသာ ပြသမည်
+      }
+    }
       const feeText = document.getElementById('cartDeliveryFeeText');
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks' + (currentVipStatus.isFreeDelivery ? ' (Free)' : '');
 
@@ -10336,10 +10349,20 @@ function filterBusGatesForTownship(selectedTownship) {
   if (previewCard) previewCard.style.display = 'none';
   if (customBox) customBox.style.display = 'none';
 
-  if (!selectedTownship) {
-    if (gateSection) gateSection.style.display = 'none';
-    return;
-  }
+  // 🚍 ရန်ကုန်မြို့တွင်း (သို့မဟုတ်) ရွေးချယ်မှုမရှိလျှင် ကားဂိတ်အကွက် လုံးဝ ဖျောက်ထားရန်
+    const isYangonTown = selectedTownship && (
+      selectedTownship.includes('လှိုင်') || 
+      selectedTownship.includes('ကမာရွတ်') || 
+      selectedTownship.includes('ရန်ကုန်') ||
+      selectedTownship.includes('စမ်းချောင်း') ||
+      selectedTownship.includes('မရမ်းကုန်း') ||
+      selectedTownship.includes('ဗဟန်း')
+    );
+
+    if (!selectedTownship || isYangonTown) {
+      if (gateSection) gateSection.style.display = 'none';
+      return;
+    }
 
   // Admin Stations Directory မှ ဒေတာများ ရယူခြင်း
   let stations = [];
