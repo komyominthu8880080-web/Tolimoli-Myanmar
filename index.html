@@ -9244,29 +9244,29 @@ function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 �
                           <button type="button" onclick="addNewTownToCompany(${cIdx})" style="padding: 6px 12px; font-size: 11px; background: #0284c7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+ မြို့ထည့်မည်</button>
                         </div>
 
-                        <!-- မြို့စာရင်း (Micro Compact List - ပုံ ၁ စာလုံးဆိုဒ်စံနှုန်း) -->
-                        <div id="companyTownsList_${cIdx}" style="max-height: 180px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 3px; padding-right: 2px;">
-                          ${towns.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 10px; padding: 10px;">မြို့များ မထည့်ရသေးပါ</div>` : 
+                        <!-- မြို့စာရင်း (Balanced Readable & Touch-Friendly List) -->
+                        <div id="companyTownsList_${cIdx}" style="max-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 5px; padding-right: 2px;">
+                          ${towns.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 12px;">မြို့များ မထည့်ရသေးပါ</div>` : 
                             towns.map((t, tIdx) => `
-                              <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 10px; line-height: 1.3; gap: 6px;">
+                              <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 10px; border-radius: 5px; font-size: 11.5px; line-height: 1.35; gap: 8px;">
                                 <!-- မြို့အမည် -->
-                                <span style="font-weight: 500; color: #f1f5f9; font-size: 10px; flex: 1.4; min-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
+                                <span style="font-weight: 600; color: #f8fafc; font-size: 11.5px; flex: 1.5; min-width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
                                 
                                 <!-- ငွေပမာဏ -->
-                                <span style="color: #38bdf8; font-size: 10px; font-weight: 500; flex: 1.1; text-align: right; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
+                                <span style="color: #38bdf8; font-size: 11px; font-weight: 600; flex: 1.1; text-align: right; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
                                 
                                 <!-- ကြာချိန် -->
-                                <span style="color: #94a3b8; font-size: 9.5px; flex: 1.6; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.duration}</span>
+                                <span style="color: #94a3b8; font-size: 11px; flex: 1.5; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.duration}</span>
                                 
                                 <!-- COD Badge -->
-                                <span style="padding: 1px 4px; border-radius: 3px; font-size: 8.5px; font-weight: 500; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25);' : 'background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25);'}">
+                                <span style="padding: 2px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 600; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);'}">
                                   ${t.cod ? 'COD' : 'Prepaid'}
                                 </span>
                                 
-                                <!-- Action Buttons -->
-                                <div style="display: flex; gap: 3px; flex-shrink: 0;">
-                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx})" title="ပြင်ဆင်ရန်" style="background: transparent; border: none; color: #38bdf8; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px;"><i class="fas fa-edit"></i></button>
-                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx})" title="ဖျက်ရန်" style="background: transparent; border: none; color: #ef4444; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px;"><i class="fas fa-trash-alt"></i></button>
+                                <!-- Action Buttons (နှိပ်ရလွယ်ကူသော 28px Touch Box) -->
+                                <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx})" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-edit"></i></button>
+                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx})" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-trash-alt"></i></button>
                                 </div>
                               </div>
                             `).join('')}
@@ -9405,18 +9405,18 @@ function onSearchCompanyTown(cIdx, query) {
   const listEl = document.getElementById(`companyTownsList_${cIdx}`);
   if (!listEl) return;
 
-  listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 10px; padding: 10px;">ရှာမတွေ့ပါ</div>` :
+  listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 12px;">ရှာမတွေ့ပါ</div>` :
     filtered.map(t => `
-      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.7); border: 1px solid #1e293b; padding: 4px 8px; border-radius: 4px; font-size: 10px; line-height: 1.3; gap: 6px;">
-        <span style="font-weight: 500; color: #f1f5f9; font-size: 10px; flex: 1.4; min-width: 65px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
-        <span style="color: #38bdf8; font-size: 10px; font-weight: 500; flex: 1.1; text-align: right; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
-        <span style="color: #94a3b8; font-size: 9.5px; flex: 1.6; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.duration}</span>
-        <span style="padding: 1px 4px; border-radius: 3px; font-size: 8.5px; font-weight: 500; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25);' : 'background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25);'}">
+      <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 10px; border-radius: 5px; font-size: 11.5px; line-height: 1.35; gap: 8px;">
+        <span style="font-weight: 600; color: #f8fafc; font-size: 11.5px; flex: 1.5; min-width: 70px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
+        <span style="color: #38bdf8; font-size: 11px; font-weight: 600; flex: 1.1; text-align: right; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
+        <span style="color: #94a3b8; font-size: 11px; flex: 1.5; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.duration}</span>
+        <span style="padding: 2px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 600; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);'}">
           ${t.cod ? 'COD' : 'Prepaid'}
         </span>
-        <div style="display: flex; gap: 3px; flex-shrink: 0;">
-          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" title="ပြင်ဆင်ရန်" style="background: transparent; border: none; color: #38bdf8; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px;"><i class="fas fa-edit"></i></button>
-          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" title="ဖျက်ရန်" style="background: transparent; border: none; color: #ef4444; width: 20px; height: 20px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 9px;"><i class="fas fa-trash-alt"></i></button>
+        <div style="display: flex; gap: 4px; flex-shrink: 0;">
+          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-edit"></i></button>
+          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-trash-alt"></i></button>
         </div>
       </div>
     `).join('');
