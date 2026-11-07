@@ -4341,19 +4341,22 @@ function scrollCategories(amount) {
   const dl = document.getElementById('townshipList');
   if (!dl) return;
   dl.innerHTML = '';
-  
+
   const comps = (typeof deliveryConfig !== 'undefined' && deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
   const addedSet = new Set();
 
   comps.forEach(comp => {
     const compName = comp.name || 'Deli';
-    (comp.townships || []).forEach(t => {
-      const trimmed = String(t).trim();
-      if (trimmed && !addedSet.has(trimmed)) {
-        addedSet.add(trimmed);
+    const list = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships.map(t => ({ name: t, fee: comp.fee, duration: comp.days, cod: comp.isCod !== false })) : []);
+    
+    list.forEach(t => {
+      const tName = (typeof t === 'string' ? t : t.name || '').trim();
+      const tFee = typeof t === 'object' && t.fee !== undefined ? t.fee : comp.fee;
+      if (tName && !addedSet.has(tName)) {
+        addedSet.add(tName);
         const opt = document.createElement('option');
-        opt.value = trimmed;
-        opt.label = `${trimmed} - ${compName} (${Number(comp.fee || 0).toLocaleString()} Ks)`;
+        opt.value = tName;
+        opt.label = `${tName} - ${compName} (${Number(tFee || 0).toLocaleString()} Ks)`;
         dl.appendChild(opt);
       }
     });
@@ -4385,12 +4388,21 @@ function scrollCategories(amount) {
       }
 
       if (matchedComp) {
-        currentDeliveryFee = (currentVipStatus.isFreeDelivery) ? 0 : (Number(matchedComp.fee) || 0);
-        currentSelectedTownship = matchedTownship;
-        currentDeliveryService = matchedComp.name;
-        const estDays = matchedComp.days || '2 - 3 ရက်';
-        currentEstimatedDays = estDays;
-        const isCodAllowed = matchedComp.isCod !== false;
+      // မြို့အလိုက် သီးသန့် ပို့ခ၊ ကြာချိန်နှင့် COD စစ်ဆေးခြင်း
+      const cleanMatchTown = (matchedTownship || val || '').trim().toLowerCase();
+      const townList = matchedComp.townDetails || (Array.isArray(matchedComp.townships) ? normalizeTownData(matchedComp.townships, matchedComp.fee, matchedComp.days) : []);
+      const specificTown = townList.find(t => (typeof t === 'string' ? t.toLowerCase() : (t.name || '').toLowerCase()) === cleanMatchTown);
+
+      const finalTownFee = (specificTown && typeof specificTown === 'object' && specificTown.fee !== undefined) ? Number(specificTown.fee) : (Number(matchedComp.fee) || 0);
+      const finalTownDuration = (specificTown && typeof specificTown === 'object' && specificTown.duration) ? specificTown.duration : (matchedComp.days || '2 - 3 ရက်');
+      const finalTownCod = (specificTown && typeof specificTown === 'object' && specificTown.cod !== undefined) ? specificTown.cod : (matchedComp.isCod !== false);
+
+      currentDeliveryFee = (typeof currentVipStatus !== 'undefined' && currentVipStatus.isFreeDelivery) ? 0 : finalTownFee;
+      currentSelectedTownship = matchedTownship;
+      currentDeliveryService = matchedComp.name;
+      const estDays = finalTownDuration;
+      currentEstimatedDays = estDays;
+      const isCodAllowed = finalTownCod && (matchedComp.isCod !== false);
         // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို Auto ရွေးပေးခြင်း
     if (typeof currentChosenDeliCompany !== 'undefined') {
       currentChosenDeliCompany = matchedComp;
@@ -9142,6 +9154,27 @@ function renderAdminColorInputs() {
       document.getElementById('cfgVipDiscountPercent').value = vipConfig.vipDiscountPercent || 5;
     }
 
+    // မြို့ဒေတာပုံစံဟောင်းမှ ပုံစံသစ်သို့ အလိုအလျောက် ပြောင်းလဲပေးခြင်း
+function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 ရက်") {
+  if (!Array.isArray(townList)) return [];
+  return townList.map(item => {
+    if (typeof item === 'string') {
+      return {
+        name: item.trim(),
+        fee: Number(defaultFee) || 5000,
+        duration: defaultDuration || "3/4 ရက်",
+        cod: true
+      };
+    }
+    return {
+      name: item.name || '',
+      fee: Number(item.fee) || Number(defaultFee) || 5000,
+      duration: item.duration || defaultDuration || "3/4 ရက်",
+      cod: item.cod !== false
+    };
+  }).filter(t => t.name && t.name.length > 0);
+}
+
     function renderAdminDeliverySettings() {
       const container = document.getElementById('adminDeliveryCompaniesContainer');
       if (!container) return;
@@ -9182,21 +9215,56 @@ function renderAdminColorInputs() {
             <input type="text" value="${(comp.customerNotice || '').replace(/"/g, '&quot;')}" placeholder="ဥပမာ - ဒီနေ့ငွေလွှဲ နောက်တစ်ရက် ဂိတ်ချပါသည် (သို့) တန်ဆာခ ဝယ်သူရှင်းရမည်" oninput="deliveryConfig.companies[${cIdx}].customerNotice = this.value" style="padding:5px 8px; font-size:0.75rem; background:#0f172a; border:1px solid #334155; color:#fde047; border-radius:6px; width:100%;">
           </div>
 
-          <div>
-            <label style="color:#10b981; font-weight:bold; font-size:11px; display:block; margin-bottom:4px;">📍 မြို့နယ်များ စာရင်း (${(comp.townships || []).length} ခု)</label>
-            <div style="display:flex; gap:6px; margin-bottom:6px;">
-              <input type="text" id="newTownshipInput_${cIdx}" placeholder="မြို့နယ်အသစ် အမည်..." style="flex:1; padding:5px 8px; font-size:0.72rem; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px;">
-              <button type="button" class="btn-secondary" onclick="addTownshipToCompany(${cIdx})" style="background:#10b981; color:#fff; padding:5px 10px; font-size:0.72rem; border:none; border-radius:6px; white-space:nowrap; cursor:pointer;">+ မြို့နယ်ထည့်မည်</button>
-            </div>
-            <div style="max-height:90px; overflow-y:auto; background:#0b1329; padding:5px; border-radius:6px; font-size:10.5px; display:flex; flex-wrap:wrap; gap:4px;">
-              ${(comp.townships || []).map((t, tIdx) => `
-                <span style="background:rgba(16, 185, 129, 0.15); border:1px solid #10b981; color:#fff; padding:2px 6px; border-radius:10px; display:inline-flex; align-items:center; gap:4px;">
-                  ${t} <i class="fas fa-times" style="cursor:pointer; color:#ef4444;" onclick="removeTownshipFromCompany(${cIdx}, ${tIdx})"></i>
-                </span>
-              `).join('')}
-            </div>
-          </div>
-        </div>
+          <!-- DYNAMIC TOWNS LIST WITH SEARCH & ROW SYSTEM -->
+                  ${(() => {
+                    if (!comp.townDetails) {
+                      comp.townDetails = normalizeTownData(comp.townships || [], comp.fee, comp.days);
+                    }
+                    const towns = comp.townDetails || [];
+                    return `
+                      <div style="margin-top: 10px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 8px; padding: 10px;">
+                        <!-- ထိပ်တန်း မြို့ရှာဖွေသည့် အကွက် -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                          <span style="font-size: 11px; color: var(--gold); font-weight: bold; white-space: nowrap;">📍 မြို့များ (${towns.length} မြို့)</span>
+                          <input type="text" 
+                                 id="townSearch_${cIdx}"
+                                 placeholder="🔍 မြို့အမည် ရိုက်ရှာပါ..." 
+                                 oninput="onSearchCompanyTown(${cIdx}, this.value)"
+                                 style="flex: 1; padding: 5px 8px; font-size: 11px; background: #0f172a; border: 1px solid #0284c7; color: #fff; border-radius: 4px; outline: none;">
+                        </div>
+
+                        <!-- မြို့အသစ် အမြန်ထည့်သည့် Form -->
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">
+                          <input type="text" id="newTownName_${cIdx}" placeholder="မြို့အမည်" style="flex: 2; min-width: 90px; padding: 6px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
+                          <input type="number" id="newTownFee_${cIdx}" placeholder="ပို့ခ (Ks)" value="${comp.fee || ''}" style="flex: 1.5; min-width: 70px; padding: 6px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
+                          <input type="text" id="newTownDuration_${cIdx}" placeholder="ကြာချိန် (ရက်)" value="${comp.days || ''}" style="flex: 1.5; min-width: 70px; padding: 6px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
+                          <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer;">
+                            <input type="checkbox" id="newTownCod_${cIdx}" ${comp.isCod !== false ? 'checked' : ''} style="accent-color: #0284c7;"> COD ရ
+                          </label>
+                          <button type="button" onclick="addNewTownToCompany(${cIdx})" style="padding: 6px 12px; font-size: 11px; background: #0284c7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+ မြို့ထည့်မည်</button>
+                        </div>
+
+                        <!-- မြို့များ အထက်အောက် Scroll ဆွဲကြည့်နိုင်မည့် Container -->
+                        <div id="companyTownsList_${cIdx}" style="max-height: 220px; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y; padding-right: 4px; display: flex; flex-direction: column; gap: 6px;">
+                          ${towns.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 10px;">မြို့များ မထည့်ရသေးပါ</div>` : 
+                            towns.map((t, tIdx) => `
+                              <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 6px 8px; border-radius: 6px; font-size: 11px; gap: 6px;">
+                                <span style="font-weight: bold; color: #f8fafc; flex: 2; min-width: 80px;">${t.name}</span>
+                                <span style="color: #38bdf8; flex: 1.5;">${Number(t.fee).toLocaleString()} Ks</span>
+                                <span style="color: #94a3b8; flex: 1.5;">${t.duration}</span>
+                                <span style="padding: 2px 5px; border-radius: 3px; font-size: 9px; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
+                                  ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
+                                </span>
+                                <div style="display: flex; gap: 4px;">
+                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx})" style="background: #0284c7; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-edit"></i></button>
+                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx})" style="background: #ef4444; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-trash"></i></button>
+                                </div>
+                              </div>
+                            `).join('')}
+                        </div>
+                      </div>
+                  `;
+                })()}
   `).join('') + `
     <div style="margin-top:16px; margin-bottom:12px; display:flex; justify-content:center;">
       <button type="button" class="btn-gold" onclick="saveDeliveryConfig()" style="width:100%; padding:12px; font-size:0.95rem; font-weight:bold; cursor:pointer; background:linear-gradient(135deg, #d4af37, #f3e5ab); color:#000; border:none; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -9226,24 +9294,111 @@ function renderAdminColorInputs() {
       }
     }
 
-    function addTownshipToCompany(cIdx) {
-      const inp = document.getElementById(`newTownshipInput_${cIdx}`);
-      const val = inp ? inp.value.trim() : '';
-      if (!val) return alert('မြို့နယ်အမည် ရိုက်ထည့်ပါ');
-      if (!deliveryConfig.companies[cIdx].townships) deliveryConfig.companies[cIdx].townships = [];
-      if (!deliveryConfig.companies[cIdx].townships.includes(val)) {
-        deliveryConfig.companies[cIdx].townships.push(val);
-        inp.value = '';
-        saveDeliveryConfig();
-      }
-    }
+    // မြို့အသစ် ထည့်သွင်းခြင်း
+function addNewTownToCompany(cIdx) {
+  const nameInp = document.getElementById(`newTownName_${cIdx}`);
+  const feeInp = document.getElementById(`newTownFee_${cIdx}`);
+  const durInp = document.getElementById(`newTownDuration_${cIdx}`);
+  const codInp = document.getElementById(`newTownCod_${cIdx}`);
 
-    function removeTownshipFromCompany(cIdx, tIdx) {
-      if (confirm('ဤမြို့နယ်ကို ဖျက်ရန် သေချာပါသလား?')) {
-        deliveryConfig.companies[cIdx].townships.splice(tIdx, 1);
-        saveDeliveryConfig();
-      }
-    }
+  const townName = nameInp ? nameInp.value.trim() : '';
+  if (!townName) {
+    alert("ကျေးဇူးပြု၍ မြို့အမည် ရိုက်ထည့်ပေးပါ");
+    return;
+  }
+
+  const comp = deliveryConfig.companies[cIdx];
+  if (!comp.townDetails) {
+    comp.townDetails = normalizeTownData(comp.townships || [], comp.fee, comp.days);
+  }
+
+  const existIdx = comp.townDetails.findIndex(t => t.name.toLowerCase() === townName.toLowerCase());
+  const townObj = {
+    name: townName,
+    fee: Number(feeInp ? feeInp.value : 0) || Number(comp.fee) || 5000,
+    duration: (durInp ? durInp.value.trim() : '') || comp.days || "3/4 ရက်",
+    cod: codInp ? codInp.checked : true
+  };
+
+  if (existIdx >= 0) {
+    comp.townDetails[existIdx] = townObj;
+  } else {
+    comp.townDetails.unshift(townObj);
+  }
+
+  comp.townships = comp.townDetails.map(t => t.name);
+
+  if (nameInp) nameInp.value = '';
+  saveDeliveryConfig();
+  renderAdminDeliverySettings();
+}
+
+// မြို့အချက်အလက် အမြန်ပြင်ဆင်ခြင်း
+function quickEditTown(cIdx, tIdx) {
+  const comp = deliveryConfig.companies[cIdx];
+  if (!comp || !comp.townDetails) return;
+  const target = comp.townDetails[tIdx];
+  if (!target) return;
+
+  const newFee = prompt(`"${target.name}" အတွက် ပို့ဆောင်ခ (ကျပ်) ပြင်ရန်-`, target.fee);
+  if (newFee === null) return;
+
+  const newDur = prompt(`"${target.name}" အတွက် ကြာချိန် ပြင်ရန်-`, target.duration);
+  if (newDur === null) return;
+
+  const newCod = confirm(`"${target.name}" အတွက် COD ရမည်လား?\n[OK = COD ရမည်, Cancel = Prepaid သီးသန့်]`);
+
+  target.fee = Number(newFee) || target.fee;
+  target.duration = newDur.trim() || target.duration;
+  target.cod = newCod;
+
+  comp.townships = comp.townDetails.map(t => t.name);
+  saveDeliveryConfig();
+  renderAdminDeliverySettings();
+}
+
+// မြို့စာရင်းမှ ဖျက်ထုတ်ခြင်း
+function removeTownFromCompany(cIdx, tIdx) {
+  const comp = deliveryConfig.companies[cIdx];
+  if (!comp || !comp.townDetails) return;
+  const target = comp.townDetails[tIdx];
+  if (!target) return;
+
+  if (!confirm(`"${target.name}" ကို ဖျက်ရန် သေချာပါသလား?`)) return;
+
+  comp.townDetails.splice(tIdx, 1);
+  comp.townships = comp.townDetails.map(t => t.name);
+
+  saveDeliveryConfig();
+  renderAdminDeliverySettings();
+}
+
+// မြို့အမည် ရိုက်ရှာသည့်အခါ Filter လုပ်ပေးခြင်း
+function onSearchCompanyTown(cIdx, query) {
+  const comp = deliveryConfig.companies[cIdx];
+  if (!comp || !comp.townDetails) return;
+
+  const q = (query || '').toLowerCase().trim();
+  const filtered = comp.townDetails.map((t, origIdx) => ({ ...t, origIdx })).filter(t => !q || t.name.toLowerCase().includes(q));
+  const listEl = document.getElementById(`companyTownsList_${cIdx}`);
+  if (!listEl) return;
+
+  listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 10px;">ရှာမတွေ့ပါ</div>` :
+    filtered.map(t => `
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 6px 8px; border-radius: 6px; font-size: 11px; gap: 6px;">
+        <span style="font-weight: bold; color: #f8fafc; flex: 2; min-width: 80px;">${t.name}</span>
+        <span style="color: #38bdf8; flex: 1.5;">${Number(t.fee).toLocaleString()} Ks</span>
+        <span style="color: #94a3b8; flex: 1.5;">${t.duration}</span>
+        <span style="padding: 2px 5px; border-radius: 3px; font-size: 9px; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
+          ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
+        </span>
+        <div style="display: flex; gap: 4px;">
+          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" style="background: #0284c7; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-edit"></i></button>
+          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" style="background: #ef4444; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `).join('');
+}
 
     function saveDeliveryConfig() {
   localStorage.setItem('tm_delivery_config', JSON.stringify(deliveryConfig));
