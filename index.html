@@ -4380,21 +4380,20 @@ function scrollCategories(amount) {
         const estDays = matchedComp.days || '2 - 3 ရက်';
         currentEstimatedDays = estDays;
         const isCodAllowed = matchedComp.isCod !== false;
-        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို Auto ရွေးပေးခြင်းနှင့် Deli Cards များကို အမြဲတန်းပွင့်စေခြင်း
+        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို Auto ရွေးပေးခြင်း
     if (typeof currentChosenDeliCompany !== 'undefined') {
       currentChosenDeliCompany = matchedComp;
     }
-    // "ပြောင်းမည်" နှိပ်စရာမလိုဘဲ အောက်က ကတ်ပြားစာရင်း အမြဲတန်းမြင်နေစေရန်
     if (typeof isDeliPickerExpanded !== 'undefined') {
       isDeliPickerExpanded = true;
     }
 
-    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း
+    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း (ရန်ကုန်မြို့တွင်းမှအပ မန္တလေးနှင့် နယ်မြို့အားလုံးအတွက် တန်းဖွင့်ပေးခြင်း)
     const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
-      // ရန်ကုန်မြို့တွင်း မဟုတ်သော နယ်မြို့များအားလုံး (မန္တလေး အပါအဝင်) အတွက် ကားဂိတ်အကွက်ကို အမြဲတမ်း ဖွင့်ပြပေးခြင်း
-      const isYgnOnly = val.includes('ရန်ကုန်') || matchedTownship.includes('ရန်ကုန်');
-      
+      const pureTown = (matchedTownship || val || '').replace(/[:\s]/g, '');
+      const isYgnOnly = pureTown.includes('ရန်ကုန်');
+
       if (!isYgnOnly) {
         busGateSec.style.display = 'block';
         if (typeof filterBusGatesForTownship === 'function') {
@@ -4429,14 +4428,17 @@ function scrollCategories(amount) {
       }
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
       renderCartUI();
-      // 🚚 မြို့နယ်ပြောင်းလဲမှုနှင့်အညီ Deli Cards UI ကို ချက်ချင်း ပွင့်လာစေခြင်း
-    const deliCardsBox = document.getElementById('dynamicDeliOptionsContainer');
-    if (deliCardsBox) {
-      deliCardsBox.style.display = 'block';
-    }
-    if (typeof renderDynamicDeliCardsForTownship === 'function' && comps) {
-      const filteredComps = comps.filter(c => (c.townships || []).some(t => val.includes(t)));
-      renderDynamicDeliCardsForTownship(filteredComps.length > 0 ? filteredComps : comps, val);
+      // 🚚 မြို့နယ်ပြောင်းလဲမှုနှင့်အညီ အောက်ခြေ Deli Cards များကို တန်းပြီး ဖွင့်ပြပေးခြင်း
+    const deliWrap = document.getElementById('delisContainer') || document.getElementById('delisSelectionContainer') || document.getElementById('delisList');
+    if (deliWrap) deliWrap.style.display = 'block';
+
+    if (typeof handleExpandDeliPicker === 'function') {
+      handleExpandDeliPicker();
+    } else if (typeof renderDynamicDeliCardsForTownship === 'function') {
+      const searchTown = (matchedTownship || val || '').trim();
+      const compList = (typeof deliveryConfig !== 'undefined' && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : (comps || []);
+      const matchedList = compList.filter(c => (c.townships || []).some(t => searchTown.includes(t) || t.includes(searchTown)));
+      renderDynamicDeliCardsForTownship(matchedList.length > 0 ? matchedList : compList, searchTown);
     }
     }
 
