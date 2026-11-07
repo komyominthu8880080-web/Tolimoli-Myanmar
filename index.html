@@ -4388,16 +4388,20 @@ function scrollCategories(amount) {
       isDeliPickerExpanded = true;
     }
 
-    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း (ရန်ကုန်မြို့တွင်းမှအပ မန္တလေးနှင့် နယ်မြို့အားလုံးအတွက် တန်းဖွင့်ပေးခြင်း)
+    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း (မြို့နယ်စာရင်း ကိုက်ညီမှသာ သက်ဆိုင်ရာ ကားဂိတ်ရှိပါက ဖွင့်ပေးခြင်း)
     const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
       const pureTown = (matchedTownship || val || '').replace(/[:\s]/g, '');
       const isYgnOnly = pureTown.includes('ရန်ကုန်');
 
-      if (!isYgnOnly) {
-        busGateSec.style.display = 'block';
+      // စာရင်းထဲရှိသော နယ်မြို့ဖြစ်ပြီး filter လုပ်၍ ကားဂိတ်စာရင်း ရှိမှသာ ဖွင့်ပြပေးခြင်း
+      if (matchedComp && !isYgnOnly) {
         if (typeof filterBusGatesForTownship === 'function') {
-          filterBusGatesForTownship(matchedTownship || val);
+          const hasGates = filterBusGatesForTownship(matchedTownship || val);
+          // အကယ်၍ အဆိုပါမြို့အတွက် ကားဂိတ်ရှိမှသာ display block ပြုလုပ်ပြီး မရှိပါက ဖျောက်ထားခြင်း
+          busGateSec.style.display = (hasGates !== false) ? 'block' : 'none';
+        } else {
+          busGateSec.style.display = 'block';
         }
       } else {
         busGateSec.style.display = 'none';
@@ -4424,6 +4428,8 @@ function scrollCategories(amount) {
       } else {
         currentDeliveryFee = 0; currentSelectedTownship = val; currentDeliveryService = ""; currentEstimatedDays = "";
         if (notice) notice.innerText = '';
+        const bgSec = document.getElementById('customerBusGateSection');
+      if (bgSec) bgSec.style.display = 'none';
         if (codCard) { codCard.style.opacity = '1'; codCard.style.pointerEvents = 'auto'; }
       }
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
