@@ -12350,10 +12350,12 @@ function renderAdminStationsDirectory() {
   const container = document.getElementById('adminStationsDirectoryListContainer');
   if (!container) return;
 
-  // အပေါ်အောက် အစဉ်လိုက် တန်းစီပေါ်စေရန် Flex Column သတ်မှတ်ခြင်း
-  container.style.display = 'flex';
-  container.style.flexDirection = 'column';
-  container.style.gap = '8px';
+  // အပေါ်အောက် တစ်ကြောင်းချင်း အပြည့်ပေါ်စေရန် Grid ကို ဖျက်ချပြီး Flex Column အဖြစ် အတင်းသတ်မှတ်ခြင်း
+  container.style.setProperty('display', 'flex', 'important');
+  container.style.setProperty('flex-direction', 'column', 'important');
+  container.style.setProperty('grid-template-columns', 'none', 'important');
+  container.style.setProperty('gap', '10px', 'important');
+  container.style.setProperty('width', '100%', 'important');
 
   const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
 
@@ -12398,7 +12400,7 @@ function renderAdminStationsDirectory() {
     const phoneDisplay = Array.isArray(st.phone) ? st.phone.join(', ') : (st.phone || '-');
 
     return `
-      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; width:100%; box-sizing:border-box;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:12px; display:flex !important; flex-direction:row; justify-content:space-between; align-items:flex-start; gap:12px; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
         <div style="flex:1; min-width:0;">
           <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
             <span style="background:${badgeBg}; color:#000; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px;">${badgeText}</span>
