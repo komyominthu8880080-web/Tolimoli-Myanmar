@@ -4380,16 +4380,28 @@ function scrollCategories(amount) {
         const estDays = matchedComp.days || '2 - 3 ရက်';
         currentEstimatedDays = estDays;
         const isCodAllowed = matchedComp.isCod !== false;
-        // 🚍 ကားဂိတ် ရွေးချယ်မှု အကွက်ကို ရန်ကုန်မြို့တွင်း/အိမ်အရောက်ဆိုလျှင် ဖျောက်ထားပြီး နယ်မြို့မှသာ ပြသရန်
+        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို အလိုအလျောက် တန်းရွေးပေးခြင်း (ပြောင်းမည် ခလုတ်နှိပ်စရာမလိုစေရန်)
+    if (typeof currentChosenDeliCompany !== 'undefined') {
+      currentChosenDeliCompany = matchedComp;
+    }
+    if (typeof isDeliPickerExpanded !== 'undefined') {
+      isDeliPickerExpanded = false;
+    }
+
+    // 🚍 နယ်မြို့ကားဂိတ် စစ်ထုတ်ခြင်းနှင့် ပြသခြင်း
     const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
       const compName = (matchedComp && matchedComp.name) ? matchedComp.name : '';
-      const isYangonOrHome = compName.includes('ရန်ကုန်') || compName.includes('Royal') || compName.includes('အိမ်အရောက်');
+      // အကယ်၍ ကားဂိတ်ချပို့ဆောင်မှု ဖြစ်ပါက သို့မဟုတ် ရန်ကုန်/မန္တလေး အိမ်အရောက်မဟုတ်ပါက ကားဂိတ်အကွက်ကို အလိုအလျောက် ဖွင့်ပေးခြင်း
+      const isBusService = compName.includes('ကားဂိတ်') || compName.includes('ဂိတ်ချ') || (!compName.includes('ရန်ကုန်') && !compName.includes('Royal') && !compName.includes('အိမ်အရောက်'));
 
-      if (isYangonOrHome) {
-        busGateSec.style.display = 'none';
-      } else {
+      if (isBusService) {
         busGateSec.style.display = 'block';
+        if (typeof filterBusGatesForTownship === 'function') {
+          filterBusGatesForTownship(matchedTownship);
+        }
+      } else {
+        busGateSec.style.display = 'none';
       }
     }
         if (notice) notice.innerHTML = `
@@ -4417,6 +4429,9 @@ function scrollCategories(amount) {
       }
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
       renderCartUI();
+      if (typeof renderDynamicDeliCardsForTownship === 'function' && comps) {
+      renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships || []).some(t => val.includes(t))), val);
+    }
     }
 
     var DEFAULT_CATEGORIES = ['တုန်စက်', 'မတု', 'ချောဆီ', 'ကျားတု', 'ကြီးရှည်ကျင့်ပြောင်း', 'စီလီကွန်အစွပ်', 'BDSM ပစ္စည်းများ', 'နောက်ပေါက်သုံးပစ္စည်း', 'ကြာဆေး', 'ကြီးဆေး', 'အမျိုးသမီးသုံးဖီးဆေး', 'သုတ်ထိန်းကွင်း'];
@@ -12379,21 +12394,54 @@ function editDeliveryStation(idx) {
 
   const addrInp = document.getElementById('newStationAddressInput');
   if (addrInp) addrInp.value = st.address || '';
+  // ၂။ ရောက်ရှိနိုင်သော မြို့များ ပြန်ဖြည့်ခြင်း (အဟောင်း/အသစ် Data အားလုံးကို ရှာဖတ်ခြင်း)
   const townInp = document.getElementById('newStationTownship');
-    if (townInp) {
-      const destStr = Array.isArray(st.destinations) ? st.destinations.join(', ') : '';
-      townInp.value = destStr || st.township || '';
+  if (townInp) {
+    let destText = '';
+    if (Array.isArray(st.destinations) && st.destinations.length > 0) {
+      destText = st.destinations.join(', ');
+    } else if (Array.isArray(st.townships) && st.townships.length > 0) {
+      destText = st.townships.join(', ');
+    } else {
+      destText = st.destinations || st.township || st.destination || '';
     }
-  const durInp = document.getElementById('newStationDuration');
-  if (durInp) durInp.value = st.duration || '';
-
-  if (st.phone) {
-    const phones = String(st.phone).split(',').map(p => p.trim()).filter(Boolean);
-    stationPhoneList = phones.length > 0 ? phones : [''];
-  } else {
-    stationPhoneList = [''];
+    townInp.value = destText;
   }
-  renderStationPhoneInputs();
+
+  // ၃။ ခရီးကြာချိန် ပြန်ဖြည့်ခြင်း
+  const durInp = document.getElementById('newStationDuration');
+  if (durInp) {
+    durInp.value = st.duration || st.deliveryDays || st.estDays || '';
+  }
+
+  // ၄။ ဖုန်းနံပါတ်များ ပြန်လည်ပြသခြင်း
+  let phones = [];
+  if (Array.isArray(st.phone)) {
+    phones = st.phone;
+  } else if (st.phone) {
+    phones = String(st.phone).split(/[,၊\n]/).map(p => p.trim()).filter(Boolean);
+  }
+  if (phones.length === 0) phones = [''];
+
+  if (typeof stationPhoneList !== 'undefined') {
+    stationPhoneList = phones;
+  }
+
+  const phoneBox = document.getElementById('stationPhoneInputsContainer');
+  if (phoneBox) {
+    phoneBox.innerHTML = '';
+    phones.forEach((pVal, pIdx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; gap:6px; align-items:center; margin-bottom:4px;';
+      row.innerHTML = `
+        <input type="text" class="station-phone-input" value="${pVal}" placeholder="09xxxxxxxxx" style="flex:1; padding:7px 10px; background:rgba(255,255,255,0.06); border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px;">
+        ${pIdx > 0 ? `<button type="button" onclick="this.parentElement.remove()" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; border-radius:6px; padding:6px 10px; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>` : ''}
+      `;
+      phoneBox.appendChild(row);
+    });
+  } else {
+    renderStationPhoneInputs();
+  }
 
   const btnSave = document.getElementById('btnSaveStationSubmit');
   if (btnSave) {
@@ -12450,7 +12498,6 @@ function cancelStationEdit() {
 const phone = phoneInputs.map(inp => inp.value.trim()).filter(Boolean).join(', ');
   const address = document.getElementById('newStationAddressInput')?.value.trim();
   
-  // ➕ မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
   // မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
     const township = document.getElementById('newStationTownship')?.value.trim() || '';
     const duration = document.getElementById('newStationDuration')?.value.trim() || '';
