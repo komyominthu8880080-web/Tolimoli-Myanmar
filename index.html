@@ -2367,13 +2367,13 @@ function scrollCategories(amount) {
     <div style="font-size:10.5px; color:#cbd5e1;"><i class="fas fa-map-marker-alt" style="color:#f43f5e;"></i> ထုတ်ယူရမည့်လိပ်စာ: <span id="previewGateAddress" style="color:#fff;"></span></div>
   </div>
 
-  <!-- စာရင်းထဲမပါသော အခြားကားဂိတ် ရိုက်ထည့်ရန် Note Box -->
-  <div id="customGateInputWrapper" style="display:none; margin-top:6px;">
-    <label style="color:#f43f5e; font-size:10.5px; display:block; margin-bottom:3px;">
-      <i class="fas fa-pen"></i> မိမိတင်ပို့လိုသော ကားဂိတ်အမည်နှင့် အသေးစိတ် မှတ်ချက် ရေးသားပါ:
-    </label>
-    <textarea id="customGateNoteInput" placeholder="ဥပမာ - မန္တလာမင်း (ကျွဲဆည်ကန်ဝင်း) သို့မဟုတ် လမ်းကြုံကားဂိတ်အမည် ရေးပေးပါ..." rows="2" style="width:100%; padding:6px 8px; background:#0f172a; border:1px solid #f43f5e; border-radius:6px; color:#fff; font-size:11px;"></textarea>
-  </div>
+  <!-- ✏️ စာရင်းထဲမပါသော အခြားကားဂိတ် ရိုက်ထည့်ရန် Note Box -->
+<div id="customGateInputWrapper" style="display:none; margin-top:8px; padding:10px; background:rgba(212, 175, 55, 0.08); border:1px dashed var(--gold); border-radius:8px;">
+  <label style="color:var(--gold); font-size:11px; display:block; margin-bottom:5px; font-weight:bold;">
+    <i class="fas fa-edit"></i> ပို့ဆောင်လိုသော ကားဂိတ်အမည်နှင့် အသေးစိတ်မှတ်ချက် ရေးသားပေးပါ *
+  </label>
+  <textarea id="customGateNoteInput" rows="2" style="width:100%; padding:8px; border-radius:6px; background:#0d1826; border:1px solid #38bdf8; color:#fff; font-size:12px;" placeholder="ဥပမာ - စစ်ကိုင်းရောက် (သပြေညိုကားဂိတ်) သို့မဟုတ် အဆင်ပြေရာဂိတ်တင်ပေးပါ..."></textarea>
+</div>
 </div>
         <div class="form-group" style="margin-bottom:6px;">
           <label>လမ်း၊ အိမ်အမှတ် နှင့် လိပ်စာ *</label>
@@ -10254,18 +10254,21 @@ function copyProductLink(productId) {
       currentDeliveryFee = currentVipStatus.isFreeDelivery ? 0 : (Number(comp.fee) || 0);
       currentEstimatedDays = comp.days || '2 - 3 ရက်';
       currentSelectedTownship = townshipName;
-      // 🚍 ရန်ကုန်မြို့တွင်း (သို့မဟုတ်) အိမ်အရောက် Deli ဖြစ်ပါက ကားဂိတ်အကွက် လုံးဝ ဖျောက်ရန်
+      // 🚍 ကားဂိတ်ချ Deli ဖြစ်ပါက စစ်ကိုင်း/နယ်မြို့ ကားဂိတ်စာရင်းများကို ဖွင့်ပြပေးရန်
     const busSec = document.getElementById('customerBusGateSection');
     if (busSec) {
       const cName = comp && comp.name ? comp.name : '';
       const tName = townshipName || '';
       const isBusGate = cName.includes('ကားဂိတ်') || cName.includes('ဂိတ်ချ') || cName.includes('Gate');
-      const isYangonOrHome = tName.includes('လှိုင်') || tName.includes('ကမာရွတ်') || tName.includes('ရန်ကုန်') || cName.includes('ရန်ကုန်') || cName.includes('Royal') || cName.includes('အိမ်အရောက်') || cName.includes('Deli');
+      const isYangonOrHome = tName.includes('လှိုင်') || tName.includes('ကမာရွတ်') || tName.includes('ရန်ကုန်') || cName.includes('ရန်ကုန်') || cName.includes('Royal') || cName.includes('အိမ်အရောက်');
 
-      if (isYangonOrHome || !isBusGate) {
-        busSec.style.display = 'none'; // ရန်ကုန်မြို့တွင်း/အိမ်အရောက်ဆိုလျှင် ကားဂိတ်အကွက် လုံးဝ ဖျောက်မည်
+      if (isBusGate && !isYangonOrHome) {
+        busSec.style.display = 'block';
+        if (typeof filterBusGatesForTownship === 'function') {
+          filterBusGatesForTownship(tName);
+        }
       } else {
-        busSec.style.display = 'block'; // နယ် ကားဂိတ်တင်ပို့ဆောင်မှုမှသာ ပြသမည်
+        busSec.style.display = 'none';
       }
     }
     // 💳 COD ရရှိသော မြို့နယ်/Deli ဖြစ်ပါက ငွေပေးချေမှုကို COD သို့ Reset ပြန်ချပြီး QR Code ဖျောက်ရန်
@@ -10357,7 +10360,10 @@ function filterBusGatesForTownship(selectedTownship) {
   if (!gateSelect) return;
 
   // အစပိုင်းတွင် Reset လုပ်ခြင်း
-  gateSelect.innerHTML = '<option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>';
+  gateSelect.innerHTML = `
+      <option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>
+      <option value="AUTO_SHOP_DELI">🚚 ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ပေးပါ (ကြိုက်တဲ့ကားနဲ့ပို့)</option>
+    `;
   if (previewCard) previewCard.style.display = 'none';
   if (customBox) customBox.style.display = 'none';
 
@@ -10414,7 +10420,7 @@ function filterBusGatesForTownship(selectedTownship) {
   // ➕ အခြားကားဂိတ် (Custom Note) Option ထည့်ပေးခြင်း
   const customOpt = document.createElement('option');
   customOpt.value = 'CUSTOM_OTHER_GATE';
-  customOpt.textContent = '➕ အခြားကားဂိတ် အမည်ရိုက်ထည့်မည်';
+  customOpt.textContent = '✏️ စာရင်းထဲမပါသော အခြားကားဂိတ် ရိုက်ထည့်မည်';
   gateSelect.appendChild(customOpt);
 
   if (gateSection) gateSection.style.display = 'block';
@@ -10428,6 +10434,15 @@ function handleCustomerGateSelection(val) {
   if (val === 'CUSTOM_OTHER_GATE') {
     if (previewCard) previewCard.style.display = 'none';
     if (customBox) customBox.style.display = 'block';
+    const noteInput = document.getElementById('customGateNoteInput');
+    if (noteInput) noteInput.focus();
+    return;
+  }
+
+  // 🚚 ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ပေးပါ (ကြိုက်တဲ့ကားနဲ့ပို့) ရွေးလျှင် နှစ်ခုစလုံး ဖျောက်ထားမည်
+  if (val === 'AUTO_SHOP_DELI') {
+    if (previewCard) previewCard.style.display = 'none';
+    if (customBox) customBox.style.display = 'none';
     return;
   }
 
