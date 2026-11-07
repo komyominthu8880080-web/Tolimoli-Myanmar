@@ -9223,47 +9223,52 @@ function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 �
                     const towns = comp.townDetails || [];
                     return `
                       <div style="margin-top: 10px; background: rgba(0,0,0,0.3); border: 1px solid #334155; border-radius: 8px; padding: 10px;">
-                        <!-- မြို့ရှာဖွေသည့် အကွက် (Compact) -->
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
-                          <span style="font-size:10.5px; color:var(--gold); font-weight:600; white-space:nowrap;">📍 မြို့များ (${towns.length})</span>
+                        <!-- ထိပ်တန်း မြို့ရှာဖွေသည့် အကွက် -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                          <span style="font-size: 11px; color: var(--gold); font-weight: bold; white-space: nowrap;">📍 မြို့များ (${towns.length})</span>
                           <input type="text" 
                                  id="townSearch_${cIdx}"
-                                 placeholder="🔍 မြို့အမည် ရိုက်ရှာရန်..." 
+                                 placeholder="🔍 မြို့အမည် ရိုက်ရှာပါ..." 
                                  oninput="onSearchCompanyTown(${cIdx}, this.value)"
-                                 style="width:55%; max-width:180px; padding:4px 8px; font-size:10.5px; background:#0b1120; border:1px solid #1e293b; color:#fff; border-radius:4px; outline:none;">
+                                 style="flex: 1; padding: 6px 10px; font-size: 11px; background: #0f172a; border: 1px solid #0284c7; color: #fff; border-radius: 6px; outline: none;">
                         </div>
 
-                        <!-- မြို့အသစ်ထည့် အကွက် (Compact Row) -->
-                        <div style="background:#0f172a; border:1px solid #1e293b; border-radius:6px; padding:6px; margin-bottom:8px;">
-                          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; gap:4px; margin-bottom:4px;">
-                            <input type="text" id="newTownName_${cIdx}" placeholder="မြို့အမည်" style="padding:4px 6px; font-size:10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:4px;">
-                            <input type="number" id="newTownFee_${cIdx}" placeholder="ပို့ခ (ကျပ်)" value="${comp.fee || ''}" style="padding:4px 6px; font-size:10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:4px;">
-                            <input type="text" id="newTownDuration_${cIdx}" placeholder="ကြာချိန်" value="${comp.days || ''}" style="padding:4px 6px; font-size:10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:4px;">
+                        <!-- မြို့အသစ် ထည့်သည့် Mobile-Friendly Form -->
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 6px; padding: 8px; margin-bottom: 10px;">
+                          <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                            <input type="text" id="newTownName_${cIdx}" placeholder="မြို့အမည် (ဥပမာ - စစ်ကိုင်း)" style="flex: 1.5; padding: 6px 8px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
+                            <input type="number" id="newTownFee_${cIdx}" placeholder="ပို့ခ (Ks)" value="${comp.fee || ''}" style="flex: 1; padding: 6px 8px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
                           </div>
-                          <div style="display:flex; justify-content:space-between; align-items:center; padding:0 2px;">
-                            <label style="display:flex; align-items:center; gap:4px; font-size:10px; color:#94a3b8; cursor:pointer;">
-                              <input type="checkbox" id="newTownCod_${cIdx}" ${comp.isCod !== false ? 'checked' : ''} style="accent-color:#0284c7; width:12px; height:12px;"> COD ရွေးခွင့်ပြုမည်
+                          <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="text" id="newTownDuration_${cIdx}" placeholder="ကြာချိန် (ဥပမာ - 1-2 ရက်)" value="${comp.days || ''}" style="flex: 1.5; padding: 6px 8px; font-size: 11px; background: #1e293b; border: 1px solid #475569; color: #fff; border-radius: 4px;">
+                            <label style="display: flex; align-items: center; gap: 4px; font-size: 11px; color: #cbd5e1; cursor: pointer; white-space: nowrap;">
+                              <input type="checkbox" id="newTownCod_${cIdx}" ${comp.isCod !== false ? 'checked' : ''} style="accent-color: #0284c7;"> COD ရ
                             </label>
-                            <button type="button" onclick="addNewTownToCompany(${cIdx})" style="padding:3px 10px; font-size:10px; background:#0284c7; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600;">+ ထည့်မည်</button>
+                            <button type="button" onclick="addNewTownToCompany(${cIdx})" style="padding: 6px 10px; font-size: 11px; background: #0284c7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; white-space: nowrap;">+ ထည့်မည်</button>
                           </div>
                         </div>
 
-                        <!-- မြို့စာရင်း (Clean Compact List) -->
-                        <div id="companyTownsList_${cIdx}" style="max-height:190px; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; gap:4px; padding-right:2px;">
-                          ${towns.length === 0 ? `<div style="text-align:center; color:#64748b; font-size:10px; padding:12px;">မြို့များ မထည့်ရသေးပါ</div>` : 
+                        <!-- မြို့များ စာရင်း (Mobile Card Layout) -->
+                        <div id="companyTownsList_${cIdx}" style="max-height: 240px; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-right: 2px; display: flex; flex-direction: column; gap: 6px;">
+                          ${towns.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 10px;">မြို့များ မထည့်ရသေးပါ</div>` : 
                             towns.map((t, tIdx) => `
-                              <div style="display:flex; align-items:center; justify-content:space-between; background:#0b1329; border:1px solid #1e293b; padding:5px 8px; border-radius:5px; font-size:10.5px;">
-                                <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
-                                  <span style="color:#f1f5f9; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${t.name}</span>
-                                  <span style="color:#38bdf8; font-size:10px; white-space:nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
-                                  <span style="color:#64748b; font-size:9.5px; white-space:nowrap;">(${t.duration})</span>
+                              <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 11px; gap: 6px;">
+                                <div style="flex: 1; min-width: 0;">
+                                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                    <span style="font-weight: bold; color: #f8fafc; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.name}</span>
+                                    <span style="padding: 1px 5px; border-radius: 3px; font-size: 9px; line-height: 1.2; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
+                                      ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
+                                    </span>
+                                  </div>
+                                  <div style="display: flex; gap: 8px; color: #94a3b8; font-size: 10.5px;">
+                                    <span style="color: #38bdf8; font-weight: 600;">${Number(t.fee).toLocaleString()} Ks</span>
+                                    <span>•</span>
+                                    <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.duration}</span>
+                                  </div>
                                 </div>
-                                <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-                                  <span style="padding:1px 4px; border-radius:3px; font-size:8.5px; ${t.cod ? 'background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);' : 'background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);'}">
-                                    ${t.cod ? 'COD' : 'Prepaid'}
-                                  </span>
-                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx})" style="background:transparent; border:none; color:#38bdf8; cursor:pointer; padding:2px 4px; font-size:10px;"><i class="fas fa-edit"></i></button>
-                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx})" style="background:transparent; border:none; color:#ef4444; cursor:pointer; padding:2px 4px; font-size:10px;"><i class="fas fa-trash-alt"></i></button>
+                                <div style="display: flex; gap: 5px; flex-shrink: 0;">
+                                  <button type="button" onclick="quickEditTown(${cIdx},${tIdx})" style="background: #0284c7; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-edit"></i></button>
+                                  <button type="button" onclick="removeTownFromCompany(${cIdx},${tIdx})" style="background: #ef4444; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-trash"></i></button>
                                 </div>
                               </div>
                             `).join('')}
@@ -9401,20 +9406,25 @@ function onSearchCompanyTown(cIdx, query) {
   const listEl = document.getElementById(`companyTownsList_${cIdx}`);
   if (!listEl) return;
 
-  listEl.innerHTML = filtered.length === 0 ? `<div style="text-align:center; color:#64748b; font-size:10px; padding:12px;">ရှာမတွေ့ပါ</div>` :
+  listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 10px;">ရှာမတွေ့ပါ</div>` :
     filtered.map(t => `
-      <div style="display:flex; align-items:center; justify-content:space-between; background:#0b1329; border:1px solid #1e293b; padding:5px 8px; border-radius:5px; font-size:10.5px;">
-        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
-          <span style="color:#f1f5f9; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90px;">${t.name}</span>
-          <span style="color:#38bdf8; font-size:10px; white-space:nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
-          <span style="color:#64748b; font-size:9.5px; white-space:nowrap;">(${t.duration})</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 11px; gap: 6px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+            <span style="font-weight: bold; color: #f8fafc; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.name}</span>
+            <span style="padding: 1px 5px; border-radius: 3px; font-size: 9px; line-height: 1.2; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
+              ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
+            </span>
+          </div>
+          <div style="display: flex; gap: 8px; color: #94a3b8; font-size: 10.5px;">
+            <span style="color: #38bdf8; font-weight: 600;">${Number(t.fee).toLocaleString()} Ks</span>
+            <span>•</span>
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.duration}</span>
+          </div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-          <span style="padding:1px 4px; border-radius:3px; font-size:8.5px; ${t.cod ? 'background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);' : 'background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);'}">
-            ${t.cod ? 'COD' : 'Prepaid'}
-          </span>
-          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" style="background:transparent; border:none; color:#38bdf8; cursor:pointer; padding:2px 4px; font-size:10px;"><i class="fas fa-edit"></i></button>
-          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" style="background:transparent; border:none; color:#ef4444; cursor:pointer; padding:2px 4px; font-size:10px;"><i class="fas fa-trash-alt"></i></button>
+        <div style="display: flex; gap: 5px; flex-shrink: 0;">
+          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" style="background: #0284c7; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-edit"></i></button>
+          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" style="background: #ef4444; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-trash"></i></button>
         </div>
       </div>
     `).join('');
