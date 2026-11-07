@@ -9502,7 +9502,7 @@ function closeModal(id) {
       adminClicks++;
       clearTimeout(adminTimer);
       adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
-      if (adminClicks >= 3) {
+      if (adminClicks >= 999) {
         adminClicks = 0;
         const validPin = localStorage.getItem('tm_admin_pin') || '1234';
         const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
@@ -10824,14 +10824,16 @@ var adminLogoTimer = null;
 function triggerAdminPinPad() {
   adminLogoClicks++;
   clearTimeout(adminLogoTimer);
-  adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1000);
+  // နှိပ်ရလွယ်ကူစေရန် အချိန်ကို ၁.၅ စက္ကန့်အထိ တိုးပေးထားပါသည်
+  adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1500);
 
+  // ၃ ချက် (သို့မဟုတ် ၄ ချက်) နှိပ်ရုံဖြင့် Custom PIN Modal ကို တိုက်ရိုက်ဖွင့်ပေးခြင်း
   if (adminLogoClicks >= 3) {
     adminLogoClicks = 0;
-    if (typeof openAdminPrompt === 'function') {
-      openAdminPrompt();
-    } else {
+    if (typeof openCustomPinModal === 'function') {
       openCustomPinModal();
+    } else if (typeof openAdminPrompt === 'function') {
+      openAdminPrompt();
     }
   }
 }
