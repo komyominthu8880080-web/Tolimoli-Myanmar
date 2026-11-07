@@ -10267,6 +10267,17 @@ function copyProductLink(productId) {
         busSec.style.display = 'block'; // နယ် ကားဂိတ်တင်ပို့ဆောင်မှုမှသာ ပြသမည်
       }
     }
+    // 💳 COD ရရှိသော မြို့နယ်/Deli ဖြစ်ပါက ငွေပေးချေမှုကို COD သို့ Reset ပြန်ချပြီး QR Code ဖျောက်ရန်
+    const isCod = comp && comp.isCod !== false;
+    if (isCod) {
+      if (typeof selectPayment === 'function') {
+        const codCardElem = document.getElementById('payCard_COD');
+        if (codCardElem) selectPayment('COD', codCardElem);
+      }
+      // QR Code container ရှိပါက ဖျောက်ပေးခြင်း
+      const qrBox = document.getElementById('dynamicPaymentQRContainer') || document.querySelector('.payment-qr-container');
+      if (qrBox) qrBox.style.display = 'none';
+    }
       const feeText = document.getElementById('cartDeliveryFeeText');
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks' + (currentVipStatus.isFreeDelivery ? ' (Free)' : '');
 
