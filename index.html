@@ -4380,25 +4380,25 @@ function scrollCategories(amount) {
         const estDays = matchedComp.days || '2 - 3 ရက်';
         currentEstimatedDays = estDays;
         const isCodAllowed = matchedComp.isCod !== false;
-        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို အလိုအလျောက် တန်းရွေးပေးခြင်း (ပြောင်းမည် ခလုတ်နှိပ်စရာမလိုစေရန်)
+        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို Auto ရွေးပေးခြင်းနှင့် Deli Cards များကို အမြဲတန်းပွင့်စေခြင်း
     if (typeof currentChosenDeliCompany !== 'undefined') {
       currentChosenDeliCompany = matchedComp;
     }
+    // "ပြောင်းမည်" နှိပ်စရာမလိုဘဲ အောက်က ကတ်ပြားစာရင်း အမြဲတန်းမြင်နေစေရန်
     if (typeof isDeliPickerExpanded !== 'undefined') {
-      isDeliPickerExpanded = false;
+      isDeliPickerExpanded = true;
     }
 
-    // 🚍 နယ်မြို့ကားဂိတ် စစ်ထုတ်ခြင်းနှင့် ပြသခြင်း
+    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း
     const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
-      const compName = (matchedComp && matchedComp.name) ? matchedComp.name : '';
-      // အကယ်၍ ကားဂိတ်ချပို့ဆောင်မှု ဖြစ်ပါက သို့မဟုတ် ရန်ကုန်/မန္တလေး အိမ်အရောက်မဟုတ်ပါက ကားဂိတ်အကွက်ကို အလိုအလျောက် ဖွင့်ပေးခြင်း
-      const isBusService = compName.includes('ကားဂိတ်') || compName.includes('ဂိတ်ချ') || (!compName.includes('ရန်ကုန်') && !compName.includes('Royal') && !compName.includes('အိမ်အရောက်'));
-
-      if (isBusService) {
+      // ရန်ကုန်မြို့တွင်း မဟုတ်သော နယ်မြို့များအားလုံး (မန္တလေး အပါအဝင်) အတွက် ကားဂိတ်အကွက်ကို အမြဲတမ်း ဖွင့်ပြပေးခြင်း
+      const isYgnOnly = val.includes('ရန်ကုန်') || matchedTownship.includes('ရန်ကုန်');
+      
+      if (!isYgnOnly) {
         busGateSec.style.display = 'block';
         if (typeof filterBusGatesForTownship === 'function') {
-          filterBusGatesForTownship(matchedTownship);
+          filterBusGatesForTownship(matchedTownship || val);
         }
       } else {
         busGateSec.style.display = 'none';
@@ -4429,8 +4429,14 @@ function scrollCategories(amount) {
       }
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
       renderCartUI();
-      if (typeof renderDynamicDeliCardsForTownship === 'function' && comps) {
-      renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships || []).some(t => val.includes(t))), val);
+      // 🚚 မြို့နယ်ပြောင်းလဲမှုနှင့်အညီ Deli Cards UI ကို ချက်ချင်း ပွင့်လာစေခြင်း
+    const deliCardsBox = document.getElementById('dynamicDeliOptionsContainer');
+    if (deliCardsBox) {
+      deliCardsBox.style.display = 'block';
+    }
+    if (typeof renderDynamicDeliCardsForTownship === 'function' && comps) {
+      const filteredComps = comps.filter(c => (c.townships || []).some(t => val.includes(t)));
+      renderDynamicDeliCardsForTownship(filteredComps.length > 0 ? filteredComps : comps, val);
     }
     }
 
