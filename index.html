@@ -9408,23 +9408,16 @@ function onSearchCompanyTown(cIdx, query) {
 
   listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 10px;">ရှာမတွေ့ပါ</div>` :
     filtered.map(t => `
-      <div style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 8px; border-radius: 6px; font-size: 11px; gap: 6px;">
-        <div style="flex: 1; min-width: 0;">
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
-            <span style="font-weight: bold; color: #f8fafc; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.name}</span>
-            <span style="padding: 1px 5px; border-radius: 3px; font-size: 9px; line-height: 1.2; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
-              ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
-            </span>
-          </div>
-          <div style="display: flex; gap: 8px; color: #94a3b8; font-size: 10.5px;">
-            <span style="color: #38bdf8; font-weight: 600;">${Number(t.fee).toLocaleString()} Ks</span>
-            <span>•</span>
-            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.duration}</span>
-          </div>
-        </div>
-        <div style="display: flex; gap: 5px; flex-shrink: 0;">
-          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" style="background: #0284c7; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-edit"></i></button>
-          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" style="background: #ef4444; border: none; color: #fff; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;"><i class="fas fa-trash"></i></button>
+      <div id="townRow_${cIdx}_${t.origIdx}" style="display: flex; align-items: center; justify-content: space-between; background: #1e293b; border: 1px solid #334155; padding: 6px 10px; border-radius: 6px; margin-bottom: 4px;">
+        <span style="font-weight: bold; color: #f8fafc; flex: 2; min-width: 80px;">${t.name}</span>
+        <span style="color: #38bdf8; flex: 1.5;">${Number(t.fee).toLocaleString()} Ks</span>
+        <span style="color: #94a3b8; flex: 1.5;">${t.duration}</span>
+        <span style="padding: 2px 5px; border-radius: 3px; font-size: 9px; ${t.cod ? 'background: #064e3b; color: #34d399;' : 'background: #7f1d1d; color: #f87171;'}">
+          ${t.cod ? 'COD ရ' : 'Prepaid သာ'}
+        </span>
+        <div style="display: flex; gap: 4px;">
+          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" style="background: #0284c7; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-edit"></i></button>
+          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" style="background: #ef4444; border: none; color: #fff; padding: 3px 6px; border-radius: 3px; cursor: pointer; font-size: 10px;"><i class="fas fa-trash"></i></button>
         </div>
       </div>
     `).join('');
