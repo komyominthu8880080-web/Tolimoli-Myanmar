@@ -3968,7 +3968,7 @@ function scrollCategories(amount) {
           </div>
 
           <!-- Existing Stations Directory List -->
-          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 10px !important;">
+          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 10px !important;"></div>
         </div>
         <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
           <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
@@ -10828,7 +10828,11 @@ function triggerAdminPinPad() {
 
   if (adminLogoClicks >= 3) {
     adminLogoClicks = 0;
-    openCustomPinModal();
+    if (typeof openAdminPrompt === 'function') {
+      openAdminPrompt();
+    } else {
+      openCustomPinModal();
+    }
   }
 }
 
