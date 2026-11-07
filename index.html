@@ -8593,6 +8593,7 @@ function renderVisualSalesCharts(orderList) {
       const discountReason = document.getElementById('pDiscountReason')?.value.trim() || '';
       const isPromo = document.getElementById('pIsPromoCheck')?.checked || false;
       const isHidden = document.getElementById('pIsHiddenCheck')?.checked || false;
+      const isNonCod = document.getElementById('pIsNonCodCheck') ? document.getElementById('pIsNonCodCheck').checked : false;
       const cost = Number(document.getElementById('pCost').value) || 0;
       const stock = Number(document.getElementById('pStock').value) || 0;
       const weight = document.getElementById('pWeight').value.trim();
@@ -8640,7 +8641,7 @@ function renderVisualSalesCharts(orderList) {
           const p = products.find(x => x.id === editId);
           if (p) {
             Object.assign(p, {
-              name, sku, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock,
+              name, sku, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, isNonCod, cost, stock,
               weight, expiryDate, length, width, girth, desc,
               image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
               youtube: yt, facebook: fb, telegram: tg, tiktok: tt
@@ -8649,7 +8650,7 @@ function renderVisualSalesCharts(orderList) {
           }
         } else {
           products.unshift({
-            id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, cost, stock,
+            id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, isNonCod, cost,
             weight, expiryDate, length, width, girth,
             description: desc, image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
             youtube: yt, facebook: fb, telegram: tg, tiktok: tt, rating: 5.0
@@ -8931,6 +8932,7 @@ function renderAdminColorInputs() {
       if (document.getElementById('pDiscountReason')) document.getElementById('pDiscountReason').value = p.discountReason || '';
       if (document.getElementById('pIsPromoCheck')) document.getElementById('pIsPromoCheck').checked = !!p.isPromo;
       if (document.getElementById('pIsHiddenCheck')) document.getElementById('pIsHiddenCheck').checked = !!p.isHidden;
+      if (document.getElementById('pIsNonCodCheck')) document.getElementById('pIsNonCodCheck').checked = !!(p.isNonCod || p.nonCod || p.isPrepaidOnly || p.prepaidOnly || p.noCod);
       document.getElementById('pCost').value = p.cost || 0;
       document.getElementById('pStock').value = (p.stock !== undefined && p.stock !== null) ? p.stock : 0;
       document.getElementById('pWeight').value = p.weight || '';
@@ -8972,6 +8974,7 @@ function renderAdminColorInputs() {
       if (document.getElementById('pOriginalPrice')) document.getElementById('pOriginalPrice').value = '';
       if (document.getElementById('pDiscountReason')) document.getElementById('pDiscountReason').value = '';
       if (document.getElementById('pIsPromoCheck')) document.getElementById('pIsPromoCheck').checked = false;
+      if (document.getElementById('pIsNonCodCheck')) document.getElementById('pIsNonCodCheck').checked = false;
       if (document.getElementById('pIsHiddenCheck')) document.getElementById('pIsHiddenCheck').checked = false;
       document.getElementById('editProductId').value = '';
       document.getElementById('pVideoUrl').value = '';
