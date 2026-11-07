@@ -6908,6 +6908,33 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
     }
       if (!name || !phone || !address) return alert('ကျေးဇူးပြု၍ လိုအပ်သော အချက်အလက်များ အားလုံး ဖြည့်ပါ');
 
+    // 🚍 ကားဂိတ်ရွေးချယ်မှု စစ်ဆေးခြင်းနှင့် အချက်အလက်ဖတ်ယူခြင်း
+    let busGateDetails = '';
+    const busSec = document.getElementById('customerBusGateSection');
+    if (busSec && busSec.style.display !== 'none') {
+      const gateSelect = document.getElementById('checkoutBusGateSelect');
+      const gateVal = gateSelect ? gateSelect.value : '';
+
+      if (!gateVal) {
+        alert('⚠️ ကျေးဇူးပြု၍ ပို့ဆောင်လိုသော ကားဂိတ် သို့မဟုတ် "ဆိုင်မှ အဆင်ပြေရာဂိတ်ဖြင့်ပို့ပါ" ကို ရွေးချယ်ပေးပါခင်ဗျာ။');
+        if (gateSelect) gateSelect.focus();
+        return;
+      }
+
+      if (gateVal === 'CUSTOM_OTHER' || gateVal === 'CUSTOM_OTHER_GATE') {
+        const customNote = document.getElementById('customGateNoteInput')?.value.trim();
+        if (!customNote) {
+          alert('⚠️ ပို့ဆောင်လိုသော ကားဂိတ်အမည်နှင့် မှတ်ချက်ကို ရေးသားပေးပါခင်ဗျာ။');
+          document.getElementById('customGateNoteInput')?.focus();
+          return;
+        }
+        busGateDetails = `အခြားကားဂိတ်: ${customNote}`;
+      } else if (gateVal === 'AUTO_SHOP_DELI') {
+        busGateDetails = 'ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ရန်';
+      } else {
+        busGateDetails = `${gateVal} ကားဂိတ်`;
+      }
+    }
       // ဖုန်းနံပါတ် တိကျစွာ စစ်ဆေးခြင်း
       const cleanPhoneDigits = phone.replace(/[^0-9]/g, '');
       if (cleanPhoneDigits.length < 8 || cleanPhoneDigits.length > 12) {
@@ -6991,7 +7018,9 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
         township: township || currentSelectedTownship || '-',
     logisticsInfo: logisticsInfoText || '',
     deliveryService: currentDeliveryService || (isYgn || isMdy ? 'အိမ်အရောက် ပို့ဆောင်မှု (COD)' : 'ကားဂိတ် ပို့ဆောင်မှု'),
-        busLineName: '',
+        busLineName: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
+      busGate: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
+      busGateDetails: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
         voucherNo: '',
         voucherImgUrl: '',
         deliveryFee: actualDeliveryFee,
@@ -7238,6 +7267,7 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
     `👤 <b>ဝယ်သူ:</b> ${o.customer}\n` +
     `📞 <b>ဖုန်း:</b> ${o.phone}\n` +
     `📍 <b>လိပ်စာ:</b> ${o.address} (${o.township})\n` +
+    (o.busGate || o.busGateDetails ? `🚍 <b>ကားဂိတ်:</b> ${o.busGate || o.busGateDetails}\n` : '') +
     (o.specialNote ? `📝 <b>အထူးမှာကြားချက်:</b> <mark>${o.specialNote}</mark>\n` : '') +
     `🚚 <b>ပို့ဆောင်ရေး:</b> ${o.deliveryService}\n` +
     `💳 <b>ငွေပေးချေမှု:</b> ${o.payment}\n` +
@@ -10395,17 +10425,21 @@ function filterBusGatesForTownship(selectedTownship) {
   }
 
   // ကားဂိတ်အမျိုးအစား နှင့် ရွေးချယ်ထားသော မြို့နယ်အလိုက် Filter စစ်ထုတ်ခြင်း
-  const searchTown = selectedTownship.toLowerCase().trim();
+  const searchTown = (selectedTownship || '').toLowerCase().trim();
   const matchedGates = stations.filter(station => {
     const isBus = !station.type || station.type.includes('ကားဂိတ်') || station.type.toLowerCase().includes('bus');
     if (!isBus) return false;
-    
-    const targetTown = (station.township || '').toLowerCase().trim();
-    const targetName = (station.name || '').toLowerCase().trim();
-    const targetAddr = (station.address || '').toLowerCase().trim();
 
-    return targetTown.includes(searchTown) || searchTown.includes(targetTown) ||
-           targetName.includes(searchTown) || targetAddr.includes(searchTown);
+    // အောင်မင်္ဂလာ/လိပ်စာများဖြင့် မငြိစေဘဲ မြို့နယ် (Township/Destinations) ကိုသာ တိကျစွာ စစ်ထုတ်ခြင်း
+    const targetTown = (station.township || '').toLowerCase().trim();
+    const destList = station.destinations || station.townships || [];
+
+    const matchesDest = Array.isArray(destList) && destList.some(d => {
+      const cleanD = String(d).toLowerCase().trim();
+      return cleanD && (searchTown.includes(cleanD) || cleanD.includes(searchTown));
+    });
+
+    return (targetTown && (searchTown.includes(targetTown) || targetTown.includes(searchTown))) || matchesDest;
   });
 
   // စစ်ထုတ်ရရှိသော ကားဂိတ်များကို Dropdown ထဲ ထည့်ခြင်း
@@ -12346,7 +12380,10 @@ function editDeliveryStation(idx) {
   const addrInp = document.getElementById('newStationAddressInput');
   if (addrInp) addrInp.value = st.address || '';
   const townInp = document.getElementById('newStationTownship');
-  if (townInp) townInp.value = st.township || '';
+    if (townInp) {
+      const destStr = Array.isArray(st.destinations) ? st.destinations.join(', ') : '';
+      townInp.value = destStr || st.township || '';
+    }
   const durInp = document.getElementById('newStationDuration');
   if (durInp) durInp.value = st.duration || '';
 
@@ -12414,25 +12451,29 @@ const phone = phoneInputs.map(inp => inp.value.trim()).filter(Boolean).join(', '
   const address = document.getElementById('newStationAddressInput')?.value.trim();
   
   // ➕ မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
-  const township = document.getElementById('newStationTownship')?.value.trim() || '';
-  const duration = document.getElementById('newStationDuration')?.value.trim() || '';
+  // မြို့နယ်နှင့် ကြာချိန် အသစ်ဖတ်ယူခြင်း
+    const township = document.getElementById('newStationTownship')?.value.trim() || '';
+    const duration = document.getElementById('newStationDuration')?.value.trim() || '';
+    // မြို့နယ်များကို ကော်မာ (သို့မဟုတ်) ပုဒ်ဖြတ်များဖြင့် array အဖြစ် ခွဲထုတ်ခြင်း
+    const destinations = township ? township.split(/[,၊\n]/).map(t => t.trim()).filter(Boolean) : [];
 
-  if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ပြည့်စုံစွာ ဖြည့်သွင်းပါခင်ဗျာ');
+    if (!name || !phone) return alert('ဂိတ်အမည်နှင့် ဖုန်းနံပါတ် ပြည့်စုံစွာ ဖြည့်သွင်းပါခင်ဗျာ');
 
-  if (editingStationIdx !== null && deliveryStations[editingStationIdx]) {
-    // ပြင်ဆင်သိမ်းဆည်းခြင်း (Update Mode)
-    deliveryStations[editingStationIdx].type = type;
-    deliveryStations[editingStationIdx].name = name;
-    deliveryStations[editingStationIdx].phone = phone;
-    deliveryStations[editingStationIdx].address = address;
-    deliveryStations[editingStationIdx].township = township;
-    deliveryStations[editingStationIdx].duration = duration;
-    alert(`[ ${name} ] ၏ အချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!`);
+    if (editingStationIdx !== null && deliveryStations[editingStationIdx]) {
+      // ပြင်ဆင်သိမ်းဆည်းခြင်း (Update Mode)
+      deliveryStations[editingStationIdx].type = type;
+      deliveryStations[editingStationIdx].name = name;
+      deliveryStations[editingStationIdx].phone = phone;
+      deliveryStations[editingStationIdx].address = address;
+      deliveryStations[editingStationIdx].township = township;
+      deliveryStations[editingStationIdx].destinations = destinations;
+      deliveryStations[editingStationIdx].duration = duration;
+      alert(`'${name}' ၏ အချက်အလက်များကို အောင်မြင်စွာ ပြင်ဆင်ပြီးပါပြီ!`);
   } else {
     // အသစ်ထည့်သွင်းခြင်း (Create Mode)
     deliveryStations.push({
       id: 'st_' + Date.now(),
-      type, name, phone, address, township, duration
+      type, name, phone, address, township, destinations, duration
     });
     alert(`[ ${name} ] ကို ဂိတ်/ရုံးခွဲ စာရင်းထဲ အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ!`);
   }
