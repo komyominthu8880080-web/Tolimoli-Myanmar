@@ -9333,21 +9333,31 @@ function addNewTownToCompany(cIdx) {
   renderAdminDeliverySettings();
 }
 
-// မြို့အချက်အလက် အမြန်ပြင်ဆင်ခြင်း
+// မြို့အချက်အလက် အပြည့်အစုံ ပြင်ဆင်ခြင်း (မြို့အမည်၊ ပို့ခ၊ ကြာချိန်၊ COD)
 function quickEditTown(cIdx, tIdx) {
   const comp = deliveryConfig.companies[cIdx];
   if (!comp || !comp.townDetails) return;
   const target = comp.townDetails[tIdx];
   if (!target) return;
 
-  const newFee = prompt(`"${target.name}" အတွက် ပို့ဆောင်ခ (ကျပ်) ပြင်ရန်-`, target.fee);
+  // ၁။ မြို့အမည် ပြင်ဆင်ခြင်း
+  const newName = prompt(`မြို့အမည် ပြင်ဆင်ရန်-`, target.name);
+  if (newName === null) return;
+  const finalName = newName.trim() || target.name;
+
+  // ၂။ ပို့ဆောင်ခ ပြင်ဆင်ခြင်း
+  const newFee = prompt(`"${finalName}" အတွက် ပို့ဆောင်ခ (ကျပ်) ပြင်ရန်-`, target.fee);
   if (newFee === null) return;
 
-  const newDur = prompt(`"${target.name}" အတွက် ကြာချိန် ပြင်ရန်-`, target.duration);
+  // ၃။ ကြာချိန် ပြင်ဆင်ခြင်း
+  const newDur = prompt(`"${finalName}" အတွက် ကြာချိန် ပြင်ရန်-`, target.duration);
   if (newDur === null) return;
 
-  const newCod = confirm(`"${target.name}" အတွက် COD ရမည်လား?\n[OK = COD ရမည်, Cancel = Prepaid သီးသန့်]`);
+  // ၄။ COD ရ/မရ ရွေးချယ်ခြင်း
+  const newCod = confirm(`"${finalName}" အတွက် COD ရမလား?\n(OK = COD ရမည်, Cancel = Prepaid သီးသန့်)`);
 
+  // တန်ဖိုးများ အသစ် အစားထိုးခြင်း
+  target.name = finalName;
   target.fee = Number(newFee) || target.fee;
   target.duration = newDur.trim() || target.duration;
   target.cod = newCod;
