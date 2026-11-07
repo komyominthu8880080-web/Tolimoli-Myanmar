@@ -12350,47 +12350,87 @@ function renderAdminStationsDirectory() {
   const container = document.getElementById('adminStationsDirectoryListContainer');
   if (!container) return;
 
+  // အပေါ်အောက် အစဉ်လိုက် တန်းစီပေါ်စေရန် Flex Column သတ်မှတ်ခြင်း
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.gap = '8px';
+
   const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
 
   if (!Array.isArray(deliveryStations) || deliveryStations.length === 0) {
-    container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:8px;">ဂိတ် / ရုံးခွဲ စာရင်း မရှိသေးပါ</p>';
+    container.innerHTML = '<p style="color:var(--text-muted); font-size:11px; text-align:center; padding:8px;">ဂိတ် / ရုံးခွဲ မရှိသေးပါ</p>';
     return;
   }
 
-  // ရိုက်ရှာထားသော စာလုံးနှင့် ကိုက်ညီသည့် စာရင်းများကိုသာ Filter စစ်ထုတ်ပြသခြင်း
+  // ရိုက်ရှာထားသော စာလုံးနှင့် ကိုက်ညီသည့် စာရင်းများကိုသာ Filter စစ်ထုတ်ခြင်း
   const filtered = deliveryStations.map((st, idx) => ({ ...st, originalIdx: idx })).filter(st => {
-    const nameMatch = (st.name || '').toLowerCase().includes(searchVal);
-    const phoneMatch = (st.phone || '').toLowerCase().includes(searchVal);
-    const addrMatch = (st.address || '').toLowerCase().includes(searchVal);
-    const typeMatch = (st.type || '').toLowerCase().includes(searchVal);
-    return nameMatch || phoneMatch || addrMatch || typeMatch;
+    const destStr = Array.isArray(st.destinations) ? st.destinations.join(' ') : (st.destinations || st.township || '');
+    const constNameMatch = (st.name || '').toLowerCase().includes(searchVal);
+    const constPhoneMatch = String(st.phone || '').toLowerCase().includes(searchVal);
+    const constAddrMatch = (st.address || '').toLowerCase().includes(searchVal);
+    const constTypeMatch = (st.type || '').toLowerCase().includes(searchVal);
+    const constTownMatch = destStr.toLowerCase().includes(searchVal);
+    return constNameMatch || constPhoneMatch || constAddrMatch || constTypeMatch || constTownMatch;
   });
 
   if (filtered.length === 0) {
-    container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:8px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ကားဂိတ် မတွေ့ရှိပါ</p>';
+    container.innerHTML = '<p style="color:#f87171; font-size:11px; text-align:center; padding:8px;">ရှာဖွေမှုနှင့် ကိုက်ညီသော ရုံးခွဲ/ဂိတ် မရှိပါ</p>';
     return;
   }
 
-  container.innerHTML = filtered.map(st => `
-    <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:6px; padding:6px 8px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
-      <div style="flex:1; padding-right:8px;">
-        <div>
-          <span class="station-type-badge ${st.type === 'bus' ? 'badge-type-bus' : st.type === 'royal' ? 'badge-type-royal' : 'badge-type-deli'}">${st.type ? st.type.toUpperCase() : 'STATION'}</span>
-          <b style="color:#fff; font-size:11.5px;">${st.name}</b>
+  container.innerHTML = filtered.map(st => {
+    const isBus = st.type === 'bus' || !st.type;
+    const badgeBg = isBus ? '#f59e0b' : '#ef4444';
+    const badgeText = isBus ? 'BUS' : (st.type ? st.type.toUpperCase() : 'DELI');
+
+    // ရောက်ရှိနိုင်သော မြို့များ စာရင်း ဖော်ထုတ်ခြင်း
+    let destArr = [];
+    if (Array.isArray(st.destinations) && st.destinations.length > 0) {
+      destArr = st.destinations;
+    } else if (Array.isArray(st.townships) && st.townships.length > 0) {
+      destArr = st.townships;
+    } else if (st.destinations || st.township) {
+      destArr = String(st.destinations || st.township).split(/[,၊]/).map(s => s.trim()).filter(Boolean);
+    }
+    const destDisplay = destArr.join(', ');
+
+    // ဖုန်းနံပါတ် ပြသခြင်း
+    const phoneDisplay = Array.isArray(st.phone) ? st.phone.join(', ') : (st.phone || '-');
+
+    return `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px; width:100%; box-sizing:border-box;">
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+            <span style="background:${badgeBg}; color:#000; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px;">${badgeText}</span>
+            <span style="font-weight:700; color:#fff; font-size:12px;">${st.name || ''}</span>
+          </div>
+          
+          <div style="font-size:11px; color:#10b981; margin-bottom:4px; display:flex; align-items:center; gap:5px;">
+            <i class="fas fa-phone-alt" style="font-size:10px;"></i> <span>${phoneDisplay}</span>
+          </div>
+
+          ${destDisplay ? `
+          <div style="font-size:10.5px; color:#38bdf8; margin-bottom:4px; line-height:1.4;">
+            <i class="fas fa-map-marker-alt" style="font-size:10px; color:#38bdf8;"></i> 
+            <span style="font-weight:600;">ရောက်ရှိနိုင်သောမြို့များ:</span> ${destDisplay}
+          </div>` : ''}
+
+          <div style="font-size:10.5px; color:#94a3b8; line-height:1.4;">
+            <i class="fas fa-location-arrow" style="font-size:10px; color:#64748b;"></i> ${st.address || '-'}
+          </div>
         </div>
-        <div style="color:#10b981; font-size:10px; margin-top:2px;">📞 ${st.phone || '-'}</div>
-        <div style="color:#94a3b8; font-size:10px;">📍 ${st.address || '-'}</div>
+
+        <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+          <button type="button" onclick="editDeliveryStation(${st.originalIdx})" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer; display:flex; align-items:center; gap:4px;">
+            <i class="fas fa-edit"></i> ပြင်
+          </button>
+          <button type="button" onclick="deleteDeliveryStation(${st.originalIdx})" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11px; cursor:pointer;">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
       </div>
-      <div style="display:flex; gap:4px; flex-shrink:0;">
-        <button type="button" class="action-badge" style="background:#0284c7; color:#fff;" onclick="editDeliveryStation(${st.originalIdx})" title="ပြင်ဆင်မည်">
-          <i class="fas fa-edit"></i> ပြင်
-        </button>
-        <button type="button" class="action-badge" style="background:#ef4444; color:#fff;" onclick="deleteDeliveryStation(${st.originalIdx})" title="ဖျက်မည်">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // ရုံးခွဲ / ကားဂိတ် အချက်အလက်များ Form ထဲသို့ ပြန်ထည့်ပေးခြင်း
