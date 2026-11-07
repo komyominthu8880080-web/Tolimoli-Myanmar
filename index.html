@@ -3968,7 +3968,7 @@ function scrollCategories(amount) {
           </div>
 
           <!-- Existing Stations Directory List -->
-          <div id="adminStationsDirectoryListContainer" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
+          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 10px !important;">
         </div>
         <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
           <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
@@ -12400,7 +12400,7 @@ function renderAdminStationsDirectory() {
     const phoneDisplay = Array.isArray(st.phone) ? st.phone.join(', ') : (st.phone || '-');
 
     return `
-      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:12px; display:flex !important; flex-direction:row; justify-content:space-between; align-items:flex-start; gap:12px; width:100% !important; max-width:100% !important; box-sizing:border-box !important;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:12px; display:flex !important; flex-direction:row; justify-content:space-between; align-items:flex-start; gap:12px; width:100% !important; min-width:100% !important; grid-column: 1 / -1 !important; box-sizing:border-box !important;">
         <div style="flex:1; min-width:0;">
           <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
             <span style="background:${badgeBg}; color:#000; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px;">${badgeText}</span>
