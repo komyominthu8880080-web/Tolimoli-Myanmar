@@ -3968,7 +3968,7 @@ function scrollCategories(amount) {
           </div>
 
           <!-- Existing Stations Directory List -->
-          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 10px !important;"></div>
+          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 8px !important; max-height: 290px !important; overflow-y: auto !important; padding-right: 4px; box-sizing: border-box !important;"></div>
         </div>
         <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
           <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
@@ -12356,12 +12356,14 @@ function renderAdminStationsDirectory() {
   const container = document.getElementById('adminStationsDirectoryListContainer');
   if (!container) return;
 
-  // အပေါ်အောက် တစ်ကြောင်းချင်း အပြည့်ပေါ်စေရန် Grid ကို ဖျက်ချပြီး Flex Column အဖြစ် အတင်းသတ်မှတ်ခြင်း
+  // ကတ် ၃ ခုစာသာ ပေါ်စေပြီး ကျန်တာကို အထဲမှာ တွန်းကြည့်နိုင်စေရန်
   container.style.setProperty('display', 'flex', 'important');
   container.style.setProperty('flex-direction', 'column', 'important');
   container.style.setProperty('grid-template-columns', 'none', 'important');
-  container.style.setProperty('gap', '10px', 'important');
+  container.style.setProperty('gap', '8px', 'important');
   container.style.setProperty('width', '100%', 'important');
+  container.style.setProperty('max-height', '290px', 'important');
+  container.style.setProperty('overflow-y', 'auto', 'important');
 
   const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
 
