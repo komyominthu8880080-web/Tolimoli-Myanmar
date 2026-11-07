@@ -1924,6 +1924,17 @@ body.modal-open .floating-action-container {
     margin-top: 10px !important;
   }
 }
+#adminStationsDirectoryListContainer::-webkit-scrollbar {
+  width: 6px !important;
+  display: block !important;
+}
+#adminStationsDirectoryListContainer::-webkit-scrollbar-thumb {
+  background: #0284c7 !important;
+  border-radius: 4px !important;
+}
+#adminStationsDirectoryListContainer::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
   </style>
 </head>
 <body>
@@ -3968,7 +3979,7 @@ function scrollCategories(amount) {
           </div>
 
           <!-- Existing Stations Directory List -->
-          <div id="adminStationsDirectoryListContainer" style="display: flex !important; flex-direction: column !important; width: 100% !important; gap: 8px !important; max-height: 340px !important; overflow-y: scroll !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; padding: 4px 2px; box-sizing: border-box !important;"></div>
+          <div id="adminStationsDirectoryListContainer" style="display: block !important; width: 100% !important; max-height: 280px !important; height: 280px !important; overflow-y: scroll !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; padding-right: 4px; box-sizing: border-box !important;"></div>
         </div>
           <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
           <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
@@ -12357,16 +12368,7 @@ function renderAdminStationsDirectory() {
   if (!container) return;
 
   // မိုဘိုင်းဖုန်းတွင် လက်ချောင်းဖြင့် အပေါ်အောက် လွတ်လပ်စွာ scroll ဆွဲနိုင်စေရန်
-  container.style.setProperty('display', 'flex', 'important');
-  container.style.setProperty('flex-direction', 'column', 'important');
-  container.style.setProperty('grid-template-columns', 'none', 'important');
-  container.style.setProperty('gap', '8px', 'important');
-  container.style.setProperty('width', '100%', 'important');
-  container.style.setProperty('max-height', '340px', 'important');
-  container.style.setProperty('overflow-y', 'scroll', 'important');
-  container.style.setProperty('overflow-x', 'hidden', 'important');
-  container.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
-  container.style.setProperty('touch-action', 'pan-y', 'important');
+  container.style.cssText = "display: block !important; width: 100% !important; max-height: 280px !important; height: 280px !important; overflow-y: scroll !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; box-sizing: border-box !important;";
 
   const searchVal = (document.getElementById('adminStationSearchInput')?.value || '').toLowerCase().trim();
 
@@ -12411,7 +12413,7 @@ function renderAdminStationsDirectory() {
     const phoneDisplay = Array.isArray(st.phone) ? st.phone.join(', ') : (st.phone || '-');
 
     return `
-      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px 12px; display:flex !important; flex-direction:row; justify-content:space-between; align-items:flex-start; gap:8px; width:100% !important; flex-shrink:0 !important; box-sizing:border-box !important;">
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px 12px; margin-bottom:8px !important; display:flex !important; flex-direction:row; justify-content:space-between; align-items:flex-start; gap:8px; width:100% !important; box-sizing:border-box !important;">
         <div style="flex:1; min-width:0;">
           <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
             <span style="background:${badgeBg}; color:#000; font-size:9px; font-weight:800; padding:1px 5px; border-radius:4px;">${badgeText}</span>
