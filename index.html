@@ -9075,13 +9075,7 @@ function renderAdminColorInputs() {
 
       const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
 
-      container.innerHTML = `
-        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-          <button type="button" class="btn-gold" onclick="saveDeliveryConfig()" style="padding:6px 14px; font-size:0.75rem; width:auto;">
-            <i class="fas fa-save"></i> Deli အချက်အလက်များ သိမ်းဆည်းမည်
-          </button>
-        </div>
-      ` + comps.map((comp, cIdx) => `
+      container.innerHTML = comps.map((comp, cIdx) => `
         <div style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border); border-radius:10px; padding:10px; margin-bottom:10px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <div style="display:flex; align-items:center; gap:6px; flex:1; margin-right:8px;">
@@ -9130,8 +9124,14 @@ function renderAdminColorInputs() {
             </div>
           </div>
         </div>
-      `).join('');
-    }
+  `).join('') + `
+    <div style="margin-top:16px; margin-bottom:12px; display:flex; justify-content:center;">
+      <button type="button" class="btn-gold" onclick="saveDeliveryConfig()" style="width:100%; padding:12px; font-size:0.95rem; font-weight:bold; cursor:pointer; background:linear-gradient(135deg, #d4af37, #f3e5ab); color:#000; border:none; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+        <i class="fas fa-save"></i> 💾 Deli အချက်အလက်များ သိမ်းဆည်းမည်
+      </button>
+    </div>
+  `;
+}
 
     function addDeliveryCompany() {
       if (!deliveryConfig.companies) deliveryConfig.companies = [];
@@ -9173,11 +9173,12 @@ function renderAdminColorInputs() {
     }
 
     function saveDeliveryConfig() {
-      localStorage.setItem('tm_delivery_config', JSON.stringify(deliveryConfig));
-      if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_config').set(deliveryConfig);
-      initTownshipDatalist();
-      renderAdminDeliverySettings();
-    }
+  localStorage.setItem('tm_delivery_config', JSON.stringify(deliveryConfig));
+  if (typeof fbDb !== 'undefined') fbDb.ref('shop_delivery_config').set(deliveryConfig);
+  if (typeof initTownshipDatalist === 'function') initTownshipDatalist();
+  if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+  alert('✅ Deli အချက်အလက်များကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီခင်ဗျာ။');
+}
 
     function exportProductsExcel() {
       const data = products.map(p => ({
