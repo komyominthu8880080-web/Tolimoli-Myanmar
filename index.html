@@ -9263,10 +9263,14 @@ function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 �
                                   ${t.cod ? 'COD' : 'Prepaid'}
                                 </span>
                                 
-                                <!-- Action Buttons (နှိပ်ရလွယ်ကူသော 28px Touch Box) -->
+                                <!-- Action Buttons -->
                                 <div style="display: flex; gap: 4px; flex-shrink: 0;">
-                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx})" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-edit"></i></button>
-                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx})" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-trash-alt"></i></button>
+                                  <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx}, event)" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                                    <i class="fas fa-edit" style="pointer-events: none;"></i>
+                                  </button>
+                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${tIdx}, event)" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                                    <i class="fas fa-trash-alt" style="pointer-events: none;"></i>
+                                  </button>
                                 </div>
                               </div>
                             `).join('')}
@@ -9342,58 +9346,71 @@ function addNewTownToCompany(cIdx) {
   renderAdminDeliverySettings();
 }
 
-// မြို့အချက်အလက် အပြည့်အစုံ ပြင်ဆင်ခြင်း (မြို့အမည်၊ ပို့ခ၊ ကြာချိန်၊ COD)
-// အတန်းထဲတွင် တိုက်ရိုက် Input Box များအဖြစ် ပြောင်းလဲပေးခြင်း (Inline Edit)
-function quickEditTown(cIdx, tIdx) {
-  const row = document.getElementById(`townRow_${cIdx}_${tIdx}`);
-  if (!row) return;
-
-  const comp = deliveryConfig.companies[cIdx];
-  if (!comp || !comp.townDetails) return;
-  const t = comp.townDetails[tIdx];
-  if (!t) return;
-
-  const curName = t.name || '';
-  const curFee = t.fee !== undefined ? t.fee : (comp.fee || 0);
-  const curDur = t.duration || (comp.days || '2/3 ရက်');
-  const curCod = t.cod !== undefined ? t.cod : true;
-
-  row.innerHTML = `
-    <input type="text" id="inline_name_${cIdx}_${tIdx}" value="${curName}" style="flex: 2; min-width: 70px; background: #0f172a; border: 1px solid #38bdf8; color: #fff; padding: 4px; border-radius: 4px; font-size: 11px;">
-    <input type="number" id="inline_fee_${cIdx}_${tIdx}" value="${curFee}" style="flex: 1.5; background: #0f172a; border: 1px solid #38bdf8; color: #38bdf8; padding: 4px; border-radius: 4px; font-size: 11px; margin: 0 4px;">
-    <input type="text" id="inline_dur_${cIdx}_${tIdx}" value="${curDur}" style="flex: 1.5; background: #0f172a; border: 1px solid #38bdf8; color: #fff; padding: 4px; border-radius: 4px; font-size: 11px; margin-right: 4px;">
-    <label style="font-size: 10px; color: ${curCod ? '#00ff88' : '#f87171'}; display: flex; align-items: center; gap: 2px; margin-right: 4px;">
-      <input type="checkbox" id="inline_cod_${cIdx}_${tIdx}" ${curCod ? 'checked' : ''}> COD
-    </label>
-    <div style="display: flex; gap: 4px;">
-      <button type="button" onclick="saveInlineTown(${cIdx}, ${tIdx})" style="background: #10b981; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px;" title="သိမ်းမည်">✓</button>
-      <button type="button" onclick="renderAdminDeliverySettings()" style="background: #64748b; border: none; color: white; padding: 4px 6px; border-radius: 4px; cursor: pointer; font-size: 10px;" title="မပြင်တော့ပါ">✕</button>
-    </div>
-  `;
-}
-
-// Inline ပြင်ဆင်ပြီးသော အချက်အလက်များကို သိမ်းဆည်းခြင်း
-function saveInlineTown(cIdx, tIdx) {
-  const comp = deliveryConfig.companies[cIdx];
-  if (!comp || !comp.townDetails || !comp.townDetails[tIdx]) return;
-
-  const nInp = document.getElementById(`inline_name_${cIdx}_${tIdx}`);
-  const fInp = document.getElementById(`inline_fee_${cIdx}_${tIdx}`);
-  const dInp = document.getElementById(`inline_dur_${cIdx}_${tIdx}`);
-  const cInp = document.getElementById(`inline_cod_${cIdx}_${tIdx}`);
-
-  if (nInp && fInp && dInp && cInp) {
-    comp.townDetails[tIdx] = {
-      name: nInp.value.trim() || comp.townDetails[tIdx].name,
-      fee: Number(fInp.value) || 0,
-      duration: dInp.value.trim() || '2/3 ရက်',
-      cod: cInp.checked
-    };
-    comp.townships = comp.townDetails.map(t => t.name);
-    saveDeliveryConfig();
-    renderAdminDeliverySettings();
+// မြို့အချက်အလက် အမြန်ပြင်ဆင်ခြင်း (Global Window Scope Fix)
+window.quickEditTown = function(cIdx, tIdx, ev) {
+  if (ev) {
+    if (typeof ev.preventDefault === 'function') ev.preventDefault();
+    if (typeof ev.stopPropagation === 'function') ev.stopPropagation();
   }
-}
+  
+  const comp = (typeof deliveryConfig !== 'undefined' && deliveryConfig && deliveryConfig.companies) ? deliveryConfig.companies[cIdx] : null;
+  if (!comp) {
+    alert("Deli Company ကို ရှာမတွေ့ပါ!");
+    return;
+  }
+
+  if (!comp.townDetails || !Array.isArray(comp.townDetails)) {
+    comp.townDetails = (typeof normalizeTownData === 'function') ? normalizeTownData(comp.townships || [], comp.fee, comp.days) : [];
+  }
+
+  const target = comp.townDetails[tIdx];
+  if (!target) {
+    alert("ပြင်ဆင်မည့် မြို့ကို ရှာမတွေ့ပါ!");
+    return;
+  }
+
+  const newFee = prompt(`"${target.name}" အတွက် ပို့ဆောင်ခ (ကျပ်) ပြင်ရန်-`, target.fee);
+  if (newFee === null) return;
+
+  const newDur = prompt(`"${target.name}" အတွက် ကြာချိန် ပြင်ရန်-`, target.duration);
+  if (newDur === null) return;
+
+  const newCod = confirm(`"${target.name}" အတွက် COD ရမည်လား?\n[OK = COD ရမည်, Cancel = Prepaid သီးသန့်]`);
+
+  target.fee = Number(newFee) || target.fee;
+  target.duration = (newDur.trim()) ? newDur.trim() : target.duration;
+  target.cod = newCod;
+
+  comp.townships = comp.townDetails.map(t => t.name);
+  if (typeof saveDeliveryConfig === 'function') saveDeliveryConfig();
+  if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+};
+
+// မြို့စာရင်းမှ ဖျက်ထုတ်ခြင်း (Global Window Scope Fix)
+window.removeTownFromCompany = function(cIdx, tIdx, ev) {
+  if (ev) {
+    if (typeof ev.preventDefault === 'function') ev.preventDefault();
+    if (typeof ev.stopPropagation === 'function') ev.stopPropagation();
+  }
+
+  const comp = (typeof deliveryConfig !== 'undefined' && deliveryConfig && deliveryConfig.companies) ? deliveryConfig.companies[cIdx] : null;
+  if (!comp) return;
+
+  if (!comp.townDetails || !Array.isArray(comp.townDetails)) {
+    comp.townDetails = (typeof normalizeTownData === 'function') ? normalizeTownData(comp.townships || [], comp.fee, comp.days) : [];
+  }
+
+  const target = comp.townDetails[tIdx];
+  if (!target) return;
+
+  if (!confirm(`"${target.name}" ကို ဖျက်ရန် သေချာပါသလား?`)) return;
+
+  comp.townDetails.splice(tIdx, 1);
+  comp.townships = comp.townDetails.map(t => t.name);
+
+  if (typeof saveDeliveryConfig === 'function') saveDeliveryConfig();
+  if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+};
 
 // မြို့အမည် ရိုက်ရှာသည့်အခါ Filter လုပ်ပေးခြင်း
 function onSearchCompanyTown(cIdx, query) {
@@ -9414,10 +9431,14 @@ function onSearchCompanyTown(cIdx, query) {
         <span style="padding: 2px 6px; border-radius: 3px; font-size: 9.5px; font-weight: 600; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);'}">
           ${t.cod ? 'COD' : 'Prepaid'}
         </span>
-        <div style="display: flex; gap: 4px; flex-shrink: 0;">
-          <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx})" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-edit"></i></button>
-          <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx})" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;"><i class="fas fa-trash-alt"></i></button>
-        </div>
+       <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                                  <button type="button" onclick="quickEditTown(${cIdx}, ${t.origIdx}, event)" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                                    <i class="fas fa-edit" style="pointer-events: none;"></i>
+                                  </button>
+                                  <button type="button" onclick="removeTownFromCompany(${cIdx}, ${t.origIdx}, event)" title="ဖျက်ရန်" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.35); color: #ef4444; width: 28px; height: 28px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px;">
+                                    <i class="fas fa-trash-alt" style="pointer-events: none;"></i>
+                                  </button>
+                                </div>
       </div>
     `).join('');
 }
