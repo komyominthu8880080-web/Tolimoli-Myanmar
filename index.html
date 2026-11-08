@@ -2357,6 +2357,7 @@ function scrollCategories(amount) {
   <small id="townshipRequiredAlert" style="display:none; color:#ef4444; font-size:11px; font-weight:600; margin-top:4px;">
   * ပို့ဆောင်ခ တွက်ချက်နိုင်ရန် စာရင်းထဲမှ မြို့နယ် / ကားဂိတ် ကို ရွေးချယ်ပေးပါ
 </small>
+<div id="selectedDeliInfoBadge" style="display: none;"></div>
   <!-- DYNAMIC LOGISTICS INFO BADGE -->
 <div id="logisticsDynamicBadge" style="display: none !important; margin-top: 6px; padding: 8px 10px; background: rgba(212, 175, 55, 0.08);"></div>
   <div id="logisticsDeliveryTypeText" style="font-weight: bold; color: var(--gold, #d4af37);"></div>
@@ -2419,24 +2420,24 @@ function scrollCategories(amount) {
         </div>
 
         <div class="payment-option-grid">
-          <div class="payment-card selected" id="payCard_KBZPay" onclick="selectPayment('KBZPay', this)">
+          <div class="payment-card selected" id="payMethod_kpay" onclick="selectPaymentMethod('kpay')">
             <i class="fas fa-mobile-alt" style="font-size:1rem; color:#0056b3;"></i>
             <div class="pay-card-title">KBZPay</div>
             <div class="pay-acc-info" id="dispKpayPhone">09768124433</div>
             <div class="pay-acc-name" id="dispKpayName">Ma Win Win Myint</div>
           </div>
-          <div class="payment-card" id="payCard_WavePay" onclick="selectPayment('WavePay', this)">
+          <div class="payment-card" id="payMethod_wave" onclick="selectPaymentMethod('wave')">
             <i class="fas fa-wallet" style="font-size:1rem; color:#ffd700;"></i>
             <div class="pay-card-title">WavePay</div>
             <div class="pay-acc-info" id="dispWavePhone">09768124433</div>
             <div class="pay-acc-name" id="dispWaveName">Nu Nu Htwe</div>
           </div>
-          <div class="payment-card" onclick="selectPayment('Banking', this)">
+          <div class="payment-card" id="payMethod_banking" onclick="selectPaymentMethod('banking')">
             <i class="fas fa-university" style="font-size:1rem; color:#00c07f;"></i>
             <div class="pay-card-title">Banking</div>
             <div class="pay-acc-name">KBZ / CB / AYA</div>
           </div>
-          <div class="payment-card" id="payCard_COD" onclick="selectPayment('COD', this)">
+          <div class="payment-card" id="payMethod_cod" onclick="selectPaymentMethod('cod')">
             <i class="fas fa-hand-holding-usd" style="font-size:1rem; color:#ff5722;"></i>
             <div class="pay-card-title">COD</div>
             <div class="pay-acc-name">ပစ္စည်းရောက်မှငွေချေ</div>
@@ -2444,7 +2445,7 @@ function scrollCategories(amount) {
         </div>
 
         <!-- DYNAMIC QR CODE DISPLAY AREA -->
-<div id="dynamicQrDisplayArea" style="margin-bottom: 12px;"></div>
+<div id="paymentQrContainer" style="display: none;"></div>
 
         <div id="slipUploadSection" class="form-group" style="margin-bottom:6px;">
           <label>ငွေလွှဲပြေစာ (Transaction Slip) တင်ရန်</label>
@@ -4451,7 +4452,16 @@ function scrollCategories(amount) {
             <div style="color:${isCodAllowed ? '#38bdf8' : '#f59e0b'}; font-size:0.72rem; margin-top:3px; font-weight:600;"><i class="fas fa-clock"></i> ပို့ဆောင်ချိန် ခန့်မှန်းခြေ: <b style="color:#fde047;">${estDays}</b> အတွင်း ပို့ဆောင်ပေးပါမည်</div>
           </div>
         `;
-
+          // ရွေးချယ်လိုက်သော မြို့နှင့် ကုမ္ပဏီအလိုက် Deli Badge ပြသခြင်း နှင့် Instant Payment Logic ချိတ်ဆက်ခြင်း
+    if (typeof updateSelectedDeliveryUI === 'function') {
+      const townObj = {
+        name: matchedTownship || val,
+        fee: finalTownFee,
+        duration: finalTownDuration,
+        cod: isCodAllowed
+      };
+      updateSelectedDeliveryUI(townObj, matchedComp);
+    }
         if (codCard) {
           if (isCodAllowed) {
             codCard.style.opacity = '1'; codCard.style.pointerEvents = 'auto';
@@ -15120,6 +15130,209 @@ function checkUrlForArticle() {
     }
   });
 })();
+
+// ==========================================
+// OFFICIAL PAYMENT ACCOUNTS CONFIGURATION
+// ==========================================
+const PAYMENT_ACCOUNTS = {
+  kpay: {
+    title: "KBZPay",
+    name: "Ma Win Win Myint",
+    account: "09768124433",
+    qr: "kpay-qr.jpg",
+    theme: "#0284c7"
+  },
+  wave: {
+    title: "WavePay",
+    name: "Nu Nu Htwe",
+    account: "09768124433",
+    qr: "wave-qr.jpg",
+    theme: "#eab308"
+  },
+  cbpay: {
+    title: "CB Pay",
+    name: "U MYO MIN THU",
+    account: "09421334455",
+    qr: "cbpay-qr.jpg",
+    theme: "#0284c7"
+  },
+  ayapay: {
+    title: "AYA Pay",
+    name: "MYO MIN THU",
+    account: "09421334455",
+    qr: "ayapay-qr.jpg",
+    theme: "#ef4444"
+  },
+  uabpay: {
+    title: "UAB Pay",
+    name: "Myo Min Thu",
+    account: "09444744493",
+    qr: "uabpay-qr.jpg",
+    theme: "#8b5cf6"
+  }
+};
+
+let currentPaymentMethod = 'kpay';
+let selectedBankType = 'cbpay';
+
+// မြို့နယ်/ဂိတ် ရွေးလိုက်သည့်အခါ Deli Card ပြသခြင်းနှင့် COD/Prepaid ထိန်းချုပ်ခြင်း
+window.updateSelectedDeliveryUI = function(selectedTown, comp) {
+  const container = document.getElementById('selectedDeliInfoBadge');
+  if (!container) return;
+
+  if (!selectedTown || !comp) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const codAllowed = selectedTown.cod === true;
+
+  container.style.display = 'block';
+  container.innerHTML = `
+    <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid #0284c7; border-radius: 6px; padding: 10px 12px; margin-top: 6px; font-size: 11.5px; line-height: 1.5;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 6px; margin-bottom: 6px;">
+        <span style="color: #38bdf8; font-weight: 600;">🚚 ${comp.name || 'ပို့ဆောင်ရေး'}</span>
+        <button type="button" onclick="resetDeliverySelection()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; cursor: pointer;">Deli ပြန်ရွေးမည်</button>
+      </div>
+      <div style="display: flex; justify-content: space-between; color: #cbd5e1;">
+        <span>⏱️ ကြာချိန်- <strong style="color: #f8fafc;">${selectedTown.duration || comp.days || '2-3 ရက်'}</strong></span>
+        <span>💵 ပို့ဆောင်ခ- <strong style="color: #38bdf8;">${Number(selectedTown.fee).toLocaleString()} Ks</strong></span>
+      </div>
+      <div style="margin-top: 4px; font-size: 11px;">
+        ငွေပေးချေမှု- ${codAllowed 
+          ? '<span style="color: #10b981; font-weight: 600;">COD (ပစ္စည်းရောက်မှငွေချေ) ရရှိပါသည်</span>' 
+          : '<span style="color: #f59e0b; font-weight: 600;">⚠️ ငွေကြိုလွှဲ (Prepaid) သီးသန့် ဖြစ်ပါသည်</span>'}
+      </div>
+    </div>
+  `;
+
+  // COD Button ကို ကားဂိတ်ချ/Prepaid သီးသန့် ဖြစ်ပါက ပိတ်ပြီး KPay သို့ အလိုအလျောက် ရွှေ့ပေးခြင်း
+  const codBtn = document.getElementById('payMethod_cod');
+  if (codBtn) {
+    if (!codAllowed) {
+      codBtn.style.opacity = '0.35';
+      codBtn.style.pointerEvents = 'none';
+      if (currentPaymentMethod === 'cod') {
+        selectPaymentMethod('kpay');
+      }
+    } else {
+      codBtn.style.opacity = '1';
+      codBtn.style.pointerEvents = 'auto';
+    }
+  }
+};
+
+// Payment Method ရွေးချယ်မှု ပြောင်းလဲသည့် Function
+window.selectPaymentMethod = function(method) {
+  currentPaymentMethod = method;
+
+  // Active Button Highlight
+  ['kpay', 'wave', 'banking', 'cod'].forEach(m => {
+    const el = document.getElementById(`payMethod_${m}`);
+    if (el) {
+      if (m === method) {
+        el.style.borderColor = '#eab308';
+        el.style.boxShadow = '0 0 10px rgba(234, 179, 8, 0.3)';
+      } else {
+        el.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        el.style.boxShadow = 'none';
+      }
+    }
+  });
+
+  const qrBox = document.getElementById('paymentQrContainer');
+  if (!qrBox) return;
+
+  if (method === 'cod') {
+    qrBox.style.display = 'none';
+    return;
+  }
+
+  qrBox.style.display = 'block';
+  renderQrBoxContent();
+};
+
+// Banking အတွက် Sub-Bank ရွေးချယ်ခြင်း
+window.selectBankSubOption = function(bankKey) {
+  selectedBankType = bankKey;
+  renderQrBoxContent();
+};
+
+// QR Container အတွင်းပိုင်းကို ၀.၁ စက္ကန့်အတွင်း Instant ထုတ်ပေးခြင်း
+function renderQrBoxContent() {
+  const qrBox = document.getElementById('paymentQrContainer');
+  if (!qrBox) return;
+
+  let activeData = null;
+  let bankSelectorHtml = '';
+
+  if (currentPaymentMethod === 'banking') {
+    activeData = PAYMENT_ACCOUNTS[selectedBankType] || PAYMENT_ACCOUNTS.cbpay;
+    bankSelectorHtml = `
+      <div style="display: flex; gap: 6px; justify-content: center; margin-bottom: 10px;">
+        <button type="button" onclick="selectBankSubOption('cbpay')" style="padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; border: 1px solid #0284c7; background: ${selectedBankType === 'cbpay' ? '#0284c7' : 'rgba(2,132,199,0.1)'}; color: #fff;">CB Pay</button>
+        <button type="button" onclick="selectBankSubOption('ayapay')" style="padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; border: 1px solid #ef4444; background: ${selectedBankType === 'ayapay' ? '#ef4444' : 'rgba(239,68,68,0.1)'}; color: #fff;">AYA Pay</button>
+        <button type="button" onclick="selectBankSubOption('uabpay')" style="padding: 4px 10px; font-size: 11px; border-radius: 4px; cursor: pointer; border: 1px solid #8b5cf6; background: ${selectedBankType === 'uabpay' ? '#8b5cf6' : 'rgba(139,92,246,0.1)'}; color: #fff;">UAB Pay</button>
+      </div>
+    `;
+  } else {
+    activeData = PAYMENT_ACCOUNTS[currentPaymentMethod];
+  }
+
+  if (!activeData) return;
+
+  // လက်ရှိ စုစုပေါင်း ကျသင့်ငွေ (Total Amount) ရယူခြင်း
+  const totalAmount = window.currentCheckoutTotalAmount || 0;
+
+  qrBox.innerHTML = `
+    <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; border-radius: 8px; padding: 14px; margin-top: 12px; text-align: center;">
+      ${bankSelectorHtml}
+      
+      <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">ငွေလွှဲပေးချေရန် QR Scan ဖတ်ပါ</div>
+      
+      <!-- Instant Local QR Image -->
+      <div style="display: inline-block; background: #fff; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        <img src="${activeData.qr}" alt="${activeData.title} QR" style="width: 175px; height: 175px; object-fit: contain; display: block; border-radius: 4px;">
+      </div>
+
+      <!-- Account Info & Copy -->
+      <div style="margin-top: 10px;">
+        <div style="font-weight: 600; color: #f8fafc; font-size: 13px;">${activeData.name}</div>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px;">
+          <span style="color: #38bdf8; font-weight: 600; font-size: 13.5px; letter-spacing: 0.5px;">${activeData.account}</span>
+          <button type="button" onclick="copyTextToClipboard('${activeData.account}', 'ဖုန်းနံပါတ် Copy ကူးပြီးပါပြီ')" style="background: #1e293b; border: 1px solid #475569; color: #cbd5e1; font-size: 10px; padding: 2px 7px; border-radius: 4px; cursor: pointer;">Copy</button>
+        </div>
+      </div>
+
+      <!-- Payable Amount Highlight & Copy -->
+      ${totalAmount > 0 ? `
+        <div style="margin-top: 10px; background: rgba(234, 179, 8, 0.1); border: 1px dashed #eab308; border-radius: 6px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11.5px; color: #fde047;">လွှဲရမည့်ငွေ- <strong style="font-size: 13px;">${totalAmount.toLocaleString()} MMK</strong></span>
+          <button type="button" onclick="copyTextToClipboard('${totalAmount}', 'ငွေပမာဏ Copy ကူးပြီးပါပြီ')" style="background: #eab308; border: none; color: #000; font-weight: 600; font-size: 10px; padding: 2px 6px; border-radius: 3px; cursor: pointer;">Copy ငွေပမာဏ</button>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// Clipboard Copy Function
+window.copyTextToClipboard = function(text, successMsg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      if (typeof showToast === 'function') showToast(successMsg || 'Copy ကူးပြီးပါပြီ');
+      else alert(successMsg || 'Copy ကူးပြီးပါပြီ');
+    });
+  } else {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    if (typeof showToast === 'function') showToast(successMsg || 'Copy ကူးပြီးပါပြီ');
+    else alert(successMsg || 'Copy ကူးပြီးပါပြီ');
+  }
+};
 </script>
 </body>
 </html>
