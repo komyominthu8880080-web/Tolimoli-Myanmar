@@ -9244,28 +9244,28 @@ function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 �
                           <button type="button" onclick="addNewTownToCompany(${cIdx})" style="padding: 6px 12px; font-size: 11px; background: #0284c7; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">+ မြို့ထည့်မည်</button>
                         </div>
 
-                       <!-- မြို့စာရင်း (ပြီးပြည့်စုံသော အချိုးညီ Single Row & Touch Pan-Y Vertical Scroll) -->
-                        <div id="companyTownsList_${cIdx}" style="max-height: 185px; overflow-y: scroll; overflow-x: hidden; -webkit-overflow-scrolling: touch; touch-action: pan-y !important; display: flex; flex-direction: column; gap: 4px; padding-right: 2px;">
+                       <!-- မြို့စာရင်း (Fixed Height & Dedicated Mobile Touch Scroll) -->
+                        <div id="companyTownsList_${cIdx}" style="height: 180px; max-height: 180px; overflow-y: auto !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 4px; padding-right: 2px;">
                           ${towns.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 12px;">မြို့များ မထည့်ရသေးပါ</div>` : 
                             towns.map((t, tIdx) => `
-                              <div id="townRow_${cIdx}_${tIdx}" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 6px; border-radius: 4px; box-sizing: border-box; width: 100%; gap: 4px;">
-                                <!-- ၁။ မြို့အမည် (အပေါ်က မြို့အမည် box နှင့် တစ်တန်းတည်း ၂၆%) -->
-                                <span style="width: 26%; min-width: 0; font-size: 11px; font-weight: 600; color: #f8fafc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${t.name}</span>
+                              <div id="townRow_${cIdx}_${tIdx}" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 6px; border-radius: 4px; box-sizing: border-box; width: 100%; gap: 4px; touch-action: pan-y !important;">
+                                <!-- ၁။ မြို့အမည် -->
+                                <span style="width: 26%; min-width: 0; font-size: 11px; font-weight: 600; color: #f8fafc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; touch-action: pan-y !important;">${t.name}</span>
                                 
-                                <!-- ၂။ ငွေပမာဏ (အပေါ်က ပို့ခ box နှင့် တစ်တန်းတည်း ၂၀%) -->
-                                <span style="width: 20%; min-width: 0; font-size: 10.5px; font-weight: 600; color: #38bdf8; text-align: center; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
+                                <!-- ၂။ ငွေပမာဏ -->
+                                <span style="width: 20%; min-width: 0; font-size: 10.5px; font-weight: 600; color: #38bdf8; text-align: center; white-space: nowrap; touch-action: pan-y !important;">${Number(t.fee).toLocaleString()} Ks</span>
                                 
-                                <!-- ၃။ ကြာချိန် (အပေါ်က ကြာချိန် box နှင့် တစ်တန်းတည်း ၂၆%) -->
-                                <span style="width: 26%; min-width: 0; font-size: 10px; color: #94a3b8; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.duration}</span>
+                                <!-- ၃။ ကြာချိန် -->
+                                <span style="width: 26%; min-width: 0; font-size: 10px; color: #94a3b8; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; touch-action: pan-y !important;">${t.duration}</span>
                                 
-                                <!-- ၄။ COD Badge (၁၃%) -->
-                                <div style="width: 13%; display: flex; justify-content: center; flex-shrink: 0;">
+                                <!-- ၄။ COD Badge -->
+                                <div style="width: 13%; display: flex; justify-content: center; flex-shrink: 0; touch-action: pan-y !important;">
                                   <span style="padding: 2px 4px; border-radius: 3px; font-size: 8.5px; font-weight: 600; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);'}">
                                     ${t.cod ? 'COD' : 'Prepaid'}
                                   </span>
                                 </div>
                                 
-                                <!-- ၅။ Action Buttons (၁၅%) -->
+                                <!-- ၅။ Action Buttons -->
                                 <div style="width: 15%; display: flex; gap: 3px; justify-content: flex-end; flex-shrink: 0;">
                                   <button type="button" onclick="quickEditTown(${cIdx}, ${tIdx}, event)" title="ပြင်ဆင်ရန်" style="background: rgba(2, 132, 199, 0.15); border: 1px solid rgba(2, 132, 199, 0.35); color: #38bdf8; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px;">
                                     <i class="fas fa-edit" style="pointer-events: none;"></i>
@@ -9440,11 +9440,11 @@ function onSearchCompanyTown(cIdx, query) {
 
   listEl.innerHTML = filtered.length === 0 ? `<div style="text-align: center; color: #64748b; font-size: 11px; padding: 12px;">ရှာမတွေ့ပါ</div>` :
     filtered.map(t => `
-      <div id="townRow_${cIdx}_${t.origIdx}" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 6px; border-radius: 4px; box-sizing: border-box; width: 100%; gap: 4px;">
-        <span style="width: 26%; min-width: 0; font-size: 11px; font-weight: 600; color: #f8fafc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">${t.name}</span>
-        <span style="width: 20%; min-width: 0; font-size: 10.5px; font-weight: 600; color: #38bdf8; text-align: center; white-space: nowrap;">${Number(t.fee).toLocaleString()} Ks</span>
-        <span style="width: 26%; min-width: 0; font-size: 10px; color: #94a3b8; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.duration}</span>
-        <div style="width: 13%; display: flex; justify-content: center; flex-shrink: 0;">
+      <div id="townRow_${cIdx}_${t.origIdx}" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center; background: rgba(15, 23, 42, 0.75); border: 1px solid #1e293b; padding: 6px 6px; border-radius: 4px; box-sizing: border-box; width: 100%; gap: 4px; touch-action: pan-y !important;">
+        <span style="width: 26%; min-width: 0; font-size: 11px; font-weight: 600; color: #f8fafc; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; touch-action: pan-y !important;">${t.name}</span>
+        <span style="width: 20%; min-width: 0; font-size: 10.5px; font-weight: 600; color: #38bdf8; text-align: center; white-space: nowrap; touch-action: pan-y !important;">${Number(t.fee).toLocaleString()} Ks</span>
+        <span style="width: 26%; min-width: 0; font-size: 10px; color: #94a3b8; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; touch-action: pan-y !important;">${t.duration}</span>
+        <div style="width: 13%; display: flex; justify-content: center; flex-shrink: 0; touch-action: pan-y !important;">
           <span style="padding: 2px 4px; border-radius: 3px; font-size: 8.5px; font-weight: 600; white-space: nowrap; ${t.cod ? 'background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);' : 'background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3);'}">
             ${t.cod ? 'COD' : 'Prepaid'}
           </span>
