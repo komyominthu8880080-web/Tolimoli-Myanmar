@@ -9170,21 +9170,21 @@ function renderAdminColorInputs() {
     }
 
     // မြို့ဒေတာပုံစံဟောင်းမှ ပုံစံသစ်သို့ အလိုအလျောက် ပြောင်းလဲပေးခြင်း
-function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 ရက်") {
+function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 ရက်အတွင်း") {
   if (!Array.isArray(townList)) return [];
   return townList.map(item => {
     if (typeof item === 'string') {
       return {
         name: item.trim(),
         fee: Number(defaultFee) || 5000,
-        duration: defaultDuration || "3/4 ရက်",
+        duration: defaultDuration || "3/4 ရက်အတွင်း",
         cod: true
       };
     }
     return {
       name: item.name || '',
       fee: Number(item.fee) || Number(defaultFee) || 5000,
-      duration: item.duration || defaultDuration || "3/4 ရက်",
+      duration: item.duration || defaultDuration || "3/4 ရက်အတွင်း",
       cod: item.cod !== false
     };
   }).filter(t => t.name && t.name.length > 0);
@@ -9339,7 +9339,7 @@ function addNewTownToCompany(cIdx) {
   const townObj = {
     name: townName,
     fee: Number(feeInp ? feeInp.value : 0) || Number(comp.fee) || 5000,
-    duration: (durInp ? durInp.value.trim() : '') || comp.days || "3/4 ရက်",
+    duration: (durInp ? durInp.value.trim() : '') || comp.days || "3/4 ရက်အတွင်း",
     cod: codInp ? codInp.checked : true
   };
 
