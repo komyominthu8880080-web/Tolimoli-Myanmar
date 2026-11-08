@@ -6827,6 +6827,7 @@ setTimeout(() => {
       document.getElementById('cartDeliveryFeeText').innerText = actualDeliveryFee.toLocaleString() + ' Ks' + (currentVipStatus.isFreeDelivery ? ' (Free)' : '');
       
       const grandTotal = Math.max(0, subTotal - totalDiscount + actualDeliveryFee);
+      window.currentCheckoutTotalAmount = grandTotal;
       document.getElementById('cartTotalPrice').innerText = grandTotal.toLocaleString() + ' MMK';
       renderCheckoutFocSection();
     }
@@ -15331,6 +15332,22 @@ window.copyTextToClipboard = function(text, successMsg) {
     document.body.removeChild(input);
     if (typeof showToast === 'function') showToast(successMsg || 'Copy ကူးပြီးပါပြီ');
     else alert(successMsg || 'Copy ကူးပြီးပါပြီ');
+  }
+};
+// Deli စနစ် ပြန်လည်ရွေးချယ်ရန် Reset Function
+window.resetDeliverySelection = function() {
+  const townInput = document.getElementById('custTownshipInput');
+  if (townInput) {
+    townInput.value = '';
+    townInput.focus();
+  }
+  const badge = document.getElementById('selectedDeliInfoBadge');
+  if (badge) badge.style.display = 'none';
+
+  const codBtn = document.getElementById('payMethod_cod');
+  if (codBtn) {
+    codBtn.style.opacity = '1';
+    codBtn.style.pointerEvents = 'auto';
   }
 };
 </script>
