@@ -15140,35 +15140,35 @@ const PAYMENT_ACCOUNTS = {
     title: "KBZPay",
     name: "Ma Win Win Myint",
     account: "09768124433",
-    qr: "/kpay-qr.jpg",
+    qr: "/kpay-qr.jpg?v=2",
     theme: "#0284c7"
   },
   wave: {
     title: "WavePay",
     name: "Nu Nu Htwe",
     account: "09768124433",
-    qr: "/wave-qr.jpg",
+    qr: "/wave-qr.jpg?v=2",
     theme: "#eab308"
   },
   cbpay: {
     title: "CB Pay",
     name: "U MYO MIN THU",
     account: "09421334455",
-    qr: "/cbpay-qr.jpg",
+    qr: "/cbpay-qr.jpg?v=2",
     theme: "#0284c7"
   },
   ayapay: {
     title: "AYA Pay",
     name: "MYO MIN THU",
     account: "09421334455",
-    qr: "/ayapay-qr.jpg",
+    qr: "/ayapay-qr.jpg?v=2",
     theme: "#ef4444"
   },
   uabpay: {
     title: "UAB Pay",
     name: "Myo Min Thu",
     account: "09444744493",
-    qr: "/uabpay-qr.jpg",
+    qr: "/uabpay-qr.jpg?v=2",
     theme: "#8b5cf6"
   }
 };
@@ -15291,9 +15291,9 @@ function renderQrBoxContent() {
       
       <div style="font-size: 12px; color: #94a3b8; margin-bottom: 6px;">ငွေလွှဲပေးချေရန် QR Scan ဖတ်ပါ</div>
       
-      <!-- Instant Local QR Image -->
+     <!-- Instant Local QR Image -->
       <div style="display: inline-block; background: #fff; padding: 8px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-        <img src="${activeData.qr}" alt="${activeData.title} QR" style="width: 175px; height: 175px; object-fit: contain; display: block; border-radius: 4px;">
+        <img src="${activeData.qr}" alt="${activeData.title} QR" loading="eager" crossorigin="anonymous" onerror="this.onerror=null; this.src='${activeData.qr.split('?')[0]}';" style="width: 175px; height: 175px; object-fit: contain; display: block; border-radius: 4px;">
       </div>
 
       <!-- Account Info & Copy -->
