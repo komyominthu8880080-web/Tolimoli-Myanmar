@@ -4482,10 +4482,6 @@ function scrollCategories(amount) {
       }
       if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
       renderCartUI();
-      // နယ်မြို့များအတွက် Auto Deli Badge Display
-    if (typeof updateSelectedDeliveryUI === 'function') {
-      updateSelectedDeliveryUI({ name: val, fee: currentDeliveryFee, duration: currentEstimatedDays || '၂/၄ ရက်အတွင်း', cod: isCodAllowed }, currentDeliveryService || 'Royal Express / Standard Deli');
-    }
       // 🚚 မြို့နယ်ပြောင်းလဲမှုနှင့်အညီ အောက်ခြေ Deli Cards များကို တန်းပြီး ဖွင့်ပြပေးခြင်း
     const deliWrap = document.getElementById('delisContainer') || document.getElementById('delisSelectionContainer') || document.getElementById('delisList');
     if (deliWrap) deliWrap.style.display = 'block';
@@ -6844,7 +6840,7 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
   const isMdy = /မန္တလေး|mandalay|mdy/i.test(township);
 
   const deliContainer = document.getElementById('dynamicDeliOptionsContainer');
-  const gateContainer = document.getElementById('stationDirectoryContainer') || document.getElementById('smartGateSuggestContainer');
+  const gateContainer = document.getElementById('stationDirectoryContainer') || document.getElementById('smartGateSuggestionBox');
 
   // ၁။ ရန်ကုန် သို့မဟုတ် မန္တလေး ဖြစ်ပါက -> Deli ရွေးချယ်မှု ပြသမည်
   if (isYgn || isMdy) {
@@ -6854,17 +6850,23 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
     if (typeof renderAvailableDeliCompanies === 'function') {
       renderAvailableDeliCompanies(township);
     }
-  }
-  // ၂။ နယ်မြို့ ဖြစ်ပါက -> Deli Options ရော ကားဂိတ်ပါ စစ်ဆေးပြီး Render လုပ်မည်
+  } 
+  // ၂။ နယ်မြို့ ဖြစ်ပါက -> Stations Directory (ကားဂိတ်စာရင်း) ပြသမည်
   else {
-    if (deliContainer) deliContainer.style.display = 'block';
-    if (typeof renderAvailableDeliCompanies === 'function') {
-      renderAvailableDeliCompanies(township);
+    if (deliContainer) deliContainer.style.display = 'none';
+    if (gateContainer) gateContainer.style.display = 'block';
+
+    if (typeof filterStationsByTownship === 'function') {
+      filterStationsByTownship(township);
+    } else if (typeof renderStationDirectoryOptions === 'function') {
+      renderStationDirectoryOptions(township);
     }
   }
-}
 
-function changeCartQty(idx, delta) {
+  // တွက်ချက်မှုနှင့် UI Badge ကို တစ်ပြိုင်နက် Update လုပ်ခြင်း
+  renderCartUI();
+}
+    function changeCartQty(idx, delta) {
       const it = cart[idx];
       const prod = products.find(p => p.id === it.id);
       if (delta > 0 && prod && it.qty >= prod.stock) return alert('လက်ကျန်ထက် ကျော်လွန်၍မရပါ');
