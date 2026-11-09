@@ -4696,10 +4696,15 @@ function selectDeliSmartCard(idx) {
   currentDeliveryService = chosen.name;
   currentEstimatedDays = chosen.duration;
 
-  // ကားဂိတ် ရွေးချယ်ရန် Dropdown
+  // ကားဂိတ်ချ ရွေးထားလျှင် ဂိတ်စာရင်းများကို ချက်ချင်း အလိုအလျောက် ဆွဲတင်ပေးခြင်း
   const busGateSec = document.getElementById('customerBusGateSection');
   if (busGateSec) {
-    busGateSec.style.display = chosen.isBus ? 'block' : 'none';
+    if (chosen.isBus) {
+      busGateSec.style.display = 'block';
+      filterBusGatesForTownship(currentSelectedTownship);
+    } else {
+      busGateSec.style.display = 'none';
+    }
   }
 
   // COD စစ်ဆေးခြင်း
@@ -10911,10 +10916,8 @@ function copyProductLink(productId) {
       renderCartUI();
     }
 
-      // ==========================================
-// 🚌 SMART BUS GATE & STATIONS DIRECTORY LOGIC
-// ==========================================
 
+// 🚌 SMART BUS GATE & STATIONS DIRECTORY (အမြဲပြည့်စုံစွာ ပေါ်စေမည့် အဆင့်မြှင့် Function)
 function filterBusGatesForTownship(selectedTownship) {
   const gateSection = document.getElementById('customerBusGateSection');
   const gateSelect = document.getElementById('checkoutBusGateSelect');
@@ -10923,30 +10926,15 @@ function filterBusGatesForTownship(selectedTownship) {
 
   if (!gateSelect) return;
 
-  // အစပိုင်းတွင် Reset လုပ်ခြင်း
+  // Dropdown အစပြုခြင်း
   gateSelect.innerHTML = `
-      <option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>
-      <option value="AUTO_SHOP_DELI">🚚 ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ပေးပါ (ကြိုက်တဲ့ကားနဲ့ပို့)</option>
-    `;
+    <option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>
+    <option value="AUTO_SHOP_DELI">🚚 ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ပေးပါ</option>
+  `;
   if (previewCard) previewCard.style.display = 'none';
   if (customBox) customBox.style.display = 'none';
 
-  // 🚍 ရန်ကုန်မြို့တွင်း (သို့မဟုတ်) ရွေးချယ်မှုမရှိလျှင် ကားဂိတ်အကွက် လုံးဝ ဖျောက်ထားရန်
-    const isYangonTown = selectedTownship && (
-      selectedTownship.includes('လှိုင်') || 
-      selectedTownship.includes('ကမာရွတ်') || 
-      selectedTownship.includes('ရန်ကုန်') ||
-      selectedTownship.includes('စမ်းချောင်း') ||
-      selectedTownship.includes('မရမ်းကုန်း') ||
-      selectedTownship.includes('ဗဟန်း')
-    );
-
-    if (!selectedTownship || isYangonTown) {
-      if (gateSection) gateSection.style.display = 'none';
-      return;
-    }
-
-  // Admin Stations Directory မှ ဒေတာများ ရယူခြင်း
+  // Admin Stations Directory မှ ဒေတာများ ဆွဲယူခြင်း
   let stations = [];
   try {
     if (typeof deliveryStations !== 'undefined' && Array.isArray(deliveryStations)) {
@@ -10958,34 +10946,19 @@ function filterBusGatesForTownship(selectedTownship) {
     stations = [];
   }
 
-  // ကားဂိတ်အမျိုးအစား နှင့် ရွေးချယ်ထားသော မြို့နယ်အလိုက် Filter စစ်ထုတ်ခြင်း
-  const searchTown = (selectedTownship || '').toLowerCase().trim();
-  const matchedGates = stations.filter(station => {
-    const isBus = !station.type || station.type.includes('ကားဂိတ်') || station.type.toLowerCase().includes('bus');
-    if (!isBus) return false;
+  // ကားဂိတ် အမျိုးအစားများကို စစ်ထုတ်ခြင်း
+  const busGates = stations.filter(st => !st.type || st.type === 'bus' || st.type.includes('ကားဂိတ်'));
 
-    // အောင်မင်္ဂလာ/လိပ်စာများဖြင့် မငြိစေဘဲ မြို့နယ် (Township/Destinations) ကိုသာ တိကျစွာ စစ်ထုတ်ခြင်း
-    const targetTown = (station.township || '').toLowerCase().trim();
-    const destList = station.destinations || station.townships || [];
-
-    const matchesDest = Array.isArray(destList) && destList.some(d => {
-      const cleanD = String(d).toLowerCase().trim();
-      return cleanD && (searchTown.includes(cleanD) || cleanD.includes(searchTown));
-    });
-
-    return (targetTown && (searchTown.includes(targetTown) || targetTown.includes(searchTown))) || matchesDest;
-  });
-
-  // စစ်ထုတ်ရရှိသော ကားဂိတ်များကို Dropdown ထဲ ထည့်ခြင်း
-  matchedGates.forEach((gate, idx) => {
+  // ကားဂိတ်များအားလုံးကို Dropdown ထဲသို့ ထည့်သွင်းခြင်း
+  busGates.forEach((gate, idx) => {
     const opt = document.createElement('option');
-    opt.value = gate.id || idx;
+    opt.value = gate.id || ('gate_' + idx);
     opt.textContent = `🚌 ${gate.name} ${gate.duration ? '(' + gate.duration + ')' : ''}`;
     opt.dataset.station = JSON.stringify(gate);
     gateSelect.appendChild(opt);
   });
 
-  // ➕ အခြားကားဂိတ် (Custom Note) Option ထည့်ပေးခြင်း
+  // စာရင်းထဲမပါသော အခြားကားဂိတ် ရွေးချယ်စရာ ထည့်ပေးခြင်း
   const customOpt = document.createElement('option');
   customOpt.value = 'CUSTOM_OTHER_GATE';
   customOpt.textContent = '✏️ စာရင်းထဲမပါသော အခြားကားဂိတ် ရိုက်ထည့်မည်';
