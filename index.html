@@ -2459,7 +2459,7 @@ function scrollCategories(amount) {
           <datalist id="townshipList"></datalist>
 
           <!-- အသုံးများသော မြို့နယ် Quick Pills -->
-          <div class="quick-town-pills-row">
+          <div class="quick-town-pills-row" style="margin-bottom: 8px;">
             <span class="quick-town-pill" onclick="selectQuickTownship('လှိုင်')">📍 လှိုင်</span>
             <span class="quick-town-pill" onclick="selectQuickTownship('စမ်းချောင်း')">📍 စမ်းချောင်း</span>
             <span class="quick-town-pill" onclick="selectQuickTownship('ကမာရွတ်')">📍 ကမာရွတ်</span>
@@ -2477,8 +2477,8 @@ function scrollCategories(amount) {
           <div id="logisticsDynamicBadge" style="display: none !important;"></div>
           
           <!-- DYNAMIC DELIVERY SERVICES CARDS CONTAINER -->
-          <div id="dynamicDeliOptionsContainer" style="margin-top:8px; display:none;">
-            <label style="font-size:0.75rem; color:var(--gold); font-weight:bold; display:block; margin-bottom:6px;">
+          <div id="dynamicDeliOptionsContainer" style="margin-top:10px; margin-bottom:12px; display:none; background: rgba(0,0,0,0.25); padding: 8px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2);">
+            <label style="font-size:0.75rem; color:var(--gold, #d4af37); font-weight:bold; display:block; margin-bottom:6px;">
               <i class="fas fa-truck-moving"></i> ပို့ဆောင်မည့် နည်းလမ်း ရွေးချယ်ပါ -
             </label>
             <div id="deliServiceCardsList"></div>
@@ -4495,7 +4495,13 @@ function selectQuickTownship(townName) {
   const input = document.getElementById('custTownshipInput');
   if (!input) return;
   input.value = townName;
-  input.dispatchEvent(new Event('input', { bubbles: true }));
+  
+  // Input event အား တိုက်ရိုက် trigger လုပ်ခြင်း
+  const evt = document.createEvent('HTMLEvents');
+  evt.initEvent('input', true, false);
+  input.dispatchEvent(evt);
+  
+  // handleTownshipSelect ကို ချက်ချင်း တိုက်ရိုက် ခေါ်ယူခြင်း
   handleTownshipSelect();
 }
 
