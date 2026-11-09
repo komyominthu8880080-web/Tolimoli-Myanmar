@@ -4539,7 +4539,7 @@ function calculateEstimatedDeliveryDateText(daysStr) {
   return `${mName} ${d1.getDate()} မှ ${d2.getDate()} ရက် (${burmeseDays[d1.getDay()]}/${burmeseDays[d2.getDay()]}) အတွင်း`;
 }
 
-// ၂။ မြို့နယ်ရိုက်ထည့်မှုနှင့် Deli Options များ ချိတ်ဆက်ခြင်း
+// ၂။ မြို့နယ်ရိုက်ထည့်မှုနှင့် Deli Options များ ချိတ်ဆက်ခြင်း (Master Fix)
 function handleTownshipSelect() {
   const input = document.getElementById('custTownshipInput');
   let val = input ? input.value.trim() : '';
@@ -4558,7 +4558,7 @@ function handleTownshipSelect() {
     currentDeliveryService = '';
     currentEstimatedDays = '';
     if (busGateSec) busGateSec.style.display = 'none';
-    if (deliContainer) deliContainer.style.display = 'none';
+    if (deliContainer) deliContainer.style.setProperty('display', 'none', 'important');
     updateCheckoutGrandTotal(0);
     return;
   }
@@ -4619,7 +4619,7 @@ function handleTownshipSelect() {
         <div class="deli-option-card-smart ${idx === defaultIdx ? 'active-selected' : ''}" 
              id="deliSmartCard_${idx}" 
              onclick="selectDeliSmartCard(${idx})"
-             style="background:rgba(255,255,255,0.05); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.15)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer;">
+             style="background:rgba(255,255,255,0.05); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.15)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; position:relative;">
           
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <span style="font-weight:bold; font-size:12.5px; color:#fff;">
@@ -4630,13 +4630,13 @@ function handleTownshipSelect() {
             </span>
           </div>
 
-          <div style="font-size:11px; color:#cbd5e1;">
+          <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">
             ⏱️ ကြာချိန်: <b style="color:#fff;">${opt.duration}</b>
           </div>
 
-          <div style="margin-top:4px;">
-            <span style="background:${opt.cod ? '#10b981' : '#ef4444'}; color:#fff; font-size:10px; padding:1px 6px; border-radius:4px;">
-              ${opt.cod ? 'COD ရရှိ' : 'ငွေကြိုရှင်း'}
+          <div>
+            <span style="background:${opt.cod ? '#10b981' : '#ef4444'}; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold;">
+              ${opt.cod ? '💵 COD ရရှိ' : '💳 ငွေကြိုရှင်းရပါမည်'}
             </span>
           </div>
         </div>
@@ -4644,7 +4644,6 @@ function handleTownshipSelect() {
     }).join('');
 
     selectDeliSmartCard(defaultIdx);
-  
   }
 
   localStorage.setItem('tm_saved_township', val);
@@ -4657,23 +4656,28 @@ function selectDeliSmartCard(idx) {
 
   document.querySelectorAll('.deli-option-card-smart').forEach((card, i) => {
     card.classList.remove('active-selected');
-    card.style.borderColor = (i === idx) ? '#d4af37' : 'rgba(255,255,255,0.1)';
-    const tag = card.querySelector('.deli-check-tag');
-    if (tag) tag.style.display = (i === idx) ? 'inline-block' : 'none';
+    card.style.borderColor = (i === idx) ? '#d4af37' : 'rgba(255,255,255,0.15)';
+    card.style.background = (i === idx) ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.05)';
   });
 
   const target = document.getElementById(`deliSmartCard_${idx}`);
-  if (target) target.classList.add('active-selected');
+  if (target) {
+    target.classList.add('active-selected');
+    target.style.borderColor = '#d4af37';
+    target.style.background = 'rgba(212, 175, 55, 0.15)';
+  }
 
   currentDeliveryFee = (typeof currentVipStatus !== 'undefined' && currentVipStatus.isFreeDelivery) ? 0 : chosen.fee;
   currentDeliveryService = chosen.name;
   currentEstimatedDays = chosen.duration;
 
+  // ကားဂိတ် ရွေးချယ်ရန် Dropdown
   const busGateSec = document.getElementById('customerBusGateSection');
   if (busGateSec) {
     busGateSec.style.display = chosen.isBus ? 'block' : 'none';
   }
 
+  // COD စစ်ဆေးခြင်း
   const codCard = document.getElementById('payMethod_cod');
   if (codCard) {
     if (chosen.cod) {
@@ -10882,37 +10886,6 @@ function copyProductLink(productId) {
       renderCartUI();
     }
 
-    const originalHandleTownshipSelect = handleTownshipSelect;
-    handleTownshipSelect = function() {
-      const input = document.getElementById('custTownshipInput');
-      const val = input ? input.value.trim() : '';
-      handleTownshipSelectionIntegration(val);
-      filterBusGatesForTownship(val);
-      if (!val) {
-        document.getElementById('dynamicDeliOptionsContainer').style.display = 'none';
-        currentDeliveryFee = 0;
-        renderCartUI();
-        return;
-      }
-
-      const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
-      let matchedComps = [];
-      let baseTown = val;
-
-      comps.forEach(c => {
-        (c.townships || []).forEach(t => {
-          if (val.toLowerCase().includes(t.toLowerCase()) || t.toLowerCase().includes(val.toLowerCase())) {
-            if (!matchedComps.includes(c)) matchedComps.push(c);
-            baseTown = t;
-          }
-        });
-      });
-
-      if (matchedComps.length > 0) {
-        renderDynamicDeliCardsForTownship(matchedComps, baseTown);
-      } else {
-        originalHandleTownshipSelect();
-      }
       // ==========================================
 // 🚌 SMART BUS GATE & STATIONS DIRECTORY LOGIC
 // ==========================================
@@ -11039,7 +11012,6 @@ function handleCustomerGateSelection(val) {
     if (previewCard) previewCard.style.display = 'block';
   }
 }
-    };
 
     // 2. CUSTOMER NEWS & ANNOUNCEMENTS TICKER & MANAGER
     var newsArticles = [];
