@@ -2453,7 +2453,7 @@ function scrollCategories(amount) {
             <span style="font-size:10px; color:#94a3b8; font-weight:normal;">စာရိုက်၍ ရွေးချယ်ပါ</span>
           </label>
           <div class="township-input-wrapper">
-            <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" onfocus="if(typeof initTownshipDatalist==='function') initTownshipDatalist()" placeholder="ဥပမာ- လှိုင်၊ မန္တလေး၊ အောင်မင်္ဂလာဂိတ်..." autocomplete="off" style="width:100%; padding:8px 30px 8px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.2); background:rgba(0,0,0,0.3); color:#fff; font-size:12.5px;">
+            <input list="townshipList" id="custTownshipInput" oninput="handleTownshipSelect()" placeholder="ဥပမာ- လှိုင်၊ မန္တလေး..." autocomplete="off">
             <button type="button" id="btnTownshipClear" class="township-clear-btn" onclick="clearTownshipInput()"><i class="fas fa-times"></i></button>
           </div>
           <datalist id="townshipList"></datalist>
@@ -4604,6 +4604,7 @@ function handleTownshipSelect() {
 
   if (deliContainer && cardsList) {
     deliContainer.style.setProperty('display', 'block', 'important');
+    cardsList.style.setProperty('display', 'block', 'important');
 
     let defaultIdx = 0;
     const saved = localStorage.getItem('tm_saved_deliservice');
@@ -4613,48 +4614,37 @@ function handleTownshipSelect() {
     }
 
     cardsList.innerHTML = availableDeliOptions.map((opt, idx) => {
-      const dateText = calculateEstimatedDeliveryDateText(opt.duration);
+      const isBus = opt.isBus;
       return `
         <div class="deli-option-card-smart ${idx === defaultIdx ? 'active-selected' : ''}" 
              id="deliSmartCard_${idx}" 
              onclick="selectDeliSmartCard(${idx})"
-             style="background:rgba(255,255,255,0.04); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.1)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; position:relative;">
+             style="background:rgba(255,255,255,0.05); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.15)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer;">
           
-          <span class="deli-check-tag" style="position:absolute; right:10px; top:10px; background:#10b981; color:#fff; font-size:10px; font-weight:bold; padding:2px 7px; border-radius:4px; display:${idx === defaultIdx ? 'inline-block' : 'none'};">
-            ✓ ရွေးထားသည်
-          </span>
-
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; padding-right:75px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <span style="font-weight:bold; font-size:12.5px; color:#fff;">
-              ${opt.isBus ? '<i class="fas fa-bus" style="color:#f59e0b;"></i>' : '<i class="fas fa-truck" style="color:#38bdf8;"></i>'} 
-              ${opt.name}
-            </span>
-          </div>
-
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:11px; color:#cbd5e1;">
-              <i class="fas fa-calendar-alt" style="color:#fbbf24;"></i> ${dateText}
+              ${isBus ? '🚌' : '🚚'} ${opt.name}
             </span>
             <span style="font-weight:bold; font-size:13px; color:#d4af37;">
               ${Number(opt.fee).toLocaleString()} Ks
             </span>
           </div>
 
-          <div style="margin-top:6px; display:flex; gap:6px;">
-            <span style="background:rgba(255,255,255,0.1); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">${opt.badge}</span>
-            ${opt.cod ? '<span style="background:#10b981; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">COD ရရှိ</span>' : '<span style="background:#ef4444; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">ငွေကြိုရှင်းရပါမည်</span>'}
+          <div style="font-size:11px; color:#cbd5e1;">
+            ⏱️ ကြာချိန်: <b style="color:#fff;">${opt.duration}</b>
           </div>
 
-          ${opt.isBus ? `
-            <div style="font-size:10px; color:#94a3b8; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:3px;">
-              * ရန်ကုန်ကားဂိတ်ချခဖြစ်ပြီး နယ်ရောက်ကားတန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်
-            </div>
-          ` : ''}
+          <div style="margin-top:4px;">
+            <span style="background:${opt.cod ? '#10b981' : '#ef4444'}; color:#fff; font-size:10px; padding:1px 6px; border-radius:4px;">
+              ${opt.cod ? 'COD ရရှိ' : 'ငွေကြိုရှင်း'}
+            </span>
+          </div>
         </div>
       `;
     }).join('');
 
     selectDeliSmartCard(defaultIdx);
+  
   }
 
   localStorage.setItem('tm_saved_township', val);
