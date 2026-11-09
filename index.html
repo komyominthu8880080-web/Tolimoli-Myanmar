@@ -15610,12 +15610,13 @@ function renderQrBoxContent() {
     </div>
   `;
 }
+
 // Reliable Mobile Touch Copy Function with Visual Feedback
 window.copyTextToClipboard = function(text, btnElement, successMsg) {
   if (!text) return;
 
   const performFeedback = () => {
-    if (btnElement) {
+    if (btnElement && btnElement.innerHTML !== undefined) {
       const originalHtml = btnElement.innerHTML;
       btnElement.innerHTML = '✓ Copied';
       btnElement.style.background = '#10b981';
@@ -15628,13 +15629,16 @@ window.copyTextToClipboard = function(text, btnElement, successMsg) {
         btnElement.style.color = '#ffffff';
       }, 1500);
     }
+    const msg = typeof btnElement === 'string' ? btnElement : (successMsg || 'ဖုန်းနံပါတ် Copy ကူးပြီးပါပြီ');
     if (typeof showToast === 'function') {
-      showToast(successMsg || 'ဖုန်းနံပါတ် Copy ကူးပြီးပါပြီ');
+      showToast(msg);
+    } else {
+      alert(msg);
     }
   };
 
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(performFeedback).catch(() => {
+    navigator.clipboard.writeText(String(text)).then(performFeedback).catch(() => {
       fallbackCopyText(text, performFeedback);
     });
   } else {
@@ -15644,19 +15648,25 @@ window.copyTextToClipboard = function(text, btnElement, successMsg) {
 
 function fallbackCopyText(text, callback) {
   const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
+  textArea.value = String(text);
+  textArea.setAttribute("readonly", "");
+  textArea.style.position = "absolute";
+  textArea.style.left = "-9999px";
+  textArea.style.top = (window.pageYOffset || document.documentElement.scrollTop) + "px";
   document.body.appendChild(textArea);
   textArea.focus();
   textArea.select();
+  textArea.setSelectionRange(0, 99999);
+
   try {
-    document.execCommand('copy');
-    if (callback) callback();
+    const successful = document.execCommand('copy');
+    if (successful && callback) {
+      callback();
+    } else if (!successful) {
+      prompt("ကျေးဇူးပြု၍ လက်ဖြင့် Copy ကူးပါ-", text);
+    }
   } catch (err) {
-    alert('Copy မအောင်မြင်ပါ- ' + text);
+    prompt("ကျေးဇူးပြု၍ လက်ဖြင့် Copy ကူးပါ-", text);
   }
   document.body.removeChild(textArea);
 }
