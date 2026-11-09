@@ -3480,14 +3480,27 @@ function scrollCategories(amount) {
 
         <!-- ==================== Combo Deals Management Section ==================== -->
 <div class="admin-card-section" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 10px;">
-    <h3 style="margin: 0; color: #f59e0b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-      🏷️ အထူးတွဲဖက် လျှော့ဈေး စီမံခန့်ခွဲခြင်း (Combo Deals)
-    </h3>
-    <button type="button" onclick="loadComboDealsFromRTDB()" style="background: #334155; color: #94a3b8; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">
-      🔄 Refresh
-    </button>
-  </div>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+      <h3 style="margin: 0; color: #f59e0b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        🎟️ အထူးတွဲဖက် လျှော့စျေး စီမံခန့်ခွဲခြင်း (Combo Deals)
+      </h3>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <!-- Combo Deals Master Switch -->
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; border: 1px solid #374151;">
+          <span style="font-size: 11px; color: #9ca3af;">စနစ်:</span>
+          <label style="position: relative; display: inline-block; width: 38px; height: 20px; margin: 0; cursor: pointer;">
+            <input type="checkbox" id="cfgToggleComboDeals" onchange="toggleComboDealsMaster(this.checked)" style="opacity: 0; width: 0; height: 0;">
+            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: .3s; border-radius: 20px;" id="cfgToggleComboDealsSlider"></span>
+          </label>
+          <span id="cfgToggleComboDealsLabel" style="font-size: 11px; font-weight: 600; color: #ef4444;">ပိတ်ထားသည်</span>
+        </div>
+
+        <button type="button" onclick="loadComboDealsFromRTDB()" style="background: #334155; color: #94a3b8; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
 
   <!-- Combo Deal Form -->
   <input type="hidden" id="comboEditId" value="">
@@ -14025,6 +14038,26 @@ function togglePromoModule(moduleType, isEnabled) {
     }
   }
 }
+// Combo Deals Master Toggle ကို Firebase ပေါ်သို့ သိမ်းဆည်းခြင်း
+function toggleComboDealsMaster(isEnabled) {
+  const lbl = document.getElementById('cfgToggleComboDealsLabel');
+  const slider = document.getElementById('cfgToggleComboDealsSlider');
+  if (lbl) {
+    lbl.innerText = isEnabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+    lbl.style.color = isEnabled ? '#10b981' : '#ef4444';
+  }
+  if (slider) {
+    slider.style.backgroundColor = isEnabled ? '#10b981' : '#4b5563';
+  }
+  localStorage.setItem('tm_combodeals_master_enabled', isEnabled ? 'true' : 'false');
+  
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_promo_status/comboDealsEnabled').set(isEnabled);
+  }
+  if (typeof showToast === 'function') {
+    showToast('Combo Deals ' + (isEnabled ? 'ဖွင့်လိုက်ပါပြီ' : 'ပိတ်လိုက်ပါပြီ'), 'success');
+  }
+}
 
 // Flash Sale နှင့် Mystery Box အခြေအနေများကို Firebase Cloud မှ တိုက်ရိုက် ဆွဲတင်သည့် စနစ်
 function initPromoModulesToggleState() {
@@ -14067,6 +14100,20 @@ function initPromoModulesToggleState() {
           lblVoucher.style.color = val.abandonedVoucher.enabled ? '#10b981' : '#ef4444';
         }
       }
+      // Combo Deals Master Sync
+      const comboState = val.comboDealsEnabled === true;
+      const chkCombo = document.getElementById('cfgToggleComboDeals');
+      const lblCombo = document.getElementById('cfgToggleComboDealsLabel');
+      const sliderCombo = document.getElementById('cfgToggleComboDealsSlider');
+      if (chkCombo) chkCombo.checked = comboState;
+      if (lblCombo) {
+        lblCombo.innerText = comboState ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+        lblCombo.style.color = comboState ? '#10b981' : '#ef4444';
+      }
+      if (sliderCombo) {
+        sliderCombo.style.backgroundColor = comboState ? '#10b981' : '#4b5563';
+      }
+      localStorage.setItem('tm_combodeals_master_enabled', comboState ? 'true' : 'false');
     });
   } else {
     // Firebase မအားလပ်သေးပါက Fallback အနေဖြင့် ဖတ်ခြင်း
