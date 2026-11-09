@@ -7078,14 +7078,25 @@ setTimeout(() => {
       badge.style.display = 'none';
     }
 
-      document.getElementById('cartSubTotal').innerText = subTotal.toLocaleString() + ' Ks';
-      document.getElementById('cartDiscountText').innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
-      document.getElementById('cartDeliveryFeeText').innerText = actualDeliveryFee.toLocaleString() + ' Ks' + (currentVipStatus.isFreeDelivery ? ' (Free)' : '');
-      
-      const grandTotal = Math.max(0, subTotal - totalDiscount + actualDeliveryFee);
-      window.currentCheckoutTotalAmount = grandTotal;
-      document.getElementById('cartTotalPrice').innerText = grandTotal.toLocaleString() + ' MMK';
-      renderCheckoutFocSection();
+      // ပို့ဆောင်ခ စာသားနှင့် Total စုစုပေါင်း တွက်ချက်မှု (Smart Delivery Fee ချိတ်ဆက်ခြင်း)
+    const effectiveFee = Number(typeof currentDeliveryFee !== 'undefined' && currentDeliveryFee > 0 ? currentDeliveryFee : actualDeliveryFee) || 0;
+
+    const subTotalEl = document.getElementById('cartSubTotal');
+    if (subTotalEl) subTotalEl.innerText = subTotal.toLocaleString() + ' Ks';
+
+    const discEl = document.getElementById('cartDiscountText');
+    if (discEl) discEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
+
+    const feeEl = document.getElementById('cartDeliveryFeeText');
+    if (feeEl) feeEl.innerText = effectiveFee.toLocaleString() + ' Ks' + (isFreeDeliveryApplied ? ' (Free)' : '');
+
+    const grandTotal = Math.max(0, subTotal - totalDiscount + effectiveFee);
+    window.currentCheckoutTotalAmount = grandTotal;
+
+    const totalEl = document.getElementById('cartTotalPrice');
+    if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
+
+    if (typeof renderCheckoutFocSection === 'function') renderCheckoutFocSection();
     }
     // မြို့နယ်ရွေးချယ်ချိန်တွင် စနစ်ဟောင်း Deli / ဂိတ်များနှင့် စနစ်သစ်ကို ပေါင်းစပ်ပေးသည့် Function
 function handleTownshipSelectionIntegration(townshipInputVal) {
