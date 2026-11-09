@@ -4539,7 +4539,7 @@ function calculateEstimatedDeliveryDateText(daysStr) {
   return `${mName} ${d1.getDate()} မှ ${d2.getDate()} ရက် (${burmeseDays[d1.getDay()]}/${burmeseDays[d2.getDay()]}) အတွင်း`;
 }
 
-// ၂။ မြို့နယ်ရိုက်ထည့်မှုနှင့် Deli Options များ ချိတ်ဆက်ခြင်း (Master Fix)
+// မြို့နယ်ရိုက်ထည့်မှုနှင့် Admin Dashboard ရှိ Deli ကုမ္ပဏီများ တိုက်ရိုက်ချိတ်ဆက်ခြင်း
 function handleTownshipSelect() {
   const input = document.getElementById('custTownshipInput');
   let val = input ? input.value.trim() : '';
@@ -4564,44 +4564,68 @@ function handleTownshipSelect() {
   }
 
   currentSelectedTownship = val;
-  const isYangon = /စမ်းချောင်း|လှိုင်|ကမာရွတ်|ဗဟန်း|ဒဂုံ|တာမွေ|အင်းစိန်|မရမ်းကုန်း|ကျောက်တံတား|ပန်းဘဲတန်း|လသာ|လမ်းမတော်|ဗိုလ်တထောင်|ပုဇွန်တောင်|အလုံ|ကြည့်မြင်တိုင်|ရန်ကင်း|မင်္ဂလာတောင်ညွန့်|သင်္ဃန်းကျွန်း|တောင်ဥက္ကလာ|မြောက်ဥက္ကလာ|ဒဂုံမြို့သစ်|သာကေတ|ဒေါပုံ|လှိုင်သာယာ|ရွှေပြည်သာ|မင်္ဂလာဒုံ|ထောက်ကြန့်|မှော်ဘီ|တိုက်ကြီး|သန်လျင်|ကျောက်တန်း|ခရမ်း|သုံးခွ|yangon|ygn|ရန်ကုန်/i.test(val);
+  const cleanVal = val.toLowerCase().replace(/(မြို့နယ်|မြို့)/g, '').trim();
+
+  // Admin Dashboard မှ ပို့ဆောင်ရေး ကုမ္ပဏီများ ဆွဲယူခြင်း
+  const comps = (typeof deliveryConfig !== 'undefined' && deliveryConfig && Array.isArray(deliveryConfig.companies)) 
+                ? deliveryConfig.companies 
+                : [];
 
   let availableDeliOptions = [];
 
-  if (isYangon) {
-    availableDeliOptions.push({
-      id: 'ygn_cod',
-      name: 'ရန်ကုန် အိမ်အရောက် (Yangon COD)',
-      fee: 3000,
-      duration: '၁ မှ ၂ ရက်အတွင်း',
-      cod: true,
-      isBus: false,
-      badge: '⚡ အိမ်အရောက်'
-    });
-  } else {
-    availableDeliOptions.push({
-      id: 'mya_royal',
-      name: 'Royal Express (နယ်မြို့ အိမ်အရောက်)',
-      fee: 5000,
-      duration: '၂ မှ ၃ ရက်အတွင်း',
-      cod: true,
-      isBus: false,
-      badge: '🚚 အိမ်အရောက်'
+  comps.forEach(comp => {
+    // ကုမ္ပဏီအောက်ရှိ မြို့နယ်များထဲတွင် ရိုက်ထည့်ထားသော မြို့နယ် ပါ/မပါ စစ်ဆေးခြင်း
+    const townList = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships.map(t => ({ name: t, fee: comp.fee, duration: comp.days, cod: comp.isCod !== false })) : []);
+    
+    const matchedTown = townList.find(t => {
+      const tName = (typeof t === 'string' ? t : t.name || '').toLowerCase().replace(/(မြို့နယ်|မြို့)/g, '').trim();
+      return tName && (cleanVal.includes(tName) || tName.includes(cleanVal));
     });
 
+    // မြို့နယ် ကိုက်ညီပါက သို့မဟုတ် ကားဂိတ်ချ/နယ်ပို့ ဖြစ်ပါက စာရင်းထဲ ထည့်သွင်းခြင်း
+    const isBus = (comp.name || '').includes('ကားဂိတ်') || comp.id === 'bus';
+
+    if (matchedTown) {
+      availableDeliOptions.push({
+        id: comp.id || ('comp_' + Math.random()),
+        name: comp.name || 'Deli',
+        fee: (matchedTown.fee !== undefined && matchedTown.fee !== null) ? Number(matchedTown.fee) : Number(comp.fee || 0),
+        duration: matchedTown.duration || comp.days || '2 - 3 ရက်',
+        cod: matchedTown.cod !== undefined ? matchedTown.cod : (comp.isCod !== false),
+        isBus: isBus,
+        notice: comp.customerNotice || ''
+      });
+    } else if (isBus) {
+      // ရန်ကုန်မြို့တွင်း မဟုတ်ပါက ကားဂိတ် Option အမြဲ ပါဝင်စေခြင်း
+      availableDeliOptions.push({
+        id: comp.id || 'bus',
+        name: comp.name || 'ကားဂိတ်အရောက်ပို့',
+        fee: Number(comp.fee) || 2500,
+        duration: comp.days || '1 - 2 ရက်',
+        cod: comp.isCod === true,
+        isBus: true,
+        notice: comp.customerNotice || 'နယ်ရောက်တန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်'
+      });
+    }
+  });
+
+  // အကယ်၍ Dashboard တွင် မြို့မထည့်ရသေးပါက Default အဖြစ် အနည်းဆုံး ၁ ခု ပေါ်စေခြင်း
+  if (availableDeliOptions.length === 0 && comps.length > 0) {
+    const firstComp = comps[0];
     availableDeliOptions.push({
-      id: 'mya_gate',
-      name: 'ကားဂိတ်အရောက်ပို့ (ကားဂိတ်ချ Deli)',
-      fee: 2500,
-      duration: '၁ မှ ၂ ရက်အတွင်း',
-      cod: false,
-      isBus: true,
-      badge: '🚌 ကားဂိတ်ချ'
+      id: firstComp.id,
+      name: firstComp.name,
+      fee: Number(firstComp.fee) || 5000,
+      duration: firstComp.days || '24နာရီအတွင်း',
+      cod: firstComp.isCod !== false,
+      isBus: false,
+      notice: firstComp.customerNotice || ''
     });
   }
 
   window.currentAvailableDeliList = availableDeliOptions;
 
+  // ဝယ်သူဘက်ခြမ်း UI Cards တည်ဆောက်ပြသခြင်း
   if (deliContainer && cardsList) {
     deliContainer.style.setProperty('display', 'block', 'important');
     cardsList.style.setProperty('display', 'block', 'important');
@@ -4619,7 +4643,7 @@ function handleTownshipSelect() {
         <div class="deli-option-card-smart ${idx === defaultIdx ? 'active-selected' : ''}" 
              id="deliSmartCard_${idx}" 
              onclick="selectDeliSmartCard(${idx})"
-             style="background:rgba(255,255,255,0.05); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.15)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; position:relative;">
+             style="background:rgba(255,255,255,0.06); border:1.5px solid ${idx === defaultIdx ? '#d4af37' : 'rgba(255,255,255,0.15)'}; border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer;">
           
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <span style="font-weight:bold; font-size:12.5px; color:#fff;">
@@ -4631,14 +4655,15 @@ function handleTownshipSelect() {
           </div>
 
           <div style="font-size:11px; color:#cbd5e1; margin-bottom:4px;">
-            ⏱️ ကြာချိန်: <b style="color:#fff;">${opt.duration}</b>
+            <i class="fas fa-clock" style="color:#fbbf24;"></i> ပုံမှန်ကြာချိန်: <b style="color:#fff;">${opt.duration}</b>
           </div>
 
           <div>
             <span style="background:${opt.cod ? '#10b981' : '#ef4444'}; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold;">
-              ${opt.cod ? '💵 COD ရရှိ' : '💳 ငွေကြိုရှင်းရပါမည်'}
+              ${opt.cod ? '💵 COD ရရှိသည်' : '💳 ငွေကြိုရှင်းရပါမည်'}
             </span>
           </div>
+          ${opt.notice ? `<div style="font-size:10px; color:#fde047; margin-top:4px;">📢 ${opt.notice}</div>` : ''}
         </div>
       `;
     }).join('');
