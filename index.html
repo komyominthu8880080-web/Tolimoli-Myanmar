@@ -15604,7 +15604,7 @@ function renderQrBoxContent() {
       ${totalAmount > 0 ? `
         <div style="margin-top: 10px; background: rgba(234, 179, 8, 0.1); border: 1px dashed #eab308; border-radius: 6px; padding: 6px 10px; display: inline-flex; align-items: center; gap: 8px;">
           <span style="font-size: 11.5px; color: #fde047;">လွှဲရမည့်ငွေ- <strong style="font-size: 13px;">${totalAmount.toLocaleString()} MMK</strong></span>
-          <button type="button" onclick="copyTextToClipboard('${totalAmount}', 'ငွေပမာဏ Copy ကူးပြီးပါပြီ')" style="background: #eab308; border: none; color: #000; font-weight: 600; font-size: 10px; padding: 2px 6px; border-radius: 3px; cursor: pointer;">Copy ငွေပမာဏ</button>
+          <button type="button" onclick="copyTextToClipboard('${totalAmount}', this, 'ငွေပမာဏ Copy ကူးပြီးပါပြီ')" style="background: #eab308; border: none; color: #000; font-weight: 600; font-size: 10px; padding: 2px 6px; border-radius: 3px; cursor: pointer;">Copy ငွေပမာဏ</button>
         </div>
       ` : ''}
     </div>
@@ -15612,28 +15612,38 @@ function renderQrBoxContent() {
 }
 
 // Reliable Mobile Touch Copy Function with Visual Feedback
+// Reliable Mobile Touch Copy Function with 5-Second Visual Feedback
 window.copyTextToClipboard = function(text, btnElement, successMsg) {
   if (!text) return;
 
   const performFeedback = () => {
     if (btnElement && btnElement.innerHTML !== undefined) {
+      // မူလဒီဇိုင်းများကို မှတ်သားထားခြင်း
       const originalHtml = btnElement.innerHTML;
+      const originalBg = btnElement.style.background;
+      const originalBorder = btnElement.style.border;
+      const originalBorderColor = btnElement.style.borderColor;
+      const originalColor = btnElement.style.color;
+
+      // အစိမ်းရောင်နှင့် ✓ Copied သို့ ပြောင်းလဲခြင်း
       btnElement.innerHTML = '✓ Copied';
       btnElement.style.background = '#10b981';
       btnElement.style.borderColor = '#10b981';
       btnElement.style.color = '#ffffff';
+
+      // ၅ စက္ကန့် (5000ms) အကြာတွင် မူလအခြေအနေသို့ ပြန်ထားခြင်း
       setTimeout(() => {
         btnElement.innerHTML = originalHtml;
-        btnElement.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
-        btnElement.style.borderColor = '#38bdf8';
-        btnElement.style.color = '#ffffff';
-      }, 1500);
+        btnElement.style.background = originalBg;
+        btnElement.style.border = originalBorder;
+        btnElement.style.borderColor = originalBorderColor;
+        btnElement.style.color = originalColor;
+      }, 5000);
     }
-    const msg = typeof btnElement === 'string' ? btnElement : (successMsg || 'ဖုန်းနံပါတ် Copy ကူးပြီးပါပြီ');
+
+    const msg = typeof btnElement === 'string' ? btnElement : (successMsg || 'Copy ကူးပြီးပါပြီခင်ဗျာ');
     if (typeof showToast === 'function') {
       showToast(msg);
-    } else {
-      alert(msg);
     }
   };
 
