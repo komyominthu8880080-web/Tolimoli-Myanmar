@@ -2357,12 +2357,12 @@ function scrollCategories(amount) {
   <small id="townshipRequiredAlert" style="display:none; color:#ef4444; font-size:11px; font-weight:600; margin-top:4px;">
   * ပို့ဆောင်ခ တွက်ချက်နိုင်ရန် စာရင်းထဲမှ မြို့နယ် / ကားဂိတ် ကို ရွေးချယ်ပေးပါ
 </small>
-<div id="selectedDeliInfoBadge" style="display: none;"></div>
-  <!-- DYNAMIC LOGISTICS INFO BADGE -->
-<div id="logisticsDynamicBadge" style="display: none !important; margin-top: 6px; padding: 8px 10px; background: rgba(212, 175, 55, 0.08);"></div>
-  <div id="logisticsDeliveryTypeText" style="font-weight: bold; color: var(--gold, #d4af37);"></div>
-  <div id="logisticsFeeBreakdownText" style="margin-top: 2px; color: #cbd5e1;"></div>
-  <div id="logisticsEtaText" style="margin-top: 2px; color: #94a3b8; font-size: 0.7rem;"></div>
+<div id="selectedDeliInfoBadge" style="display: none !important;"></div>
+  <div id="logisticsDynamicBadge" style="display: none !important;">
+    <div id="logisticsDeliveryTypeText"></div>
+    <div id="logisticsFeeBreakdownText"></div>
+    <div id="logisticsEtaText"></div>
+  </div>
 </div>
           
           <!-- DYNAMIC DELIVERY SERVICES CARDS FOR MATCHED TOWNSHIP -->
@@ -4380,121 +4380,126 @@ function scrollCategories(amount) {
 }
 
     function handleTownshipSelect() {
-      const dynBadge = document.getElementById('logisticsDynamicBadge');
-  if (dynBadge) dynBadge.style.setProperty('display', 'none', 'important');
-      document.getElementById('townshipRequiredAlert') && (document.getElementById('townshipRequiredAlert').style.display = 'none');
-      document.getElementById('custTownshipInput') && (document.getElementById('custTownshipInput').style.border = '', document.getElementById('custTownshipInput').style.boxShadow = '');
-      const input = document.getElementById('custTownshipInput');
-      const val = input ? input.value.trim() : '';
-      const notice = document.getElementById('deliveryNotice');
-      const feeText = document.getElementById('cartDeliveryFeeText');
-      const codCard = document.getElementById('payCard_COD');
+  const input = document.getElementById('custTownshipInput');
+  const val = input ? input.value.trim() : '';
+  const notice = document.getElementById('deliveryNotice');
+  const feeText = document.getElementById('cartDeliveryFeeText');
+  const codCard = document.getElementById('payMethod_cod');
+  const busGateSec = document.getElementById('customerBusGateSection');
+  const deliContainer = document.getElementById('dynamicDeliOptionsContainer');
+  const legacyBadge = document.getElementById('logisticsDynamicBadge');
+  const selectedBadge = document.getElementById('selectedDeliInfoBadge');
 
-      let matchedComp = null;
-      let matchedTownship = "";
+  if (legacyBadge) legacyBadge.style.display = 'none';
+  if (selectedBadge) selectedBadge.style.display = 'none';
+  document.getElementById('townshipRequiredAlert') && (document.getElementById('townshipRequiredAlert').style.display = 'none');
 
-      const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
-      for (const comp of comps) {
-        const suffix = ` (${comp.name})`;
-        if (val.endsWith(suffix) || val.includes(suffix)) {
-          matchedComp = comp;
-          matchedTownship = val.replace(suffix, '').trim();
-          break;
+  // မြို့နယ် ဘာမှ မရိုက်ရသေးပါက အကုန် ပိတ်မည်
+  if (!val) {
+    currentDeliveryFee = 0;
+    currentSelectedTownship = '';
+    currentDeliveryService = '';
+    currentEstimatedDays = '';
+    if (notice) notice.style.display = 'none';
+    if (busGateSec) busGateSec.style.display = 'none';
+    if (deliContainer) deliContainer.style.display = 'none';
+    if (feeText) feeText.innerText = '0 Ks';
+    if (typeof renderCartUI === 'function') renderCartUI();
+    return;
+  }
+
+  let matchedComp = null;
+  let matchedTownName = val;
+  const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
+
+  for (const comp of comps) {
+    if (val.includes(`(${comp.name})`)) {
+      matchedComp = comp;
+      matchedTownName = val.replace(`(${comp.name})`, '').trim();
+      break;
+    }
+  }
+
+  if (!matchedComp && val) {
+    const cleanVal = val.toLowerCase();
+    for (const comp of comps) {
+      const townList = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships : []);
+      const exists = townList.some(t => {
+        const name = typeof t === 'string' ? t : t.name;
+        return name && name.toLowerCase() === cleanVal;
+      });
+      if (exists) {
+        matchedComp = comp;
+        matchedTownName = val;
+        break;
+      }
+    }
+  }
+
+  if (matchedComp) {
+    const cleanMatch = matchedTownName.toLowerCase();
+    const townList = matchedComp.townDetails || (Array.isArray(matchedComp.townships) ? matchedComp.townships : []);
+    
+    const specificTown = townList.find(t => {
+      const name = typeof t === 'string' ? t : t.name;
+      return name && name.toLowerCase() === cleanMatch;
+    });
+
+    const finalFee = (specificTown && typeof specificTown === 'object' && specificTown.fee !== undefined) 
+      ? Number(specificTown.fee) 
+      : (Number(matchedComp.fee) || 0);
+
+    const finalDuration = (specificTown && typeof specificTown === 'object' && specificTown.duration) 
+      ? specificTown.duration 
+      : (matchedComp.days || '1 - 2 ရက်');
+
+    const isCodAllowed = (specificTown && typeof specificTown === 'object' && specificTown.cod !== undefined) 
+      ? specificTown.cod 
+      : (matchedComp.isCod !== false);
+
+    currentDeliveryFee = (typeof currentVipStatus !== 'undefined' && currentVipStatus.isFreeDelivery) ? 0 : finalFee;
+    currentSelectedTownship = matchedTownName;
+    currentDeliveryService = matchedComp.name;
+    currentEstimatedDays = finalDuration;
+
+    if (codCard) {
+      if (isCodAllowed) {
+        codCard.style.opacity = '1';
+        codCard.style.pointerEvents = 'auto';
+      } else {
+        codCard.style.opacity = '0.4';
+        codCard.style.pointerEvents = 'none';
+        if (selectedPaymentMethod === 'cod' || selectedPaymentMethod === 'COD') {
+          alert(`${matchedComp.name} အတွက် အိမ်အရောက်ငွေချေ (COD) မရနိုင်သဖြင့် KBZPay သို့မဟုတ် WavePay ဖြင့် ငွေကြိုရှင်းပေးရပါမည်ခင်ဗျာ။`);
+          if (typeof selectPaymentMethod === 'function') selectPaymentMethod('kpay');
         }
       }
-
-      if (matchedComp) {
-      // မြို့အလိုက် သီးသန့် ပို့ခ၊ ကြာချိန်နှင့် COD စစ်ဆေးခြင်း
-      const cleanMatchTown = (matchedTownship || val || '').trim().toLowerCase();
-      const townList = matchedComp.townDetails || (Array.isArray(matchedComp.townships) ? normalizeTownData(matchedComp.townships, matchedComp.fee, matchedComp.days) : []);
-      const specificTown = townList.find(t => (typeof t === 'string' ? t.toLowerCase() : (t.name || '').toLowerCase()) === cleanMatchTown);
-
-      const finalTownFee = (specificTown && typeof specificTown === 'object' && specificTown.fee !== undefined) ? Number(specificTown.fee) : (Number(matchedComp.fee) || 0);
-      const finalTownDuration = (specificTown && typeof specificTown === 'object' && specificTown.duration) ? specificTown.duration : (matchedComp.days || '2 - 3 ရက်');
-      const finalTownCod = (specificTown && typeof specificTown === 'object' && specificTown.cod !== undefined) ? specificTown.cod : (matchedComp.isCod !== false);
-
-      currentDeliveryFee = (typeof currentVipStatus !== 'undefined' && currentVipStatus.isFreeDelivery) ? 0 : finalTownFee;
-      currentSelectedTownship = matchedTownship;
-      currentDeliveryService = matchedComp.name;
-      const estDays = finalTownDuration;
-      currentEstimatedDays = estDays;
-      const isCodAllowed = finalTownCod && (matchedComp.isCod !== false);
-        // 🚚 ကိုက်ညီသော Deli ကုမ္ပဏီကို Auto ရွေးပေးခြင်း
-    if (typeof currentChosenDeliCompany !== 'undefined') {
-      currentChosenDeliCompany = matchedComp;
-    }
-    if (typeof isDeliPickerExpanded !== 'undefined') {
-      isDeliPickerExpanded = true;
     }
 
-    // 🚍 ကားဂိတ် ရွေးချယ်မှု စစ်ဆေးခြင်း (မြို့နယ်စာရင်း ကိုက်ညီမှသာ သက်ဆိုင်ရာ ကားဂိတ်ရှိပါက ဖွင့်ပေးခြင်း)
-    const busGateSec = document.getElementById('customerBusGateSection');
     if (busGateSec) {
-      const pureTown = (matchedTownship || val || '').replace(/[:\s]/g, '');
-      const isYgnOnly = pureTown.includes('ရန်ကုန်');
+      const isBus = matchedComp.id === 'bus' || matchedComp.name.includes('ဂိတ်');
+      busGateSec.style.display = isBus ? 'block' : 'none';
+    }
 
-      // စာရင်းထဲရှိသော နယ်မြို့ဖြစ်ပြီး filter လုပ်၍ ကားဂိတ်စာရင်း ရှိမှသာ ဖွင့်ပြပေးခြင်း
-      if (matchedComp && !isYgnOnly) {
-        if (typeof filterBusGatesForTownship === 'function') {
-          const hasGates = filterBusGatesForTownship(matchedTownship || val);
-          // အကယ်၍ အဆိုပါမြို့အတွက် ကားဂိတ်ရှိမှသာ display block ပြုလုပ်ပြီး မရှိပါက ဖျောက်ထားခြင်း
-          busGateSec.style.display = (hasGates !== false) ? 'block' : 'none';
-        } else {
-          busGateSec.style.display = 'block';
-        }
-      } else {
-        busGateSec.style.display = 'none';
-      }
+    if (typeof handleTownshipSelectionIntegration === 'function') {
+      handleTownshipSelectionIntegration(matchedTownName);
     }
-        if (notice) notice.innerHTML = `
-          <div style="background:${isCodAllowed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)'}; border:1px solid ${isCodAllowed ? '#10b981' : '#f59e0b'}; border-radius:6px; padding:6px 8px; margin-top:4px;">
-            <div style="color:${isCodAllowed ? '#00ff88' : '#f87171'}; font-weight:bold; font-size:0.75rem;"><i class="fas fa-${isCodAllowed ? 'check-circle' : 'exclamation-triangle'}"></i> ${matchedComp.name} (${currentDeliveryFee.toLocaleString()} Ks) - ${isCodAllowed ? 'COD ရရှိပါသည် ' + (currentVipStatus.isFreeDelivery ? '(Free Delivery)' : '') : 'ငွေကြိုရှင်းပေးရပါမည်'}</div>
-            <div style="color:${isCodAllowed ? '#38bdf8' : '#f59e0b'}; font-size:0.72rem; margin-top:3px; font-weight:600;"><i class="fas fa-clock"></i> ပို့ဆောင်ချိန် ခန့်မှန်းခြေ: <b style="color:#fde047;">${estDays}</b> အတွင်း ပို့ဆောင်ပေးပါမည်</div>
-          </div>
-        `;
-          // ရွေးချယ်လိုက်သော မြို့နှင့် ကုမ္ပဏီအလိုက် Deli Badge ပြသခြင်း နှင့် Instant Payment Logic ချိတ်ဆက်ခြင်း
-    if (typeof updateSelectedDeliveryUI === 'function') {
-      const townObj = {
-        name: matchedTownship || val,
-        fee: finalTownFee,
-        duration: finalTownDuration,
-        cod: isCodAllowed
-      };
-      updateSelectedDeliveryUI(townObj, matchedComp);
+  } else {
+    currentDeliveryFee = 0;
+    currentSelectedTownship = val;
+    currentDeliveryService = '';
+    currentEstimatedDays = '';
+    if (notice) notice.style.display = 'none';
+    if (busGateSec) busGateSec.style.display = 'none';
+    if (codCard) {
+      codCard.style.opacity = '1';
+      codCard.style.pointerEvents = 'auto';
     }
-        if (codCard) {
-          if (isCodAllowed) {
-            codCard.style.opacity = '1'; codCard.style.pointerEvents = 'auto';
-          } else {
-            codCard.style.opacity = '0.3'; codCard.style.pointerEvents = 'none';
-            if (selectedPaymentMethod === 'COD') {
-              alert(`${matchedComp.name} အတွက် KBZPay သို့မဟုတ် WavePay ဖြင့် ငွေကြိုရှင်းပေးရပါမည်ခင်ဗျာ။`);
-              selectPayment('KBZPay', document.getElementById('payCard_KBZPay'));
-            }
-          }
-        }
-      } else {
-        currentDeliveryFee = 0; currentSelectedTownship = val; currentDeliveryService = ""; currentEstimatedDays = "";
-        if (notice) notice.innerText = '';
-        const bgSec = document.getElementById('customerBusGateSection');
-      if (bgSec) bgSec.style.display = 'none';
-        if (codCard) { codCard.style.opacity = '1'; codCard.style.pointerEvents = 'auto'; }
-      }
-      if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
-      renderCartUI();
-      // 🚚 မြို့နယ်ပြောင်းလဲမှုနှင့်အညီ အောက်ခြေ Deli Cards များကို တန်းပြီး ဖွင့်ပြပေးခြင်း
-    const deliWrap = document.getElementById('delisContainer') || document.getElementById('delisSelectionContainer') || document.getElementById('delisList');
-    if (deliWrap) deliWrap.style.display = 'block';
+  }
 
-    if (typeof handleExpandDeliPicker === 'function') {
-      handleExpandDeliPicker();
-    } else if (typeof renderDynamicDeliCardsForTownship === 'function') {
-      const searchTown = (matchedTownship || val || '').trim();
-      const compList = (typeof deliveryConfig !== 'undefined' && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : (comps || []);
-      const matchedList = compList.filter(c => (c.townships || []).some(t => searchTown.includes(t) || t.includes(searchTown)));
-      renderDynamicDeliCardsForTownship(matchedList.length > 0 ? matchedList : compList, searchTown);
-    }
-    }
+  if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
+  if (typeof renderCartUI === 'function') renderCartUI();
+}
 
     var DEFAULT_CATEGORIES = ['တုန်စက်', 'မတု', 'ချောဆီ', 'ကျားတု', 'ကြီးရှည်ကျင့်ပြောင်း', 'စီလီကွန်အစွပ်', 'BDSM ပစ္စည်းများ', 'နောက်ပေါက်သုံးပစ္စည်း', 'ကြာဆေး', 'ကြီးဆေး', 'အမျိုးသမီးသုံးဖီးဆေး', 'သုတ်ထိန်းကွင်း'];
     var categories = DEFAULT_CATEGORIES;
