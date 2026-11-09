@@ -4495,6 +4495,7 @@ function selectQuickTownship(townName) {
   const input = document.getElementById('custTownshipInput');
   if (!input) return;
   input.value = townName;
+  input.dispatchEvent(new Event('input', { bubbles: true }));
   handleTownshipSelect();
 }
 
@@ -4531,16 +4532,17 @@ function calculateEstimatedDeliveryDateText(daysStr) {
   return `${mName} ${d1.getDate()} မှ ${d2.getDate()} ရက် (${burmeseDays[d1.getDay()]}/${burmeseDays[d2.getDay()]}) အတွင်း အရောက်`;
 }
 
-// ၃။ မြို့နယ်ရွေးချယ်မှု ပင်မ Function
+// ၃။ မြို့နယ်ရွေးချယ်မှု ပင်မ Function (Fuzzy Matching + Auto Gate Fallback)
 function handleTownshipSelect() {
   const input = document.getElementById('custTownshipInput');
-  const val = input ? input.value.trim() : '';
+  let val = input ? input.value.trim() : '';
   const clearBtn = document.getElementById('btnTownshipClear');
   const notice = document.getElementById('deliveryNotice');
   const feeText = document.getElementById('cartDeliveryFeeText');
   const codCard = document.getElementById('payMethod_cod');
   const busGateSec = document.getElementById('customerBusGateSection');
   const deliContainer = document.getElementById('dynamicDeliOptionsContainer');
+  const cardsList = document.getElementById('deliServiceCardsList');
 
   if (clearBtn) clearBtn.style.display = val ? 'flex' : 'none';
   document.getElementById('townshipRequiredAlert') && (document.getElementById('townshipRequiredAlert').style.display = 'none');
@@ -4558,28 +4560,31 @@ function handleTownshipSelect() {
     return;
   }
 
-  // ရွေးချယ်နိုင်သော Company များကို စစ်ဆေးစုစည်းခြင်း
-  const cleanVal = val.toLowerCase();
+  // "မြို့"၊ "မြို့နယ်" စာသားများ ပါလာပါက ဖြုတ်ပြီး အဓိက မြို့အမည်ကို စစ်ဆေးခြင်း
+  const cleanVal = val.toLowerCase().replace(/(\(.*\)|မြို့နယ်|မြို့)/g, '').trim();
   const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
   let availableDeliOptions = [];
 
+  // ၁။ ကုမ္ပဏီများအလိုက် မြို့နယ် ရှာဖွေခြင်း
   comps.forEach(comp => {
     const list = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships : []);
+    
+    // Exact Match သို့မဟုတ် တစ်စိတ်တစ်ပိုင်း ပါဝင်မှု စစ်ဆေးခြင်း
     const specificTown = list.find(t => {
-      const tName = (typeof t === 'string' ? t : t.name || '').toLowerCase();
-      return cleanVal.includes(tName) || tName.includes(cleanVal);
+      const tName = (typeof t === 'string' ? t : t.name || '').toLowerCase().replace(/(\(.*\)|မြို့နယ်|မြို့)/g, '').trim();
+      return cleanVal && tName && (cleanVal.includes(tName) || tName.includes(cleanVal));
     });
 
-    if (specificTown || (comp.id === 'bus' && !/ရန်ကုန်|yangon|ygn/i.test(cleanVal))) {
-      const finalFee = (specificTown && typeof specificTown === 'object' && specificTown.fee !== undefined)
+    if (specificTown) {
+      const finalFee = (typeof specificTown === 'object' && specificTown.fee !== undefined)
         ? Number(specificTown.fee)
         : (Number(comp.fee) || 0);
 
-      const finalDuration = (specificTown && typeof specificTown === 'object' && specificTown.duration)
+      const finalDuration = (typeof specificTown === 'object' && specificTown.duration)
         ? specificTown.duration
         : (comp.days || '1 - 2 ရက်');
 
-      const isCodAllowed = (specificTown && typeof specificTown === 'object' && specificTown.cod !== undefined)
+      const isCodAllowed = (typeof specificTown === 'object' && specificTown.cod !== undefined)
         ? specificTown.cod
         : (comp.isCod !== false);
 
@@ -4594,13 +4599,31 @@ function handleTownshipSelect() {
     }
   });
 
-  // Cards များ ထုတ်ပေးခြင်း
-  const cardsList = document.getElementById('deliServiceCardsList');
+  // ၂။ ရန်ကုန်မြို့တွင်း မဟုတ်ပါက "ကားဂိတ်ချ Deli" ကို အမြဲတမ်း ရွေးချယ်စရာအဖြစ် ထည့်သွင်းပေးခြင်း
+  const isYangonCity = /ရန်ကုန်|yangon|ygn/i.test(cleanVal);
+  const hasBusOption = availableDeliOptions.some(o => o.isBus);
+
+  if (!isYangonCity && !hasBusOption) {
+    const busComp = comps.find(c => c.id === 'bus' || c.name.includes('ဂိတ်'));
+    const gateFee = busComp ? Number(busComp.fee) || 2500 : 2500;
+    const gateDays = busComp ? busComp.days || '2 - 3 ရက်' : '2 - 3 ရက်';
+
+    availableDeliOptions.push({
+      companyId: 'bus',
+      name: busComp ? busComp.name : 'ကားဂိတ်ချ Deli',
+      fee: gateFee,
+      duration: gateDays,
+      cod: false,
+      isBus: true
+    });
+  }
+
+  // ၃။ Cards များကို UI ပေါ်တွင် ပြသခြင်း
   if (deliContainer && cardsList) {
     if (availableDeliOptions.length > 0) {
-      deliContainer.style.display = 'block';
+      deliContainer.style.setProperty('display', 'block', 'important');
 
-      // Last Saved Choice ရှိမရှိ စစ်ဆေးခြင်း
+      // အရင်ဆုံး ရွေးချယ်မည့် Default Card သတ်မှတ်ခြင်း
       const savedService = localStorage.getItem('tm_saved_deliservice');
       let defaultPickIdx = 0;
       if (savedService) {
@@ -4632,13 +4655,13 @@ function handleTownshipSelect() {
               ${opt.cod ? '<span class="deli-tag-pill deli-tag-cod">💵 COD ရရှိ</span>' : '<span class="deli-tag-pill" style="background:#ef4444; color:#fff;">ငွေကြိုရှင်း</span>'}
             </div>
 
-            <div style="font-size:11px; color:#cbd5e1; line-height:1.35;">
+            <div style="font-size:11px; color:#cbd5e1; line-height:1.35; margin-top:2px;">
               <i class="fas fa-calendar-alt" style="color:#fbbf24; font-size:10px;"></i> ${dateText}
             </div>
 
             ${isBus ? `
-              <div style="font-size:10.5px; color:#94a3b8; margin-top:3px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:3px;">
-                * ရန်ကုန်ကားဂိတ်တင်ခ ဖြစ်ပြီး ကားတန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်
+              <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:3px;">
+                * ရန်ကုန်ကားဂိတ်ချခ ဖြစ်ပြီး နယ်ရောက်ကားတန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်
               </div>
             ` : ''}
           </div>
@@ -4646,6 +4669,7 @@ function handleTownshipSelect() {
       }).join('');
 
       window.currentAvailableDeliList = availableDeliOptions;
+      // Default Card အား ချက်ချင်း ရွေးချယ်ပြီး ပို့ခပေါင်းပေးခြင်း
       selectDeliSmartCard(defaultPickIdx);
 
     } else {
@@ -4692,8 +4716,18 @@ function selectDeliSmartCard(idx) {
 
   localStorage.setItem('tm_saved_deliservice', chosen.name);
   const feeText = document.getElementById('cartDeliveryFeeText');
-  if (feeText) feeText.innerText = currentDeliveryFee.toLocaleString() + ' Ks';
-  if (typeof renderCartUI === 'function') renderCartUI();
+  if (feeText) feeText.innerText = (Number(currentDeliveryFee) || 0).toLocaleString() + ' Ks';
+  
+  // Total ငွေပမာဏကို ချက်ချင်း တိုက်ရိုက် တွက်ချက်ပေါင်းစပ်ပြသခြင်း
+  const subTotalEl = document.getElementById('cartSubTotal');
+  const totalEl = document.getElementById('cartTotalPrice');
+  if (subTotalEl && totalEl) {
+    const rawSub = parseInt(subTotalEl.innerText.replace(/[^0-9]/g, ''), 10) || 0;
+    const discEl = document.getElementById('cartDiscountText');
+    const rawDisc = discEl ? (parseInt(discEl.innerText.replace(/[^0-9]/g, ''), 10) || 0) : 0;
+    const finalGrandTotal = Math.max(0, rawSub - rawDisc + (Number(currentDeliveryFee) || 0));
+    totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
+  }
 }
 
 // ၅။ Cart Modal စဖွင့်ချိန်တွင် ယခင်ရွေးခဲ့ဖူးသော မြို့နယ် ပြန်လည်ဖြည့်သွင်းပေးခြင်း
