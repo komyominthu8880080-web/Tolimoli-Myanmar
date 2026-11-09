@@ -4532,14 +4532,13 @@ function calculateEstimatedDeliveryDateText(daysStr) {
   return `${mName} ${d1.getDate()} မှ ${d2.getDate()} ရက် (${burmeseDays[d1.getDay()]}/${burmeseDays[d2.getDay()]}) အတွင်း အရောက်`;
 }
 
-// ၃။ မြို့နယ်ရွေးချယ်မှု ပင်မ Function (Fuzzy Matching + Auto Gate Fallback)
+// ၃။ မြို့နယ်ရွေးချယ်မှု ပင်မ Function (Bulletproof Matcher)
 function handleTownshipSelect() {
   const input = document.getElementById('custTownshipInput');
   let val = input ? input.value.trim() : '';
   const clearBtn = document.getElementById('btnTownshipClear');
   const notice = document.getElementById('deliveryNotice');
   const feeText = document.getElementById('cartDeliveryFeeText');
-  const codCard = document.getElementById('payMethod_cod');
   const busGateSec = document.getElementById('customerBusGateSection');
   const deliContainer = document.getElementById('dynamicDeliOptionsContainer');
   const cardsList = document.getElementById('deliServiceCardsList');
@@ -4560,19 +4559,19 @@ function handleTownshipSelect() {
     return;
   }
 
-  // "မြို့"၊ "မြို့နယ်" စာသားများ ပါလာပါက ဖြုတ်ပြီး အဓိက မြို့အမည်ကို စစ်ဆေးခြင်း
-  const cleanVal = val.toLowerCase().replace(/(\(.*\)|မြို့နယ်|မြို့)/g, '').trim();
+  // စာလုံး သန့်စင်ခြင်း (ကွင်းစ၊ မြို့၊ မြို့နယ် များကို ဖြုတ်၍ စစ်ဆေးခြင်း)
+  const cleanKeyword = val.toLowerCase().replace(/[\(\)（）\[\]]/g, '').replace(/(မြို့နယ်|မြို့)/g, '').trim();
   const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
   let availableDeliOptions = [];
 
-  // ၁။ ကုမ္ပဏီများအလိုက် မြို့နယ် ရှာဖွေခြင်း
   comps.forEach(comp => {
     const list = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships : []);
     
-    // Exact Match သို့မဟုတ် တစ်စိတ်တစ်ပိုင်း ပါဝင်မှု စစ်ဆေးခြင်း
+    // မြို့နယ် ကိုက်ညီမှု စစ်ဆေးခြင်း
     const specificTown = list.find(t => {
-      const tName = (typeof t === 'string' ? t : t.name || '').toLowerCase().replace(/(\(.*\)|မြို့နယ်|မြို့)/g, '').trim();
-      return cleanVal && tName && (cleanVal.includes(tName) || tName.includes(cleanVal));
+      const rawName = (typeof t === 'string' ? t : t.name || '').toLowerCase();
+      const strippedName = rawName.replace(/[\(\)（）\[\]]/g, '').replace(/(မြို့နယ်|မြို့|ရန်ကုန်|မန္တလေး)/g, '').trim();
+      return (strippedName && cleanKeyword.includes(strippedName)) || (strippedName && strippedName.includes(cleanKeyword)) || rawName.includes(cleanKeyword);
     });
 
     if (specificTown) {
@@ -4599,83 +4598,89 @@ function handleTownshipSelect() {
     }
   });
 
-  // ၂။ ရန်ကုန်မြို့တွင်း မဟုတ်ပါက "ကားဂိတ်ချ Deli" ကို အမြဲတမ်း ရွေးချယ်စရာအဖြစ် ထည့်သွင်းပေးခြင်း
-  const isYangonCity = /ရန်ကုန်|yangon|ygn/i.test(cleanVal);
-  const hasBusOption = availableDeliOptions.some(o => o.isBus);
+  // ရန်ကုန် မဟုတ်ပါက "ကားဂိတ်ချ Deli" ကို ရွေးချယ်စရာအဖြစ် ထည့်သွင်းပေးခြင်း
+  const isYangonArea = /ရန်ကုန်|yangon|ygn|စမ်းချောင်း|လှိုင်|ကမာရွတ်|ဗဟန်း|ဒဂုံ|တာမွေ|အင်းစိန်|မရမ်းကုန်း/i.test(val);
+  const hasBus = availableDeliOptions.some(o => o.isBus);
 
-  if (!isYangonCity && !hasBusOption) {
+  if (!isYangonArea && !hasBus) {
     const busComp = comps.find(c => c.id === 'bus' || c.name.includes('ဂိတ်'));
-    const gateFee = busComp ? Number(busComp.fee) || 2500 : 2500;
-    const gateDays = busComp ? busComp.days || '2 - 3 ရက်' : '2 - 3 ရက်';
-
     availableDeliOptions.push({
       companyId: 'bus',
       name: busComp ? busComp.name : 'ကားဂိတ်ချ Deli',
-      fee: gateFee,
-      duration: gateDays,
+      fee: busComp ? Number(busComp.fee) || 2500 : 2500,
+      duration: busComp ? busComp.days || '2 - 3 ရက်' : '2 - 3 ရက်',
       cod: false,
       isBus: true
     });
   }
 
-  // ၃။ Cards များကို UI ပေါ်တွင် ပြသခြင်း
-  if (deliContainer && cardsList) {
-    if (availableDeliOptions.length > 0) {
-      deliContainer.style.setProperty('display', 'block', 'important');
-
-      // အရင်ဆုံး ရွေးချယ်မည့် Default Card သတ်မှတ်ခြင်း
-      const savedService = localStorage.getItem('tm_saved_deliservice');
-      let defaultPickIdx = 0;
-      if (savedService) {
-        const foundIdx = availableDeliOptions.findIndex(o => o.name === savedService);
-        if (foundIdx > -1) defaultPickIdx = foundIdx;
-      }
-
-      cardsList.innerHTML = availableDeliOptions.map((opt, idx) => {
-        const dateText = calculateEstimatedDeliveryDateText(opt.duration);
-        const isBus = opt.isBus;
-
-        return `
-          <div class="deli-option-card-smart ${idx === defaultPickIdx ? 'active-selected' : ''}" 
-               id="deliSmartCard_${idx}" 
-               onclick="selectDeliSmartCard(${idx})">
-            <span class="deli-check-tag">✓ ရွေးထားသည်</span>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <span style="font-weight:bold; font-size:12px; color:#fff;">
-                ${isBus ? '<i class="fas fa-bus" style="color:#f59e0b;"></i>' : '<i class="fas fa-truck" style="color:#38bdf8;"></i>'} 
-                ${opt.name}
-              </span>
-              <span style="font-weight:bold; font-size:12.5px; color:var(--gold, #d4af37);">
-                ${Number(opt.fee).toLocaleString()} Ks
-              </span>
-            </div>
-            
-            <div style="display:flex; gap:4px; margin-bottom:4px;">
-              ${!isBus ? '<span class="deli-tag-pill deli-tag-fast">⚡ အိမ်အရောက်</span>' : '<span class="deli-tag-pill deli-tag-save">💰 သက်သာ</span>'}
-              ${opt.cod ? '<span class="deli-tag-pill deli-tag-cod">💵 COD ရရှိ</span>' : '<span class="deli-tag-pill" style="background:#ef4444; color:#fff;">ငွေကြိုရှင်း</span>'}
-            </div>
-
-            <div style="font-size:11px; color:#cbd5e1; line-height:1.35; margin-top:2px;">
-              <i class="fas fa-calendar-alt" style="color:#fbbf24; font-size:10px;"></i> ${dateText}
-            </div>
-
-            ${isBus ? `
-              <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:3px;">
-                * ရန်ကုန်ကားဂိတ်ချခ ဖြစ်ပြီး နယ်ရောက်ကားတန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်
-              </div>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-
-      window.currentAvailableDeliList = availableDeliOptions;
-      // Default Card အား ချက်ချင်း ရွေးချယ်ပြီး ပို့ခပေါင်းပေးခြင်း
-      selectDeliSmartCard(defaultPickIdx);
-
-    } else {
-      deliContainer.style.display = 'none';
-      if (busGateSec) busGateSec.style.display = 'none';
+  // မည်သည့် Deli မှ မကိုက်ညီသေးပါက Default အိမ်အရောက် Deli ကို Fallback အနေဖြင့် ထုတ်ပြပေးခြင်း
+  if (availableDeliOptions.length === 0) {
+    const homeComp = comps.find(c => c.id === 'home' || c.name.includes('အိမ်အရောက်')) || comps[0];
+    if (homeComp) {
+      availableDeliOptions.push({
+        companyId: homeComp.id || 'home',
+        name: homeComp.name || 'အိမ်အရောက် Deli',
+        fee: Number(homeComp.fee) || 5000,
+        duration: homeComp.days || '1 - 2 ရက်',
+        cod: homeComp.isCod !== false,
+        isBus: false
+      });
     }
+  }
+
+  // Cards များ ထုတ်ပြခြင်း
+  if (deliContainer && cardsList) {
+    deliContainer.style.setProperty('display', 'block', 'important');
+
+    let defaultPickIdx = 0;
+    const savedService = localStorage.getItem('tm_saved_deliservice');
+    if (savedService) {
+      const foundIdx = availableDeliOptions.findIndex(o => o.name === savedService);
+      if (foundIdx > -1) defaultPickIdx = foundIdx;
+    }
+
+    cardsList.innerHTML = availableDeliOptions.map((opt, idx) => {
+      const dateText = (typeof calculateEstimatedDeliveryDateText === 'function') 
+        ? calculateEstimatedDeliveryDateText(opt.duration) 
+        : opt.duration;
+      const isBus = opt.isBus;
+
+      return `
+        <div class="deli-option-card-smart ${idx === defaultPickIdx ? 'active-selected' : ''}" 
+             id="deliSmartCard_${idx}" 
+             onclick="selectDeliSmartCard(${idx})">
+          <span class="deli-check-tag">✓ ရွေးထားသည်</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <span style="font-weight:bold; font-size:12px; color:#fff;">
+              ${isBus ? '<i class="fas fa-bus" style="color:#f59e0b;"></i>' : '<i class="fas fa-truck" style="color:#38bdf8;"></i>'} 
+              ${opt.name}
+            </span>
+            <span style="font-weight:bold; font-size:12.5px; color:var(--gold, #d4af37);">
+              ${Number(opt.fee).toLocaleString()} Ks
+            </span>
+          </div>
+          
+          <div style="display:flex; gap:4px; margin-bottom:4px;">
+            ${!isBus ? '<span class="deli-tag-pill deli-tag-fast">⚡ အိမ်အရောက်</span>' : '<span class="deli-tag-pill deli-tag-save">💰 သက်သာ</span>'}
+            ${opt.cod ? '<span class="deli-tag-pill deli-tag-cod">💵 COD ရရှိ</span>' : '<span class="deli-tag-pill" style="background:#ef4444; color:#fff;">ငွေကြိုရှင်း</span>'}
+          </div>
+
+          <div style="font-size:11px; color:#cbd5e1; line-height:1.35; margin-top:2px;">
+            <i class="fas fa-calendar-alt" style="color:#fbbf24; font-size:10px;"></i> ${dateText}
+          </div>
+
+          ${isBus ? `
+            <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:3px;">
+              * ရန်ကုန်ကားဂိတ်ချခ ဖြစ်ပြီး နယ်ရောက်ကားတန်ဆာခအား ဂိတ်ရောက်မှ ပေးချေရန်
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+
+    window.currentAvailableDeliList = availableDeliOptions;
+    selectDeliSmartCard(defaultPickIdx);
   }
 
   localStorage.setItem('tm_saved_township', val);
