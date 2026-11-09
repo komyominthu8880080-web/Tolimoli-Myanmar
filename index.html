@@ -6769,13 +6769,18 @@ function saveAbandonedCartVoucherConfig() {
   const msgInp = document.getElementById('cfgAbandonedVoucherMsg');
 
   const newCfg = {
-    enabled: chk ? chk.checked : true,
+    enabled: chk ? chk.checked : false,
     code: (codeInp && codeInp.value.trim().toUpperCase()) || 'COMEBACK5',
     percent: (pctInp && Number(pctInp.value)) || 5,
-    message: (msgInp && msgInp.value.trim()) || 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်ခင်ဗျာ။'
+    message: (msgInp && msgInp.value.trim()) || 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့စျေး ရရှိပါမည်ခင်ဗျာ။'
   };
 
   localStorage.setItem('tm_cfg_abandoned_voucher', JSON.stringify(newCfg));
+
+  // Firebase Cloud ပေါ်သို့ တိုက်ရိုက် သိမ်းဆည်းခြင်း (Clear Data လုပ်သော်လည်း မပျောက်စေရန်)
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_promo_status/abandonedVoucher').set(newCfg);
+  }
 
   const lbl = document.getElementById('cfgAbandonedCartStatusLabel');
   if (lbl) {
@@ -14026,7 +14031,7 @@ function initPromoModulesToggleState() {
   if (typeof fbDb !== 'undefined') {
     fbDb.ref('shop_promo_status').on('value', snap => {
       const val = snap.val() || {};
-      
+
       // Flash Sale Toggle Sync
       const flashSaleState = val.flashSaleEnabled === true;
       const chkFlash = document.getElementById('cfgToggleFlashSale');
@@ -14050,6 +14055,18 @@ function initPromoModulesToggleState() {
         lblMystery.style.color = mysteryState ? '#10b981' : '#ef4444';
       }
       if (bodyMystery) bodyMystery.style.display = mysteryState ? 'block' : 'none';
+
+      // Abandoned Cart Voucher Toggle Sync (ဒီနေရာလေး ထပ်တိုးထည့်လိုက်ခြင်းဖြစ်ပါသည်)
+      if (val.abandonedVoucher) {
+        localStorage.setItem('tm_cfg_abandoned_voucher', JSON.stringify(val.abandonedVoucher));
+        const chkVoucher = document.getElementById('cfgAbandonedCartEnabled');
+        const lblVoucher = document.getElementById('cfgAbandonedCartStatusLabel');
+        if (chkVoucher) chkVoucher.checked = val.abandonedVoucher.enabled === true;
+        if (lblVoucher) {
+          lblVoucher.textContent = val.abandonedVoucher.enabled ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+          lblVoucher.style.color = val.abandonedVoucher.enabled ? '#10b981' : '#ef4444';
+        }
+      }
     });
   } else {
     // Firebase မအားလပ်သေးပါက Fallback အနေဖြင့် ဖတ်ခြင်း
