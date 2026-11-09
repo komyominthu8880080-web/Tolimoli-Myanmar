@@ -15607,55 +15607,57 @@ function renderQrBoxContent() {
   `;
 }
 
-// Reliable Mobile Touch Copy Function with Visual Feedback
-window.copyTextToClipboard = function(text, btnElement, successMsg) {
+// Reliable Mobile & Desktop Copy to Clipboard System (100% Working)
+window.copyTextToClipboard = function(text, successMsg) {
   if (!text) return;
+  const msg = typeof successMsg === 'string' ? successMsg : 'Copy ကူးယူပြီးပါပြီခင်ဗျာ';
 
-  const performFeedback = () => {
-    if (btnElement) {
-      const originalHtml = btnElement.innerHTML;
-      btnElement.innerHTML = '✓ Copied';
-      btnElement.style.background = '#10b981';
-      btnElement.style.borderColor = '#10b981';
-      btnElement.style.color = '#ffffff';
-      setTimeout(() => {
-        btnElement.innerHTML = originalHtml;
-        btnElement.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
-        btnElement.style.borderColor = '#38bdf8';
-        btnElement.style.color = '#ffffff';
-      }, 1500);
-    }
-    if (typeof showToast === 'function') {
-      showToast(successMsg || 'ဖုန်းနံပါတ် Copy ကူးပြီးပါပြီ');
-    }
-  };
-
+  // နည်းလမ်း ၁ - ခေတ်မီ Navigator Clipboard API ဖြင့် စမ်းသပ်ခြင်း
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(text).then(performFeedback).catch(() => {
-      fallbackCopyText(text, performFeedback);
+    navigator.clipboard.writeText(String(text)).then(() => {
+      if (typeof showToast === 'function') {
+        showToast(msg, 'success');
+      } else {
+        alert(msg);
+      }
+    }).catch(() => {
+      fallbackCopyText(text, msg);
     });
   } else {
-    fallbackCopyText(text, performFeedback);
+    // နည်းလမ်း ၂ - Mobile Fallback (Hidden Textarea)
+    fallbackCopyText(text, msg);
   }
 };
 
-function fallbackCopyText(text, callback) {
-  const textArea = document.createElement("textarea");
-  textArea.value = text;
-  textArea.style.top = "0";
-  textArea.style.left = "0";
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
+function fallbackCopyText(text, msg) {
+  const ta = document.createElement("textarea");
+  ta.value = String(text);
+  // iOS/Android တွင် virtual keyboard မပွင့်စေရန်နှင့် focus မိစေရန်
+  ta.setAttribute("readonly", "");
+  ta.style.position = "absolute";
+  ta.style.left = "-9999px";
+  ta.style.top = (window.pageYOffset || document.documentElement.scrollTop) + "px";
+  document.body.appendChild(ta);
+
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, 99999); // Mobile Support
+
   try {
-    document.execCommand('copy');
-    if (callback) callback();
+    const successful = document.execCommand('copy');
+    if (successful) {
+      if (typeof showToast === 'function') {
+        showToast(msg, 'success');
+      } else {
+        alert(msg);
+      }
+    } else {
+      prompt("ကျေးဇူးပြု၍ လက်ဖြင့် Copy ကူးယူပါ -", text);
+    }
   } catch (err) {
-    alert('Copy မအောင်မြင်ပါ- ' + text);
+    prompt("ကျေးဇူးပြု၍ လက်ဖြင့် Copy ကူးယူပါ -", text);
   }
-  document.body.removeChild(textArea);
+  document.body.removeChild(ta);
 }
 // Deli စနစ် ပြန်လည်ရွေးချယ်ရန် Reset Function
 window.resetDeliverySelection = function() {
