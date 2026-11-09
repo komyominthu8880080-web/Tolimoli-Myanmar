@@ -10920,7 +10920,7 @@ function copyProductLink(productId) {
     }
 
 
-// 🚌 SMART BUS GATE & STATIONS DIRECTORY (အမြဲပြည့်စုံစွာ ပေါ်စေမည့် အဆင့်မြှင့် Function)
+// 🚌 မြို့နယ်အလိုက် သက်ဆိုင်ရာ ကားဂိတ်များကိုသာ တိကျစွာ Filter လုပ်ပြသပေးခြင်း
 function filterBusGatesForTownship(selectedTownship) {
   const gateSection = document.getElementById('customerBusGateSection');
   const gateSelect = document.getElementById('checkoutBusGateSelect');
@@ -10929,13 +10929,18 @@ function filterBusGatesForTownship(selectedTownship) {
 
   if (!gateSelect) return;
 
-  // Dropdown အစပြုခြင်း
+  // အစပိုင်းတွင် Dropdown ကို ရှင်းလင်းခြင်း
   gateSelect.innerHTML = `
     <option value="">-- ကားဂိတ် ရွေးချယ်ပါ --</option>
     <option value="AUTO_SHOP_DELI">🚚 ဆိုင်မှ အဆင်ပြေရာ ကားဂိတ်ဖြင့် ပို့ပေးပါ</option>
   `;
   if (previewCard) previewCard.style.display = 'none';
   if (customBox) customBox.style.display = 'none';
+
+  if (!selectedTownship) {
+    if (gateSection) gateSection.style.display = 'none';
+    return;
+  }
 
   // Admin Stations Directory မှ ဒေတာများ ဆွဲယူခြင်း
   let stations = [];
@@ -10949,11 +10954,35 @@ function filterBusGatesForTownship(selectedTownship) {
     stations = [];
   }
 
-  // ကားဂိတ် အမျိုးအစားများကို စစ်ထုတ်ခြင်း
-  const busGates = stations.filter(st => !st.type || st.type === 'bus' || st.type.includes('ကားဂိတ်'));
+  const searchTown = selectedTownship.toLowerCase().replace(/(မြို့နယ်|မြို့)/g, '').trim();
 
-  // ကားဂိတ်များအားလုံးကို Dropdown ထဲသို့ ထည့်သွင်းခြင်း
-  busGates.forEach((gate, idx) => {
+  // ဝယ်သူရွေးထားသော မြို့နှင့် Admin တွင် သတ်မှတ်ထားသော ရောက်ရှိနိုင်သော မြို့များ ကိုက်ညီမှု စစ်ဆေးခြင်း
+  const matchedGates = stations.filter(st => {
+    const isBus = !st.type || st.type === 'bus' || (st.type && st.type.includes('ကားဂိတ်'));
+    if (!isBus) return false;
+
+    let destList = [];
+    if (Array.isArray(st.destinations) && st.destinations.length > 0) {
+      destList = st.destinations;
+    } else if (Array.isArray(st.townships) && st.townships.length > 0) {
+      destList = st.townships;
+    } else if (st.destinations || st.township) {
+      destList = String(st.destinations || st.township).split(/[,၊]/).map(s => s.trim());
+    }
+
+    // တိုက်ဆိုင်စစ်ဆေးခြင်း (ဥပမာ- ဝယ်သူရွေးတဲ့ "မန္တလေး" သည် Admin ရဲ့ "မန္တလေး, နေပြည်တော်" ထဲ ပါဝင်ခြင်း ရှိမည့်စနစ်)
+    const isMatch = destList.some(d => {
+      const cleanD = String(d).toLowerCase().replace(/(မြို့နယ်|မြို့)/g, '').trim();
+      return cleanD && (searchTown.includes(cleanD) || cleanD.includes(searchTown));
+    });
+
+    return isMatch;
+  });
+
+  // ကိုက်ညီသော ကားဂိတ်များ မရှိပါက အားလုံးကို မပြဘဲ "ဆိုင်မှ အဆင်ပြေရာဂိတ်ဖြင့်ပို့ရန်" သာ ထားရှိမည် (သို့မဟုတ် လိုအပ်ပါက အားလုံးပြရန် ဖြုတ်နိုင်သည်)
+  const finalGatesList = matchedGates.length > 0 ? matchedGates : [];
+
+  finalGatesList.forEach((gate, idx) => {
     const opt = document.createElement('option');
     opt.value = gate.id || ('gate_' + idx);
     opt.textContent = `🚌 ${gate.name} ${gate.duration ? '(' + gate.duration + ')' : ''}`;
