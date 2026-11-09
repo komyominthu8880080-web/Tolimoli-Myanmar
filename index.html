@@ -4797,19 +4797,6 @@ function updateCheckoutGrandTotal(deliFee) {
   }
 }
 
-// ၆။ Cart Modal စဖွင့်ချိန်တွင် ယခင်ရွေးခဲ့ဖူးသော မြို့နယ် ပြန်လည်ဖြည့်သွင်းပေးခြင်း
-const originalOpenCartModal = window.openCartModal;
-window.openCartModal = function() {
-  if (typeof originalOpenCartModal === 'function') originalOpenCartModal();
-  const savedTown = localStorage.getItem('tm_saved_township');
-  const input = document.getElementById('custTownshipInput');
-  if (savedTown && input && !input.value) {
-    input.value = savedTown;
-  }
-  if (input && input.value) {
-    handleTownshipSelect();
-  }
-};
 
     var DEFAULT_CATEGORIES = ['တုန်စက်', 'မတု', 'ချောဆီ', 'ကျားတု', 'ကြီးရှည်ကျင့်ပြောင်း', 'စီလီကွန်အစွပ်', 'BDSM ပစ္စည်းများ', 'နောက်ပေါက်သုံးပစ္စည်း', 'ကြာဆေး', 'ကြီးဆေး', 'အမျိုးသမီးသုံးဖီးဆေး', 'သုတ်ထိန်းကွင်း'];
     var categories = DEFAULT_CATEGORIES;
@@ -6622,11 +6609,58 @@ function addToCart(productId, chosenColor) {
   showToast(p.name + ' ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ', 'success');
 }
 
-    function openCartModal() { 
-      checkVipBenefitsOnPhoneInput();
-      renderCartUI(); 
-      openModal('cartModal'); 
+    // 🛒 ခြင်းတောင်းဖွင့်သည့် ပင်မ Function (၁၀၀% တန်းပွင့်စေရန် Error-Proof လုပ်ထားသော စနစ်)
+window.openCartModal = function() {
+  try {
+    // ၁။ Modal ကို ချက်ချင်း အရင်ဆုံး ဖော်ပြပေးခြင်း
+    const modal = document.getElementById('cartModal');
+    if (modal) {
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+      modal.style.setProperty('z-index', '2147483647', 'important');
+      modal.style.setProperty('opacity', '1', 'important');
+      modal.style.setProperty('visibility', 'visible', 'important');
     }
+    document.body.classList.add('modal-open');
+
+    // ၂။ Background Bars များ ယာယီဖျောက်ထားခြင်း
+    const header = document.querySelector('header');
+    if (header) header.style.setProperty('display', 'none', 'important');
+    const bottomBar = document.querySelector('.mobile-bottom-bar');
+    if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+    const socialTier = document.querySelector('.fixed-social-call-tier');
+    if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
+    const floatActions = document.querySelector('.floating-action-container');
+    if (floatActions) floatActions.style.setProperty('display', 'none', 'important');
+
+    // ၃။ Cart ထဲရှိ ပစ္စည်းများနှင့် အချက်အလက်များ ဆွဲတင်ခြင်း
+    if (typeof renderCartUI === 'function') {
+      renderCartUI();
+    }
+
+    // ၄။ VIP နှင့် မြို့နယ် အချက်အလက်များ ပြန်စစ်ဆေးခြင်း (Error မတက်စေရန် Safe Call)
+    if (typeof checkVipBenefitsOnPhoneInput === 'function') {
+      checkVipBenefitsOnPhoneInput();
+    }
+
+    const savedTown = localStorage.getItem('tm_saved_township');
+    const input = document.getElementById('custTownshipInput');
+    if (savedTown && input && !input.value) {
+      input.value = savedTown;
+    }
+    if (input && input.value && typeof handleTownshipSelect === 'function') {
+      handleTownshipSelect();
+    }
+  } catch (err) {
+    console.warn('Open Cart Modal Safe Catch:', err);
+    // အကယ်၍ အပေါ်က Function တစ်ခုခု Error ဖြစ်ခဲ့လျှင်တောင် Modal ကို အတင်းဖွင့်ပေးမည်
+    const modal = document.getElementById('cartModal');
+    if (modal) {
+      modal.classList.add('active');
+      modal.style.setProperty('display', 'flex', 'important');
+    }
+  }
+};
     // ==========================================
 // ABANDONED CART RECOVERY WITH VOUCHER POPUP
 // ==========================================
