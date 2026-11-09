@@ -4540,6 +4540,7 @@ function calculateEstimatedDeliveryDateText(daysStr) {
 }
 
 // မြို့နယ်ရိုက်ထည့်မှုနှင့် Admin Dashboard ရှိ Deli ကုမ္ပဏီများ တိုက်ရိုက်ချိတ်ဆက်ခြင်း
+// မြို့နယ်ရိုက်ထည့်မှုနှင့် Admin Dashboard ရှိ Deli ကုမ္ပဏီများ တိုက်ရိုက်ချိတ်ဆက်ခြင်း (ရန်ကုန်အတွက် ကားဂိတ်စစ်ထုတ်ခြင်း)
 function handleTownshipSelect() {
   const input = document.getElementById('custTownshipInput');
   let val = input ? input.value.trim() : '';
@@ -4565,8 +4566,8 @@ function handleTownshipSelect() {
 
   currentSelectedTownship = val;
   const cleanVal = val.toLowerCase().replace(/(မြို့နယ်|မြို့)/g, '').trim();
+  const isYangon = /စမ်းချောင်း|လှိုင်|ကမာရွတ်|ဗဟန်း|ဒဂုံ|တာမွေ|အင်းစိန်|မရမ်းကုန်း|ကျောက်တံတား|ပန်းဘဲတန်း|လသာ|လမ်းမတော်|ဗိုလ်တထောင်|ပုဇွန်တောင်|အလုံ|ကြည့်မြင်တိုင်|ရန်ကင်း|မင်္ဂလာတောင်ညွန့်|သင်္ဃန်းကျွန်း|တောင်ဥက္ကလာ|မြောက်ဥက္ကလာ|ဒဂုံမြို့သစ်|သာကေတ|ဒေါပုံ|လှိုင်သာယာ|ရွှေပြည်သာ|မင်္ဂလာဒုံ|ထောက်ကြန့်|မှော်ဘီ|တိုက်ကြီး|သန်လျင်|ကျောက်တန်း|ခရမ်း|သုံးခွ|yangon|ygn|ရန်ကုန်/i.test(val);
 
-  // Admin Dashboard မှ ပို့ဆောင်ရေး ကုမ္ပဏီများ ဆွဲယူခြင်း
   const comps = (typeof deliveryConfig !== 'undefined' && deliveryConfig && Array.isArray(deliveryConfig.companies)) 
                 ? deliveryConfig.companies 
                 : [];
@@ -4574,7 +4575,6 @@ function handleTownshipSelect() {
   let availableDeliOptions = [];
 
   comps.forEach(comp => {
-    // ကုမ္ပဏီအောက်ရှိ မြို့နယ်များထဲတွင် ရိုက်ထည့်ထားသော မြို့နယ် ပါ/မပါ စစ်ဆေးခြင်း
     const townList = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships.map(t => ({ name: t, fee: comp.fee, duration: comp.days, cod: comp.isCod !== false })) : []);
     
     const matchedTown = townList.find(t => {
@@ -4582,8 +4582,10 @@ function handleTownshipSelect() {
       return tName && (cleanVal.includes(tName) || tName.includes(cleanVal));
     });
 
-    // မြို့နယ် ကိုက်ညီပါက သို့မဟုတ် ကားဂိတ်ချ/နယ်ပို့ ဖြစ်ပါက စာရင်းထဲ ထည့်သွင်းခြင်း
     const isBus = (comp.name || '').includes('ကားဂိတ်') || comp.id === 'bus';
+
+    // 🛑 အရေးကြီးချက်: ရန်ကုန်မြို့တွင်းဖြစ်ပါက ကားဂိတ်ချ Deli ကို လုံးဝ မထည့်ပေးပါ
+    if (isYangon && isBus) return;
 
     if (matchedTown) {
       availableDeliOptions.push({
@@ -4595,8 +4597,8 @@ function handleTownshipSelect() {
         isBus: isBus,
         notice: comp.customerNotice || ''
       });
-    } else if (isBus) {
-      // ရန်ကုန်မြို့တွင်း မဟုတ်ပါက ကားဂိတ် Option အမြဲ ပါဝင်စေခြင်း
+    } else if (!isYangon && isBus) {
+      // နယ်မြို့များအတွက် ကားဂိတ်ချ Option အမြဲ ပါဝင်စေခြင်း
       availableDeliOptions.push({
         id: comp.id || 'bus',
         name: comp.name || 'ကားဂိတ်အရောက်ပို့',
@@ -4609,22 +4611,23 @@ function handleTownshipSelect() {
     }
   });
 
-  // အကယ်၍ Dashboard တွင် မြို့မထည့်ရသေးပါက Default အဖြစ် အနည်းဆုံး ၁ ခု ပေါ်စေခြင်း
+  // အကယ်၍ Admin ထဲတွင် မြို့မထည့်ရသေးပါက Default အဖြစ် အိမ်အရောက် Deli ကို ပြသခြင်း
   if (availableDeliOptions.length === 0 && comps.length > 0) {
-    const firstComp = comps[0];
-    availableDeliOptions.push({
-      id: firstComp.id,
-      name: firstComp.name,
-      fee: Number(firstComp.fee) || 5000,
-      duration: firstComp.days || '24နာရီအတွင်း',
-      cod: firstComp.isCod !== false,
-      isBus: false,
-      notice: firstComp.customerNotice || ''
-    });
+    const firstComp = comps.find(c => !((c.name || '').includes('ကားဂိတ်') || c.id === 'bus')) || comps[0];
+    if (firstComp) {
+      availableDeliOptions.push({
+        id: firstComp.id,
+        name: firstComp.name,
+        fee: Number(firstComp.fee) || 5000,
+        duration: firstComp.days || '24နာရီအတွင်း',
+        cod: firstComp.isCod !== false,
+        isBus: false,
+        notice: firstComp.customerNotice || ''
+      });
+    }
   }
 
   window.currentAvailableDeliList = availableDeliOptions;
-
   // ဝယ်သူဘက်ခြမ်း UI Cards တည်ဆောက်ပြသခြင်း
   if (deliContainer && cardsList) {
     deliContainer.style.setProperty('display', 'block', 'important');
