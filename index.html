@@ -4567,7 +4567,7 @@ function handleTownshipSelect() {
     return;
   }
 
-  // စာလုံး သန့်စင်ခြင်း (ကွင်းစ၊ မြို့၊ မြို့နယ် များကို ဖြုတ်၍ စစ်ဆေးခြင်း)
+  // စာလုံး သန့်စင်ခြင်း
   const cleanKeyword = val.toLowerCase().replace(/[\(\)（）\[\]]/g, '').replace(/(မြို့နယ်|မြို့)/g, '').trim();
   const isYangonCity = /စမ်းချောင်း|လှိုင်|ကမာရွတ်|ဗဟန်း|ဒဂုံ|တာမွေ|အင်းစိန်|မရမ်းကုန်း|ကျောက်တံတား|ပန်းဘဲတန်း|လသာ|လမ်းမတော်|ဗိုလ်တထောင်|ပုဇွန်တောင်|အလုံ|ကြည့်မြင်တိုင်|ရန်ကင်း|မင်္ဂလာတောင်ညွန့်|သင်္ဃန်းကျွန်း|တောင်ဥက္ကလာ|မြောက်ဥက္ကလာ|ဒဂုံမြို့သစ်|သာကေတ|ဒေါပုံ|လှိုင်သာယာ|ရွှေပြည်သာ|မင်္ဂလာဒုံ|ထောက်ကြန့်|မှော်ဘီ|တိုက်ကြီး|သန်လျင်|ကျောက်တန်း|ခရမ်း|သုံးခွ|yangon|ygn|ရန်ကုန်/i.test(val);
 
@@ -4584,7 +4584,7 @@ function handleTownshipSelect() {
       isBus: false
     });
   } else {
-    // နယ်မြို့များဖြစ်ပါက ရွေးချယ်စရာ ၂ ခု (Royal Express အိမ်အရောက် + ကားဂိတ်ချ Deli) မဖြစ်မနေ ပေါ်စေခြင်း
+    // နယ်မြို့များဖြစ်ပါက
     availableDeliOptions.push({
       companyId: 'home',
       name: 'Royal Express (နယ်မြို့ အိမ်အရောက်)',
@@ -4604,25 +4604,6 @@ function handleTownshipSelect() {
     });
   }
 
-  // Delivery Config Database မှ သီးခြားမြို့နယ် ဈေးနှုန်းများ ရှိပါက Update လုပ်ပေးခြင်း
-  try {
-    const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
-    comps.forEach(comp => {
-      const list = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships : []);
-      const match = list.find(t => {
-        const tName = (typeof t === 'string' ? t : t.name || '').toLowerCase();
-        return tName && (tName.includes(cleanKeyword) || cleanKeyword.includes(tName));
-      });
-      if (match && typeof match === 'object' && match.fee) {
-        const opt = availableDeliOptions.find(o => o.companyId === comp.id);
-        if (opt) {
-          opt.fee = Number(match.fee);
-          if (match.duration) opt.duration = match.duration;
-        }
-      }
-    });
-  } catch(e) {}
-
   // UI ပေါ်တွင် Cards များ တည်ဆောက်ပြသခြင်း
   if (deliContainer && cardsList) {
     deliContainer.style.setProperty('display', 'block', 'important');
@@ -4635,7 +4616,9 @@ function handleTownshipSelect() {
     }
 
     cardsList.innerHTML = availableDeliOptions.map((opt, idx) => {
-      const dateText = calculateEstimatedDeliveryDateText(opt.duration);
+      const dateText = (typeof calculateEstimatedDeliveryDateText === 'function') 
+        ? calculateEstimatedDeliveryDateText(opt.duration) 
+        : opt.duration;
       const isBus = opt.isBus;
 
       return `
@@ -4672,7 +4655,6 @@ function handleTownshipSelect() {
     }).join('');
 
     window.currentAvailableDeliList = availableDeliOptions;
-    // Default Card အား ချက်ချင်း အလိုအလျောက် ရွေးချယ်ပြီး ပို့ခပေါင်းပေးခြင်း
     selectDeliSmartCard(defaultPickIdx);
   }
 
