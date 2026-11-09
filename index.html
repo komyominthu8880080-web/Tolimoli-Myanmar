@@ -6730,17 +6730,17 @@ function dismissAbandonedCartBar() {
   if (bar) bar.style.display = 'none';
 }
 
-// --- DYNAMIC ABANDONED CART RECOVERY VOUCHER SYSTEM ---
+// --- ဖွင့်/ပိတ် အားလုံးကို Cloud (Firebase) တွင် အမြဲ အတည်မှတ်သားသည့် စနစ် ---
 function getAbandonedCartVoucherConfig() {
   try {
     const saved = localStorage.getItem('tm_cfg_abandoned_voucher');
     if (saved) return JSON.parse(saved);
   } catch (e) {}
   return {
-    enabled: true,
+    enabled: false, // မူလတန်ဖိုးကို ပိတ်ထားမည် (Clear Data လုပ်သော်လည်း အလိုလို မပွင့်စေရန်)
     code: 'COMEBACK5',
     percent: 5,
-    message: 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့ဈေး ရရှိပါမည်ခင်ဗျာ။'
+    message: 'ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့စျေး ရရှိပါမည်ခင်ဗျာ။'
   };
 }
 
@@ -14021,19 +14021,45 @@ function togglePromoModule(moduleType, isEnabled) {
   }
 }
 
+// Flash Sale နှင့် Mystery Box အခြေအနေများကို Firebase Cloud မှ တိုက်ရိုက် ဆွဲတင်သည့် စနစ်
 function initPromoModulesToggleState() {
-  const flashSaleState = localStorage.getItem('tm_flashsale_enabled') === 'true';
-  const chkFlash = document.getElementById('cfgToggleFlashSale');
-  if (chkFlash) {
-    chkFlash.checked = flashSaleState;
-    togglePromoModule('flashSale', flashSaleState);
-  }
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_promo_status').on('value', snap => {
+      const val = snap.val() || {};
+      
+      // Flash Sale Toggle Sync
+      const flashSaleState = val.flashSaleEnabled === true;
+      const chkFlash = document.getElementById('cfgToggleFlashSale');
+      const lblFlash = document.getElementById('cfgToggleFlashSaleLabel');
+      const bodyFlash = document.getElementById('flashSaleConfigBody');
+      if (chkFlash) chkFlash.checked = flashSaleState;
+      if (lblFlash) {
+        lblFlash.innerText = flashSaleState ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+        lblFlash.style.color = flashSaleState ? '#10b981' : '#ef4444';
+      }
+      if (bodyFlash) bodyFlash.style.display = flashSaleState ? 'block' : 'none';
 
-  const mysteryState = localStorage.getItem('tm_mysterybox_enabled') === 'true';
-  const chkMystery = document.getElementById('cfgToggleMysteryBox');
-  if (chkMystery) {
-    chkMystery.checked = mysteryState;
-    togglePromoModule('mysteryBox', mysteryState);
+      // Mystery Box Toggle Sync
+      const mysteryState = val.mysteryBoxEnabled === true;
+      const chkMystery = document.getElementById('cfgToggleMysteryBox');
+      const lblMystery = document.getElementById('cfgToggleMysteryBoxLabel');
+      const bodyMystery = document.getElementById('mysteryBoxConfigBody');
+      if (chkMystery) chkMystery.checked = mysteryState;
+      if (lblMystery) {
+        lblMystery.innerText = mysteryState ? 'ဖွင့်ထားသည်' : 'ပိတ်ထားသည်';
+        lblMystery.style.color = mysteryState ? '#10b981' : '#ef4444';
+      }
+      if (bodyMystery) bodyMystery.style.display = mysteryState ? 'block' : 'none';
+    });
+  } else {
+    // Firebase မအားလပ်သေးပါက Fallback အနေဖြင့် ဖတ်ခြင်း
+    const flashSaleState = localStorage.getItem('tm_flashsale_enabled') === 'true';
+    const chkFlash = document.getElementById('cfgToggleFlashSale');
+    if (chkFlash) togglePromoModule('flashSale', flashSaleState);
+
+    const mysteryState = localStorage.getItem('tm_mysterybox_enabled') === 'true';
+    const chkMystery = document.getElementById('cfgToggleMysteryBox');
+    if (chkMystery) togglePromoModule('mysteryBox', mysteryState);
   }
 }
 // ==========================================
