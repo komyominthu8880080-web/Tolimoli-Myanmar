@@ -77,7 +77,7 @@ export default async function handler(req, res) {
       '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli') + '\n' +
       '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
       '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
-      '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subtotal || orderData.total || 0)).toLocaleString() + ' Ks\n' +
+      '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
       (orderData.discount ? '🏷 <b>လျှော့စျေး:</b> -' + (Number(orderData.discount)).toLocaleString() + ' Ks\n' : '') +
       '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
       '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
