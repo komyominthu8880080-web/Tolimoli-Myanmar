@@ -4836,22 +4836,26 @@ function updateCheckoutGrandTotal(deliFee) {
     var orders = [];
 try { orders = JSON.parse(localStorage.getItem('tm_orders')) || []; } catch(e) {}
 
-// Firebase Realtime Cloud Sync ဖြင့် အော်ဒါများနှင့် Customer စာရင်း အမြဲတမ်း ဆွဲတင်ခြင်း
-if (typeof fbDb !== 'undefined') {
-  fbDb.ref('shop_orders').on('value', function(snap) {
-    const val = snap.val();
-    if (val) {
-      const fbOrders = Array.isArray(val) ? val : Object.values(val);
-      if (fbOrders.length > 0) {
-        orders = fbOrders;
-        localStorage.setItem('tm_orders', JSON.stringify(orders));
-        // Admin UI များ ပွင့်နေပါက အချိန်နှင့်တပြေးညီ Update ပြုလုပ်ခြင်း
-        if (typeof renderOrdersList === 'function') renderOrdersList();
-        if (typeof renderCustomerDirectory === 'function') renderCustomerDirectory();
-      }
+// Firebase Realtime Cloud Sync ဖြင့် အော်ဒါများနှင့် Customer စာရင်း အမြဲတမ်း ဆွဲတင်ခြင်း (Safe Delayed Sync)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var db = (typeof fbDb !== 'undefined' ? fbDb : (typeof firebase !== 'undefined' && firebase.database ? firebase.database() : null));
+    if (db) {
+      db.ref('shop_orders').on('value', function(snap) {
+        var val = snap.val();
+        if (val) {
+          var fbOrders = Array.isArray(val) ? val : Object.values(val);
+          if (fbOrders.length > 0) {
+            orders = fbOrders;
+            try { localStorage.setItem('tm_orders', JSON.stringify(orders)); } catch(e) {}
+            if (typeof renderOrdersList === 'function') renderOrdersList();
+            if (typeof renderCustomerDirectory === 'function') renderCustomerDirectory();
+          }
+        }
+      });
     }
-  });
-}
+  }, 1000);
+});
 
     var cart = [];
     try { cart = JSON.parse(localStorage.getItem('tm_cart')) || []; } catch(e) {}
