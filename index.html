@@ -2594,9 +2594,7 @@ function scrollCategories(amount) {
           <label>ငွေလွှဲပြေစာ (Transaction Slip) တင်ရန်</label>
           <input type="file" id="slipFileInput" accept="image/*" style="padding:4px; font-size:11px;">
         
-        <input type="text" id="slipTrxIdInput" placeholder="စလစ်ပါ Transaction ID ၆ လုံး (သို့) အပြည့်အစုံ ရိုက်ထည့်ပါ *" style="margin-top:4px; padding:6px; font-size:11px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; width:100%;">
-          <small style="color:#94a3b8; font-size:10px; display:block; margin-top:2px;">🛡️ Slip Fraud Guard: စလစ်အတုနှင့် စလစ်အဟောင်းများ ထပ်ခါတလဲလဲ အသုံးပြုခြင်းကို စနစ်မှ အလိုအလျောက် စစ်ဆေးတားဆီးပါမည်။</small>
-        </div>
+        <input type="text" id="slipTrxIdInput" style="display:none;" value="">
 
         <button class="btn-gold" id="btnSubmitOrder" onclick="submitOrder()" style="margin-top:4px;">
           <i class="fas fa-check-circle"></i> အော်ဒါ အတည်ပြုတင်မည်
@@ -7454,14 +7452,12 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
 
   // COD မဟုတ်မှသာ Slip ပုံနှင့် TrxID ကို စစ်ဆေးမည်
   if (!isCOD) {
-        if (!file) return alert('KBZPay / WavePay / Banking ဖြင့် ငွေပေးချေရာတွင် ငွေလွှဲပြေစာ (Screenshot) ဓာတ်ပုံ မဖြစ်မနေ တင်ပေးရပါမည်ခင်ဗျာ');
-        if (!trxId || trxId.length < 5) return alert('စလစ်ပါ Transaction ID နောက်ဆုံး ၆ လုံး သို့မဟုတ် အပြည့်အစုံ ရိုက်ထည့်ပေးပါ');
-
-        const isDuplicateTrx = orders.some(o => o.trxId && o.trxId.toLowerCase() === trxId.toLowerCase());
-        if (isDuplicateTrx) {
-          return alert('⚠️ ဤငွေလွှဲစလစ် (Transaction ID: ' + trxId + ') သည် ယခင်အော်ဒါတွင် အသုံးပြုပြီးသား စလစ်ဖြစ်နေပါသည်။ စလစ်အသစ်ဖြင့်သာ ပြန်လည်တင်ပေးပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။');
+          if (!file) return alert('KBZPay / WavePay / Banking ဖြင့် ငွေပေးချေရာတွင် ငွေလွှဲပြေစာ (Screenshot) ဓာတ်ပုံ မဖြစ်မနေ တင်ပေးရပါမည်');
+          // Transaction ID စစ်ဆေးချက်ကို ဖြုတ်ထားပြီး ဝယ်သူထည့်ထားပါကသာ Duplicate ရှိ/မရှိ စစ်ဆေးခြင်း
+          if (trxId && orders.some(o => o.trxId && o.trxId.toLowerCase() === trxId.toLowerCase())) {
+            return alert('⚠️ ဤ Transaction ID သည် ယခင်အော်ဒါတွင် အသုံးပြုပြီးသား ဖြစ်နေပါသည်');
+          }
         }
-      }
 
       const btn = document.getElementById('btnSubmitOrder');
       btn.disabled = true;
