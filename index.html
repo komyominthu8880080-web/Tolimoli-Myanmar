@@ -7405,7 +7405,8 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       }
 
       // 🛡️ SLIP FRAUD GUARD (စလစ်ဟောင်း/TrxID တူညီမှု တားဆီးခြင်း)
-      if (selectedPaymentMethod !== 'COD') {
+      const isCodOrder = String(selectedPaymentMethod || '').trim().toUpperCase() === 'COD';
+      if (!isCodOrder) {
         if (!file) return alert('KBZPay / WavePay / Banking ဖြင့် ငွေပေးချေရာတွင် ငွေလွှဲပြေစာ (Screenshot) ဓာတ်ပုံ မဖြစ်မနေ တင်ပေးရပါမည်ခင်ဗျာ');
         if (!trxId || trxId.length < 5) return alert('စလစ်ပါ Transaction ID နောက်ဆုံး ၆ လုံး သို့မဟုတ် အပြည့်အစုံ ရိုက်ထည့်ပေးပါ');
 
