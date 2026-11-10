@@ -7102,7 +7102,11 @@ setTimeout(() => {
       currentVipStatus.discountAmount = vipDiscountAmount;
 
       const totalDiscount = currentAppliedDiscount + vipDiscountAmount + (currentRedeemedPointsDiscount || 0);
-
+      // Checkout UI ပေါ်ရှိ လျှော့စျေး (Promo/VIP) စာတန်းကို အချိန်နှင့်တပြေးညီ တိုက်ရိုက် ပြောင်းလဲပြသခြင်း
+    const cartDiscountEl = document.getElementById('cartDiscountText');
+    if (cartDiscountEl) {
+      cartDiscountEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
+    }
       // ==========================================
     // 🚚 INTEGRATED LOGISTICS & MULTI-CITY ENGINE
     // ==========================================
@@ -7490,6 +7494,8 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       slipUrl: slipUrl || '',
       items: cart.slice(),
       subTotal: subTotal,
+      discount: Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0,
+      discountAmount: Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0,
       deliveryFee: activeDeliFee,
       deliFee: activeDeliFee,
       total: grandTotal,
@@ -7607,6 +7613,8 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
           phone: o.phone || '',
           address: o.address || '',
           township: o.township || '',
+          discount: Number(o.discount || o.discountAmount || 0),
+          discountAmount: Number(o.discount || o.discountAmount || 0),
           deliveryFee: Number(o.deliveryFee || o.deliFee || 0),
           deliFee: Number(o.deliveryFee || o.deliFee || 0),
           total: o.total || 0,
