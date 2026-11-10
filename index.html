@@ -7515,12 +7515,21 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       (document.getElementById('cartDeliveryFee') ? document.getElementById('cartDeliveryFee').innerText.replace(/[^0-9]/g, '') : 0)
     ) || 0;
 
-    // Active ဖြစ်နေသော Payment Method ကို အမှန်အတိုင်း ရယူခြင်း
-    let activePayment = (typeof selectedPaymentMethod !== 'undefined' ? selectedPaymentMethod : 'COD');
-    const codRadio = document.querySelector('input[value="COD"]:checked') || document.getElementById('payMethodCOD');
-    const kpayRadio = document.querySelector('input[value="KBZPay"]:checked') || document.getElementById('payMethodKBZPay');
-    if (codRadio && codRadio.checked) activePayment = 'COD';
-    else if (kpayRadio && kpayRadio.checked) activePayment = 'KBZPay';
+    // Active ဖြစ်နေသော Payment Method ကို UI Class နှင့် Variable နှစ်မျိုးစလုံးမှ တိကျစွာ ရယူခြင်း
+    const codCardEl = document.getElementById('payMethod_cod');
+    const isCodSelected = (
+      (codCardEl && (codCardEl.classList.contains('active') || codCardEl.classList.contains('selected'))) ||
+      String(window.selectedPaymentMethod || '').toLowerCase() === 'cod' ||
+      String(window.currentPaymentMethod || '').toLowerCase() === 'cod'
+    );
+
+    let activePayment = 'KBZPay';
+    if (isCodSelected) {
+      activePayment = 'COD';
+    } else {
+      const isWave = String(window.selectedPaymentMethod || window.currentPaymentMethod || '').toLowerCase().includes('wave');
+      activePayment = isWave ? 'WavePay' : 'KBZPay';
+    }
 
     // ပစ္စည်းမူရင်း တန်ဖိုးအစစ် (Subtotal) ကို တွက်ထုတ်ခြင်း
     const realSubTotal = cart.reduce((sum, item) => sum + (Number(item.price || 0) * (item.qty || 1)), 0);
@@ -15699,7 +15708,10 @@ window.updateSelectedDeliveryUI = function(selectedTown, comp) {
 
 // Payment Method ရွေးချယ်မှု ပြောင်းလဲသည့် Function
 window.selectPaymentMethod = function(method) {
-  currentPaymentMethod = method;
+    const formattedMethod = String(method).toLowerCase() === 'cod' ? 'COD' : (String(method).toLowerCase().includes('wave') ? 'WavePay' : 'KBZPay');
+    window.selectedPaymentMethod = formattedMethod;
+    window.currentPaymentMethod = formattedMethod;
+    currentPaymentMethod = method;
 
   // Active Button Highlight
   ['kpay', 'wave', 'banking', 'cod'].forEach(m => {
