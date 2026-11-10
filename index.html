@@ -7226,7 +7226,14 @@ setTimeout(() => {
     const feeEl = document.getElementById('cartDeliveryFeeText');
     if (feeEl) feeEl.innerText = effectiveFee.toLocaleString() + ' Ks' + (isFreeDeliveryApplied ? ' (Free)' : '');
 
-    const grandTotal = Math.max(0, subTotal - totalDiscount + effectiveFee);
+    // Active ဖြစ်နေသော Discount အားလုံးကို တိုက်ရိုက် စုစည်းတွက်ထုတ်ခြင်း
+    const activeDiscount = Number(
+      (typeof totalDiscount !== 'undefined' ? totalDiscount : 0) ||
+      (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0) ||
+      (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)
+    ) || 0;
+
+    const grandTotal = Math.max(0, (subTotal - activeDiscount) + effectiveFee);
     window.currentCheckoutTotalAmount = grandTotal;
 
     const totalEl = document.getElementById('cartTotalPrice');
