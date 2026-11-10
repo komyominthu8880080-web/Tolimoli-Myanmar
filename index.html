@@ -7512,6 +7512,18 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       (document.getElementById('cartDeliveryFee') ? document.getElementById('cartDeliveryFee').innerText.replace(/[^0-9]/g, '') : 0)
     ) || 0;
 
+    // Active ဖြစ်နေသော Payment Method ကို အမှန်အတိုင်း ရယူခြင်း
+    let activePayment = (typeof selectedPaymentMethod !== 'undefined' ? selectedPaymentMethod : 'COD');
+    const codRadio = document.querySelector('input[value="COD"]:checked') || document.getElementById('payMethodCOD');
+    const kpayRadio = document.querySelector('input[value="KBZPay"]:checked') || document.getElementById('payMethodKBZPay');
+    if (codRadio && codRadio.checked) activePayment = 'COD';
+    else if (kpayRadio && kpayRadio.checked) activePayment = 'KBZPay';
+
+    // ပစ္စည်းမူရင်း တန်ဖိုးအစစ် (Subtotal) ကို တွက်ထုတ်ခြင်း
+    const realSubTotal = cart.reduce((sum, item) => sum + (Number(item.price || 0) * (item.qty || 1)), 0);
+    // Active ဖြစ်နေသော Discount ကို ရယူခြင်း
+    const activeDiscount = Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0) || (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
+    
     const newOrder = {
       id: 'ORD-' + Date.now().toString().slice(-8),
       customer: name,
@@ -7521,13 +7533,14 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       trxId: trxId || '',
       slipUrl: slipUrl || '',
       items: cart.slice(),
-      subTotal: subTotal,
-      discount: Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0,
-      discountAmount: Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0,
+      subTotal: realSubTotal,
+      subtotal: realSubTotal,
+      discount: activeDiscount,
+      discountAmount: activeDiscount,
       deliveryFee: activeDeliFee,
       deliFee: activeDeliFee,
       total: grandTotal,
-      payment: selectedPaymentMethod,
+      payment: activePayment,
       focGift: currentCustomerSelectedFocGift,
       status: 'အော်ဒါလက်ခံရရှိ (Pending)',
       date: new Date().toISOString(),
