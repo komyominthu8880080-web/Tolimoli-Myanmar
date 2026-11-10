@@ -4803,10 +4803,17 @@ function updateCheckoutGrandTotal(deliFee) {
     discEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
   }
 
-  const finalGrandTotal = Math.max(0, subTotal - totalDiscount + effectiveFee);
-  const totalEl = document.getElementById('cartTotalPrice');
-  if (totalEl) {
-    totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
+  // Active ဖြစ်နေသော Discount ကို အသေအချာ ဆွဲထုတ်ယူခြင်း
+    const realDiscount = Number(
+      (typeof totalDiscount !== 'undefined' ? totalDiscount : 0) ||
+      (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0) ||
+      (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)
+    ) || 0;
+
+    const finalGrandTotal = Math.max(0, (subTotal - realDiscount) + effectiveFee);
+    const totalEl = document.getElementById('cartTotalPrice');
+    if (totalEl) {
+      totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
   }
 }
 
