@@ -7475,34 +7475,30 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
     }
       const grandTotal = Math.max(0, subTotal - totalDiscount + actualDeliveryFee);
 
-      const newOrder = {
-        id: orderId,
-        customer: name,
-        phone: phone,
-        telegramUser: '',
-        township: township || currentSelectedTownship || '-',
-    logisticsInfo: logisticsInfoText || '',
-    deliveryService: currentDeliveryService || (isYgn || isMdy ? 'အိမ်အရောက် ပို့ဆောင်မှု (COD)' : 'ကားဂိတ် ပို့ဆောင်မှု'),
-        busLineName: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
-      busGate: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
-      busGateDetails: typeof busGateDetails !== 'undefined' ? busGateDetails : '',
-        voucherNo: '',
-        voucherImgUrl: '',
-        deliveryFee: actualDeliveryFee,
-        discountAmount: totalDiscount,
-        address: address,
-        specialNote: specialNote,
-        trxId: trxId || '',
-        slipUrl: slipUrl || '',
-        items: cart.slice(),
-        subTotal: subTotal,
-        total: grandTotal,
-        payment: selectedPaymentMethod,
-        focGift: currentCustomerSelectedFocGift,
-        status: 'အော်ဒါလက်ခံရရှိ (Pending)',
-        date: now.toISOString(),
-        createdAtFormatted: formatExactDateTime(now)
-      };
+      const activeDeliFee = Number(
+      (typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : 0) ||
+      (document.getElementById('cartDeliveryFee') ? document.getElementById('cartDeliveryFee').innerText.replace(/[^0-9]/g, '') : 0)
+    ) || 0;
+
+    const newOrder = {
+      id: 'ORD-' + Date.now().toString().slice(-8),
+      customer: name,
+      phone: phone,
+      address: address,
+      township: township,
+      trxId: trxId || '',
+      slipUrl: slipUrl || '',
+      items: cart.slice(),
+      subTotal: subTotal,
+      deliveryFee: activeDeliFee,
+      deliFee: activeDeliFee,
+      total: grandTotal,
+      payment: selectedPaymentMethod,
+      focGift: currentCustomerSelectedFocGift,
+      status: 'အော်ဒါလက်ခံရရှိ (Pending)',
+      date: new Date().toISOString(),
+      createdAtFormatted: formatExactDateTime(new Date())
+    };
 
       // ✈️ Telegram သို့ စလစ်ဓာတ်ပုံ တိုက်ရိုက်ပို့ခြင်း
       sendTelegramNotificationWithExactTime(newOrder);
@@ -7611,6 +7607,8 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
           phone: o.phone || '',
           address: o.address || '',
           township: o.township || '',
+          deliveryFee: Number(o.deliveryFee || o.deliFee || 0),
+          deliFee: Number(o.deliveryFee || o.deliFee || 0),
           total: o.total || 0,
           payment: o.payment || 'COD',
           specialNote: o.specialNote || '',

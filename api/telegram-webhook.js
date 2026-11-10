@@ -45,32 +45,44 @@ export default async function handler(req, res) {
         }).join('\n');
       }
 
-      // ရက်စွဲနှင့် အချိန် format
-      const now = new Date();
-      const dateStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
-      let hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      const timeStr = `${dateStr} | ${hours}:${minutes}:${seconds} ${ampm}`;
+      // ရက်စွဲနှင့် အချိန် format (မြန်မာစံတော်ချိန် Yangon Timezone UTC+6:30 အတိအကျ တွက်ထုတ်ခြင်း)
+    const now = new Date();
+    const mmDateStr = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Yangon',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(now).replace(/\//g, '-');
 
-      // Telegram Message Body (မူလ အော်ဒါစာ ပုံစံအတိုင်း)
-      const orderMessageText = `🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n` +
-        `🆔 <b>Order ID:</b> <code>${orderData.id || '-'}</code>\n` +
-        `📅 <b>ရက်စွဲနှင့် အချိန်:</b> ${timeStr}\n\n` +
-        `👤 <b>ဝယ်သူ:</b> ${orderData.customer || 'မဖော်ပြထားပါ'}\n` +
-        `📞 <b>ဖုန်း:</b> ${orderData.phone || 'မဖော်ပြထားပါ'}\n` +
-        `📍 <b>လိပ်စာ:</b> ${orderData.address || ''}${orderData.township ? ` (${orderData.township})` : ''}\n` +
-        `🚚 <b>ပို့ဆောင်ရေး:</b> ${orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli'}\n` +
-        `💳 <b>ငွေပေးချေမှု:</b> ${orderData.payment || 'COD'}\n\n` +
-        `🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsText || '- မရှိပါ -'}\n\n` +
-        `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${Number(orderData.subtotal || orderData.total || 0).toLocaleString()} Ks\n` +
-        `🏷 <b>လျှော့ဈေး:</b> -${Number(orderData.discount || 0).toLocaleString()} Ks\n` +
-        `🚚 <b>ပို့ဆောင်ခ:</b> ${Number(orderData.deliFee || 0).toLocaleString()} Ks\n` +
-        `💵 <b>စုစုပေါင်း:</b> <b>${Number(orderData.total || 0).toLocaleString()} MMK</b>` +
-        (orderData.specialNote ? `\n\n📝 <b>မှတ်ချက်:</b> ${orderData.specialNote}` : '') +
-        (orderData.slipUrl ? `\n🧾 <b>စလစ်လင့်ခ်:</b> <a href="${orderData.slipUrl}">ကြည့်ရှုရန်</a>` : '');
+    const mmTimeStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Yangon',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(now);
+
+    const timeStr = `${mmDateStr} | ${mmTimeStr}`;
+
+    // ပို့ဆောင်ခ တန်ဖိုးကို Variable အမည်အမျိုးမျိုးမှ သေချာပေါက် ဆွဲယူခြင်း
+    const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
+
+    // Telegram Message Body (မူလ အတိုင်း ပုံစံမပျက်)
+    const orderMessageText = '🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n' +
+      '🆔 <b>Order ID:</b> <code>' + (orderData.id || '-') + '</code>\n' +
+      '📅 <b>ရက်စွဲနှင့် အချိန်:</b> ' + timeStr + '\n\n' +
+      '👤 <b>ဝယ်သူ:</b> ' + (orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
+      '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
+      '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
+      '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli') + '\n' +
+      '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
+      '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
+      '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subtotal || orderData.total || 0)).toLocaleString() + ' Ks\n' +
+      (orderData.discount ? '🏷 <b>လျှော့စျေး:</b> -' + (Number(orderData.discount)).toLocaleString() + ' Ks\n' : '') +
+      '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
+      '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
+      (orderData.specialNote ? '\n\n📝 <b>မှတ်ချက်:</b> ' + orderData.specialNote : '') +
+      (orderData.slipUrl ? '\n\n📷 <b>ငွေလွှဲပြေစာ:</b> <a href="' + orderData.slipUrl + '">ပြေစာကြည့်ရန် နှိပ်ပါ</a>' : '');
 
       const payload = {
         chat_id: ADMIN_CHAT_ID,
