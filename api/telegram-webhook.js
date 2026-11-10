@@ -46,43 +46,43 @@ export default async function handler(req, res) {
       }
 
       // ရက်စွဲနှင့် အချိန် format (မြန်မာစံတော်ချိန် Yangon Timezone UTC+6:30 အတိအကျ တွက်ထုတ်ခြင်း)
-    const now = new Date();
-    const mmDateStr = new Intl.DateTimeFormat('en-GB', {
-      timeZone: 'Asia/Yangon',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    }).format(now).replace(/\//g, '-');
+      const now = new Date();
+      const mmDateStr = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Yangon',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(now).replace(/\//g, '-');
 
-    const mmTimeStr = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Yangon',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: true
-    }).format(now);
+      const mmTimeStr = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Yangon',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }).format(now);
 
-    const timeStr = `${mmDateStr} | ${mmTimeStr}`;
+      const timeStr = `${mmDateStr} | ${mmTimeStr}`;
 
-    // ပို့ဆောင်ခ တန်ဖိုးကို Variable အမည်အမျိုးမျိုးမှ သေချာပေါက် ဆွဲယူခြင်း
-    const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
+      // ပို့ဆောင်ခ တန်ဖိုးကို Variable အမည်အမျိုးမျိုးမှ သေချာပေါက် ဆွဲယူခြင်း
+      const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
 
-    // Telegram Message Body (မူလ အတိုင်း ပုံစံမပျက်)
-    const orderMessageText = '🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n' +
-      '🆔 <b>Order ID:</b> <code>' + (orderData.id || '-') + '</code>\n' +
-      '📅 <b>ရက်စွဲနှင့် အချိန်:</b> ' + timeStr + '\n\n' +
-      '👤 <b>ဝယ်သူ:</b> ' + (orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
-      '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
-      '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
-      '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli') + '\n' +
-      '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
-      '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
-      '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
-      (orderData.discount ? '🏷 <b>လျှော့စျေး:</b> -' + (Number(orderData.discount)).toLocaleString() + ' Ks\n' : '') +
-      '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
-      '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
-      (orderData.specialNote ? '\n\n📝 <b>မှတ်ချက်:</b> ' + orderData.specialNote : '') +
-      (orderData.slipUrl ? '\n\n📷 <b>ငွေလွှဲပြေစာ:</b> <a href="' + orderData.slipUrl + '">ပြေစာကြည့်ရန် နှိပ်ပါ</a>' : '');
+      // Telegram Message Body (မူလ အတိုင်း ပုံစံမပျက်)
+      const orderMessageText = '🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n' +
+        '🆔 <b>Order ID:</b> <code>' + (orderData.id || '-') + '</code>\n' +
+        '📅 <b>ရက်စွဲနှင့် အချိန်:</b> ' + timeStr + '\n\n' +
+        '👤 <b>ဝယ်သူ:</b> ' + (orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
+        '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
+        '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
+        '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli') + '\n' +
+        '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
+        '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
+        '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
+        (orderData.discount ? '🏷 <b>လျှော့စျေး:</b> -' + (Number(orderData.discount)).toLocaleString() + ' Ks\n' : '') +
+        '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
+        '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
+        (orderData.specialNote ? '\n\n📝 <b>မှတ်ချက်:</b> ' + orderData.specialNote : '') +
+        (orderData.slipUrl ? '\n\n📷 <b>ငွေလွှဲပြေစာ:</b> <a href="' + orderData.slipUrl + '">ပြေစာကြည့်ရန် နှိပ်ပါ</a>' : '');
 
       const payload = {
         chat_id: ADMIN_CHAT_ID,
