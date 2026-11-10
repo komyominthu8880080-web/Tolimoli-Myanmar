@@ -7405,13 +7405,16 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       }
 
       // 🛡️ SLIP FRAUD GUARD (စလစ်ဟောင်း/TrxID တူညီမှု တားဆီးခြင်း)
-      // COD ဟုတ်/မဟုတ် UI Element ရော Variable ရော တိုက်ရိုက် စစ်ဆေးခြင်း
-const codBtnActive = document.querySelector('.payment-option.active[data-method*="cod" i], .payment-method-card.active[data-method*="cod" i], [onclick*="COD"].active, [onclick*="cod"].active');
-const isCodOrder = String(selectedPaymentMethod || '').trim().toUpperCase() === 'COD' || 
-                   String(window.selectedPaymentMethod || '').trim().toUpperCase() === 'COD' ||
-                   !!codBtnActive;
+// COD ဟုတ်/မဟုတ် စစ်ဆေးခြင်း (Variable နာမည်အားလုံးနှင့် UI Active အခြေအနေပါ တိုက်ရိုက် စစ်ဆေးခြင်း)
+  const codCard = document.getElementById('payMethod_cod');
+  const isCodActive = codCard && (codCard.classList.contains('active') || codCard.classList.contains('selected'));
+  const currentPay = String((typeof currentPaymentMethod !== 'undefined' ? currentPaymentMethod : '') || 
+                            (typeof selectedPaymentMethod !== 'undefined' ? selectedPaymentMethod : '')).trim().toLowerCase();
 
-if (!isCodOrder) {
+  const isCOD = isCodActive || currentPay === 'cod';
+
+  // COD မဟုတ်မှသာ Slip ပုံနှင့် TrxID ကို စစ်ဆေးမည်
+  if (!isCOD) {
         if (!file) return alert('KBZPay / WavePay / Banking ဖြင့် ငွေပေးချေရာတွင် ငွေလွှဲပြေစာ (Screenshot) ဓာတ်ပုံ မဖြစ်မနေ တင်ပေးရပါမည်ခင်ဗျာ');
         if (!trxId || trxId.length < 5) return alert('စလစ်ပါ Transaction ID နောက်ဆုံး ၆ လုံး သို့မဟုတ် အပြည့်အစုံ ရိုက်ထည့်ပေးပါ');
 
