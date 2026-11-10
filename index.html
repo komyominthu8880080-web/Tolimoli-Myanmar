@@ -4834,24 +4834,7 @@ function updateCheckoutGrandTotal(deliFee) {
     }
 
     var orders = [];
-try { orders = JSON.parse(localStorage.getItem('tm_orders')) || []; } catch(e) {}
-
-// Firebase Realtime Cloud Sync ဖြင့် အော်ဒါများနှင့် Customer စာရင်း အမြဲတမ်း ဆွဲတင်ခြင်း
-if (typeof fbDb !== 'undefined') {
-  fbDb.ref('shop_orders').on('value', function(snap) {
-    const val = snap.val();
-    if (val) {
-      const fbOrders = Array.isArray(val) ? val : Object.values(val);
-      if (fbOrders.length > 0) {
-        orders = fbOrders;
-        localStorage.setItem('tm_orders', JSON.stringify(orders));
-        // Admin UI များ ပွင့်နေပါက အချိန်နှင့်တပြေးညီ Update ပြုလုပ်ခြင်း
-        if (typeof renderOrdersList === 'function') renderOrdersList();
-        if (typeof renderCustomerDirectory === 'function') renderCustomerDirectory();
-      }
-    }
-  });
-}
+    try { orders = JSON.parse(localStorage.getItem('tm_orders')) || []; } catch(e) {}
 
     var cart = [];
     try { cart = JSON.parse(localStorage.getItem('tm_cart')) || []; } catch(e) {}
