@@ -4846,22 +4846,22 @@ window.addEventListener('load', function() {
     try { cart = JSON.parse(localStorage.getItem('tm_cart')) || []; } catch(e) {}
 
     var botConfig = {
-      tgToken: '8954973059:AAF0W9fOlWoOlRgmikMe7yjlOrscgHRznhY',
-      tgChatId: '1858981030',
-      imgbbKey: '7c7a6d549b070dd0cc7f0f3098c64d74',
-      ownerPhone: '09768124433',
-      kpayPhone: '09768124433',
-      kpayName: 'Ma Win Win Myint',
-      wavePhone: '09768124433',
-      waveName: 'Nu Nu Htwe',
-      promoText: '🔥 Tolimoli Myanmar မှ ကြိုဆိုပါသည်! ကုန်ပစ္စည်းအသစ်များ ရောက်ရှိပါသည်။',
-      promoEnable: true,
-      minOrderAmount: 0,
-      newsTitle: '📢 ဆိုင်သတင်းနှင့် အသိပေးချက်များ',
-      newsBody: '• ကုန်ပစ္စည်းများအားလုံးကို Cosmetics အမည်ဖြင့် လျှို့ဝှက်ထုပ်ပိုး ပေးပို့ပါသည်။\n• KPay / WavePay ငွေလွှဲရာတွင် ဖုန်းနံပါတ် 09768124433 သို့သာ လွှဲပေးပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။',
-      newsEnable: true,
-      autoHideOutOfStock: true
-    };
+  tgToken: '',     // ဘာမှ မထည့်ရပါ (Backend မှ သုံးမည်)
+  tgChatId: '',    // ဘာမှ မထည့်ရပါ (Backend မှ သုံးမည်)
+  imgbbKey: '',    // ဘာမှ မထည့်ရပါ (Backend မှ သုံးမည်)
+  ownerPhone: '09768124433',
+  kpayPhone: '09768124433',
+  kpayName: 'Ma Win Win Myint',
+  wavePhone: '09768124433',
+  waveName: 'Nu Nu Htwe',
+  promoText: '🔥 Tolimoli Myanmar မှ ကြိုဆိုပါသည်! ကုန်ပစ္စည်းအသစ်များ ရောက်ရှိပါသည်။',
+  promoEnable: true,
+  minOrderAmount: 0,
+  newsTitle: '📢 ဆိုင်သတင်းနှင့် အသိပေးချက်များ',
+  newsBody: '• ကုန်ပစ္စည်းများအားလုံးကို Cosmetics အမည်ဖြင့် လျှို့ဝှက်ထုပ်ပိုး ပေးပို့ပါသည်။\n• KPay / WavePay ငွေလွှဲရာတွင် ဖုန်းနံပါတ် 09768124433 သို့သာ လွှဲပေးပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။',
+  newsEnable: true,
+  autoHideOutOfStock: true
+};
     try {
       var sCfg = JSON.parse(localStorage.getItem('tm_bot_config'));
       if (sCfg) botConfig = Object.assign(botConfig, sCfg);
@@ -10593,26 +10593,30 @@ function closeModal(id) {
     }
 
     function uploadToImgBB(file) {
-      return new Promise(resolve => {
-        if (!file) return resolve('');
-        const apiKey = botConfig.imgbbKey.trim();
-        const fd = new FormData();
-        fd.append('image', file);
-        fetch('https://api.imgbb.com/1/upload?key=' + apiKey, { method: 'POST', body: fd })
-          .then(r => r.json())
-          .then(d => resolve(d?.data?.url || ''))
-          .catch(() => resolve(''));
-      });
-    }
+  return new Promise((resolve) => {
+    if (!file) return resolve('');
 
-    function readFileAsBase64(file) {
-      return new Promise(resolve => {
-        if (!file) return resolve('');
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64Data = reader.result;
+        // Backend API သို့သာ လှမ်းပို့မည် (API Key လုံးဝ မပေါက်ကြားပါ)
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Data })
+        });
+        const result = await res.json();
+        resolve(result.url || '');
+      } catch (err) {
+        console.error('Upload error:', err);
+        resolve('');
+      }
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
 
     
     // --- CATEGORY SLUG MAPPING (CLEAN & SHORT URLS) ---
@@ -12264,60 +12268,48 @@ applySoundToggleUI(isAudioMuted);
 
     // ၁။ ဝယ်သူပို့သော စာတိုကို Telegram Topic အခန်းထဲသို့ ပို့ခြင်း
     async function sendTelegramChatAlert(sessionId, text, mediaUrl) {
-      const chatBotToken = '8900618964:AAF-CceJIWtm3in19vLP4-kOxBzZyrfYJUY';
-      const chatGroupId = '-1004499567704'; 
+  const gNum = sessionId ? sessionId.replace('guest_', '').replace('cust_', '') : '';
 
-      if (!chatBotToken || !chatGroupId) return;
+  try {
+    let threadId = localStorage.getItem('tm_tg_topic_' + sessionId);
 
-      const gNum = sessionId ? sessionId.replace('guest_', '').replace('cust_', '') : '';
-      
-      try {
-        let threadId = localStorage.getItem('tm_tg_topic_' + sessionId);
-
-        if (!threadId) {
-          const createRes = await fetch(`https://api.telegram.org/bot${chatBotToken}/createForumTopic`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatGroupId,
-              name: `👤 Guest #${gNum}`
-            })
-          });
-          const createData = await createRes.json();
-          if (createData.ok && createData.result) {
-            threadId = createData.result.message_thread_id;
-            localStorage.setItem('tm_tg_topic_' + sessionId, threadId);
-            if (typeof fbDb !== 'undefined') {
-              fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).set(threadId);
-            }
-          }
+    if (!threadId) {
+      const topicRes = await fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'createForumTopic',
+          sessionName: `👤 Guest #${gNum}`
+        })
+      });
+      const topicData = await topicRes.json();
+      if (topicData.ok && topicData.result) {
+        threadId = topicData.result.message_thread_id;
+        localStorage.setItem('tm_tg_topic_' + sessionId, threadId);
+        if (typeof fbDb !== 'undefined') {
+          fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).set(threadId);
         }
-
-        const msg = `💬 <b>[မေးမြန်းစာတို အသစ်]</b>\n` +
-          `👤 <b>ဝယ်သူ:</b> <code>Guest #${gNum}</code>\n` +
-          `📝 <b>စာသား:</b> ${text || '(မီဒီယာဖိုင်)'}\n` +
-          (mediaUrl ? `📎 <b>ဖိုင်:</b> <a href="${mediaUrl}">မီဒီယာကြည့်ရန် နှိပ်ပါ</a>\n` : '') +
-          `👉 Admin Dashboard မှလည်း စစ်ဆေးနိုင်ပါသည်။`;
-
-        const payload = {
-          chat_id: chatGroupId,
-          text: msg,
-          parse_mode: 'HTML'
-        };
-        if (threadId) {
-          payload.message_thread_id = Number(threadId);
-        }
-
-        fetch(`https://api.telegram.org/bot${chatBotToken}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-      } catch (err) {
-        console.warn('Telegram Topic Alert error:', err);
       }
     }
+
+    const msg = `💬 <b>[မေးမြန်းစာတို အသစ်]</b>\n` +
+      `👤 <b>ဝယ်သူ:</b> <code>Guest #${gNum}</code>\n` +
+      `📝 <b>စာသား:</b> ${text || '(မီဒီယာဖိုင်)'}\n` +
+      (mediaUrl ? `📎 <b>ဖိုင်:</b> <a href="${mediaUrl}">မီဒီယာကြည့်ရန် နှိပ်ပါ</a>\n` : '');
+
+    fetch('/api/telegram-webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sendLiveChat',
+        messageText: msg,
+        topicId: threadId || null
+      })
+    });
+  } catch (err) {
+    console.warn('Telegram Chat alert error:', err);
+  }
+}
 
     // =========================================================================
     // 3. ADMIN LIVE CHAT INBOX CONTROLLER
@@ -15772,13 +15764,12 @@ window.resetDeliverySelection = function() {
   }
 };
 /* ========================================================
-   👑 DIRECT ADMIN PIN PAD CONTROLLER (FORCE DISPLAY)
+   👑 SECURE BACKEND-VERIFIED ADMIN CONTROLLER
    ======================================================== */
 var currentEnteredPin = "";
 var adminLogoClickCount = 0;
 var adminLogoClickTimer = null;
 
-// Logo ကို ၃ ချက် ဆက်တိုက်နှိပ်လျှင် တိုက်ရိုက် ခေါ်ယူမည့် Function
 window.openAdminPrompt = function() {
   adminLogoClickCount++;
   clearTimeout(adminLogoClickTimer);
@@ -15798,18 +15789,9 @@ function openAdminPinModalDirect() {
   
   var pinModal = document.getElementById('customAdminPinModal');
   if (pinModal) {
-    // အကယ်၍ အခြား modal အထဲ ပိတ်မိနေပါက body အောက်သို့ အတင်း ဆွဲထုတ်ပြသခြင်း
     document.body.appendChild(pinModal);
-    
     pinModal.classList.add('active');
     pinModal.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.88) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
-  } else {
-    var p = prompt("Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:");
-    if (p && (p.trim() === "1542" || p.trim() === "1234")) {
-      forceOpenAdminDashboard();
-    } else if (p) {
-      alert("PIN မှားယွင်းပါသည်!");
-    }
   }
 }
 
@@ -15858,26 +15840,43 @@ function updatePinDotsUI() {
   }
 }
 
-function verifyAdminPinNow() {
+// 🛡️ PIN ကို Browser တွင် မစစ်တော့ဘဲ Backend API သို့ ပို့၍ စစ်ဆေးခြင်း
+async function verifyAdminPinNow() {
   var entered = String(currentEnteredPin).trim();
-  var savedPin = String(localStorage.getItem('tm_admin_pin') || "1542").trim();
+  
+  try {
+    const res = await fetch('/api/admin-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: entered })
+    });
+    const result = await res.json();
 
-  if (entered === "1542" || entered === "1234" || entered === savedPin) {
-    closeAdminPinModalDirect();
-    clearPinDigits();
-    forceOpenAdminDashboard();
-  } else {
-    alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်! (Default: 1542 သို့မဟုတ် 1234)");
+    if (result.success) {
+      sessionStorage.setItem('admin_auth_token', result.token);
+      closeAdminPinModalDirect();
+      clearPinDigits();
+      forceOpenAdminDashboard();
+    } else {
+      alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်!");
+      clearPinDigits();
+    }
+  } catch (err) {
+    alert("စစ်ဆေးမှု မအောင်မြင်ပါ- " + err.message);
     clearPinDigits();
   }
 }
 
 function forceOpenAdminDashboard() {
+  // စကားဝှက် မှန်မှသာ Dashboard ဖွင့်ခွင့်ပြုခြင်း
+  if (!sessionStorage.getItem('admin_auth_token')) {
+    alert("Admin အဖြစ် ဝင်ရောက်ခွင့် မရှိပါ");
+    return;
+  }
+
   var adminEl = document.getElementById('adminModal');
   if (adminEl) {
-    // အကယ်၍ အခြားနေရာတွင် ပိတ်မိနေပါက body အောက်သို့ အတင်း ဆွဲထုတ်ယူခြင်း
     document.body.appendChild(adminEl);
-
     adminEl.classList.add('active');
     adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
     
@@ -15886,7 +15885,6 @@ function forceOpenAdminDashboard() {
       content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important; background: #18132d !important;";
     }
 
-    // Products Tab ဖွင့်ပေးခြင်း
     document.querySelectorAll('.admin-tab').forEach(function(t) {
       t.classList.remove('active');
       t.style.setProperty('display', 'none', 'important');
@@ -15902,14 +15900,10 @@ function forceOpenAdminDashboard() {
     var firstBtn = document.querySelector('.admin-nav-btn');
     if (firstBtn) firstBtn.classList.add('active');
 
-    // ဒေတာများ ဆွဲတင်ပြသခြင်း (Error ဖြစ်သော်လည်း ရပ်မသွားစေရန်)
-    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){ console.warn(e); }
-    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){ console.warn(e); }
-    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){ console.warn(e); }
-    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){ console.warn(e); }
-    try { if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin('1542'); } catch(e){ console.warn(e); }
-  } else {
-    alert("Error: adminModal HTML element ရှာမတွေ့ပါခင်ဗျာ");
+    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
+    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
+    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
+    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
   }
 }
 </script>

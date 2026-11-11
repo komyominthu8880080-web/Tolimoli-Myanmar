@@ -13,11 +13,10 @@ export default async function handler(req, res) {
   }
 
   // @Tolimolimyanmar_bot ၏ Token အသစ်စက်စက်
-  const ORDER_BOT_TOKEN = '8954973059:AAGbFEOLt29DgWfgf09xHNpn9Lu-SBZAI-4';
-  // သင်၏ Chat ID (Tolimoli Myanmar Account)
-  const ADMIN_CHAT_ID = '1858981030';
-  // @TolomoliLivechat_Bot Token
-  const LIVECHAT_BOT_TOKEN = '8900618964:AAF-CceJIWtn3in19vLP4-kOxBzZyrfYJUY';
+  const ORDER_BOT_TOKEN = process.env.ORDER_BOT_TOKEN;
+const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
+const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
+const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
   const FIREBASE_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   const body = req.body || {};
