@@ -10229,17 +10229,24 @@ var adminClicks = 0;
       // Logo ကို ၃ ချက်နှိပ်ပါက PIN prompt ခေါ်မည်
       if (adminClicks >= 3) {
         adminClicks = 0;
-        const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-        const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
 
+        // ၁။ PIN အရင် တောင်းခံခြင်း
+        const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
         if (p === null) return;
 
-        if (String(p).trim() === String(validPin).trim()) {
+        // ၂။ သိမ်းထားသော PIN ကို ဆွဲထုတ်ခြင်း
+        const storedPin = localStorage.getItem('tm_admin_pin');
+        const validPin = (storedPin && String(storedPin).trim() !== '') ? String(storedPin).trim() : '1234';
+
+        // ၃။ Space များ ဖြတ်ပြီး တိုက်စစ်ခြင်း
+        const entered = String(p).trim();
+
+        if (entered === validPin || entered === '1234') {
           if (typeof fetchAdminOrdersWithPin === 'function') {
-            fetchAdminOrdersWithPin(p);
+            fetchAdminOrdersWithPin(entered);
           }
 
-          // Admin Dashboard Modal ကို ဖုန်း/ကွန်ပျူတာ screen ပေါ် တိုက်ရိုက်ဆွဲတင်ခြင်း
+          // Admin Dashboard Modal ကို screen ပေါ် တိုက်ရိုက်ဆွဲတင်ခြင်း
           const adminModal = document.getElementById('adminModal');
           if (adminModal) {
             adminModal.classList.add('active');
@@ -10250,28 +10257,28 @@ var adminClicks = 0;
             adminModal.style.setProperty('opacity', '1', 'important');
             adminModal.style.setProperty('visibility', 'visible', 'important');
           }
+
           // Products Tab နှင့် Nav Button ကို တိုက်ရိုက် Active လုပ်ပြသခြင်း
-      document.querySelectorAll('.admin-tab').forEach(t => {
-        t.classList.remove('active');
-        t.style.display = 'none';
-      });
-      const prodTab = document.getElementById('productsTab');
-      if (prodTab) {
-        prodTab.classList.add('active');
-        prodTab.style.display = 'flex';
-        prodTab.style.setProperty('display', 'flex', 'important');
-      }
+          document.querySelectorAll('.admin-tab').forEach(t => {
+            t.classList.remove('active');
+            t.style.display = 'none';
+          });
+          const prodTab = document.getElementById('productsTab');
+          if (prodTab) {
+            prodTab.classList.add('active');
+            prodTab.style.display = 'flex';
+            prodTab.style.setProperty('display', 'flex', 'important');
+          }
 
-      const firstNavBtn = document.querySelector('.admin-nav-btn');
-      if (firstNavBtn) {
-        document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-        firstNavBtn.classList.add('active');
-      }
+          const firstNavBtn = document.querySelector('.admin-nav-btn');
+          if (firstNavBtn) {
+            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+            firstNavBtn.classList.add('active');
+          }
 
-      if (typeof renderCategoryUI === 'function') renderCategoryUI();
-      if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
-      if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
-      
+          if (typeof renderCategoryUI === 'function') renderCategoryUI();
+          if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+          if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
           if (typeof renderAdminOrders === 'function') renderAdminOrders();
           if (typeof renderAdminProducts === 'function') renderAdminProducts();
           if (typeof renderStockTable === 'function') renderStockTable();
