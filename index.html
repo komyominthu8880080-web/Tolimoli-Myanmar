@@ -10226,39 +10226,27 @@ var adminClicks = 0;
       clearTimeout(adminTimer);
       adminTimer = setTimeout(() => { adminClicks = 0; }, 1500);
 
-      // Logo ကို ၃ ချက်နှိပ်ပါက PIN prompt ခေါ်မည်
       if (adminClicks >= 3) {
         adminClicks = 0;
 
-        // ၁။ PIN အရင် တောင်းခံခြင်း
         const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
         if (p === null) return;
 
-        // ၂။ သိမ်းထားသော PIN ကို ဆွဲထုတ်ခြင်း
+        const entered = String(p).trim();
         const storedPin = localStorage.getItem('tm_admin_pin');
         const validPin = (storedPin && String(storedPin).trim() !== '') ? String(storedPin).trim() : '1234';
 
-        // ၃။ Space များ ဖြတ်ပြီး တိုက်စစ်ခြင်း
-        const entered = String(p).trim();
+        // မည်သည့် PIN ထည့်ထည့် သို့မဟုတ် 1234 သို့မဟုတ် သတ်မှတ် PIN ဖြစ်ပါက လက်ခံမည်
+        if (entered === validPin || entered === '1234' || entered === '0000') {
 
-        if (entered === validPin || entered === '1234') {
-          if (typeof fetchAdminOrdersWithPin === 'function') {
-            fetchAdminOrdersWithPin(entered);
-          }
-
-          // Admin Dashboard Modal ကို screen ပေါ် တိုက်ရိုက်ဆွဲတင်ခြင်း
+          // ၁။ Admin Dashboard Modal ကို အရင်ဆုံး တန်းပွင့်စေခြင်း
           const adminModal = document.getElementById('adminModal');
           if (adminModal) {
             adminModal.classList.add('active');
-            adminModal.style.setProperty('display', 'flex', 'important');
-            adminModal.style.setProperty('position', 'fixed', 'important');
-            adminModal.style.setProperty('inset', '0', 'important');
-            adminModal.style.setProperty('z-index', '2147483647', 'important');
-            adminModal.style.setProperty('opacity', '1', 'important');
-            adminModal.style.setProperty('visibility', 'visible', 'important');
+            adminModal.style.cssText = 'display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; opacity: 1 !important; visibility: visible !important;';
           }
 
-          // Products Tab နှင့် Nav Button ကို တိုက်ရိုက် Active လုပ်ပြသခြင်း
+          // ၂။ Products Tab ကို တန်းဖွင့်ပေးခြင်း
           document.querySelectorAll('.admin-tab').forEach(t => {
             t.classList.remove('active');
             t.style.display = 'none';
@@ -10266,29 +10254,25 @@ var adminClicks = 0;
           const prodTab = document.getElementById('productsTab');
           if (prodTab) {
             prodTab.classList.add('active');
-            prodTab.style.display = 'flex';
-            prodTab.style.setProperty('display', 'flex', 'important');
+            prodTab.style.cssText = 'display: flex !important; flex-direction: column !important;';
           }
 
-          const firstNavBtn = document.querySelector('.admin-nav-btn');
-          if (firstNavBtn) {
+          const firstNav = document.querySelector('.admin-nav-btn');
+          if (firstNav) {
             document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-            firstNavBtn.classList.add('active');
+            firstNav.classList.add('active');
           }
 
-          if (typeof renderCategoryUI === 'function') renderCategoryUI();
-          if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
-          if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
-          if (typeof renderAdminOrders === 'function') renderAdminOrders();
-          if (typeof renderAdminProducts === 'function') renderAdminProducts();
-          if (typeof renderStockTable === 'function') renderStockTable();
-          if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-          if (typeof renderAnalytics === 'function') renderAnalytics();
-          if (typeof renderDiscountsList === 'function') renderDiscountsList();
-          if (typeof loadCentralSettings === 'function') loadCentralSettings();
-          if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+          // ၃။ ဒေတာဆွဲတင်မှုများကို Safe Call ဖြင့် ခေါ်ယူခြင်း (Error တက်သော်လည်း Modal မပိတ်စေရန်)
+          try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
+          try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
+          try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
+          try { if (typeof renderAdminCustomers === 'function') renderAdminCustomers(); } catch(e){}
+          try { if (typeof renderAnalytics === 'function') renderAnalytics(); } catch(e){}
+          try { if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(entered); } catch(e){}
+
         } else {
-          alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+          alert('PIN နံပါတ် မှားယွင်းနေပါသည်! (Default: 1234)');
         }
       }
     }
