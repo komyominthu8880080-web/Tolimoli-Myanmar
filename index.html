@@ -15798,8 +15798,11 @@ function openAdminPinModalDirect() {
   
   var pinModal = document.getElementById('customAdminPinModal');
   if (pinModal) {
+    // အကယ်၍ အခြား modal အထဲ ပိတ်မိနေပါက body အောက်သို့ အတင်း ဆွဲထုတ်ပြသခြင်း
+    document.body.appendChild(pinModal);
+    
     pinModal.classList.add('active');
-    pinModal.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.88) !important; align-items: center !important; justify-content: center !important;";
+    pinModal.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.88) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
   } else {
     var p = prompt("Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:");
     if (p && (p.trim() === "1542" || p.trim() === "1234")) {
