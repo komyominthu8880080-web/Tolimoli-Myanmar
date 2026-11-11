@@ -10250,7 +10250,28 @@ var adminClicks = 0;
             adminModal.style.setProperty('opacity', '1', 'important');
             adminModal.style.setProperty('visibility', 'visible', 'important');
           }
+          // Products Tab နှင့် Nav Button ကို တိုက်ရိုက် Active လုပ်ပြသခြင်း
+      document.querySelectorAll('.admin-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.display = 'none';
+      });
+      const prodTab = document.getElementById('productsTab');
+      if (prodTab) {
+        prodTab.classList.add('active');
+        prodTab.style.display = 'flex';
+        prodTab.style.setProperty('display', 'flex', 'important');
+      }
 
+      const firstNavBtn = document.querySelector('.admin-nav-btn');
+      if (firstNavBtn) {
+        document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+        firstNavBtn.classList.add('active');
+      }
+
+      if (typeof renderCategoryUI === 'function') renderCategoryUI();
+      if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+      if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
+      
           if (typeof renderAdminOrders === 'function') renderAdminOrders();
           if (typeof renderAdminProducts === 'function') renderAdminProducts();
           if (typeof renderStockTable === 'function') renderStockTable();
