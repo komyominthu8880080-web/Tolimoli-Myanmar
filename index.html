@@ -15772,123 +15772,131 @@ window.resetDeliverySelection = function() {
   }
 };
 /* ========================================================
-   👑 BULLETPROOF ADMIN ACCESS (CLEAN & NON-DUPLICATED)
+   👑 DIRECT ADMIN PIN PAD CONTROLLER (FORCE DISPLAY)
    ======================================================== */
 var currentEnteredPin = "";
-var adminClickCount = 0;
-var adminClickTimer = null;
+var adminLogoClickCount = 0;
+var adminLogoClickTimer = null;
 
-// Logo ကို ၃ ချက် ဆက်တိုက်နှိပ်လျှင် PIN Modal တန်းဖွင့်ပေးခြင်း
-function openAdminPrompt() {
-  adminClickCount++;
-  clearTimeout(adminClickTimer);
-  adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1200);
+// Logo ကို ၃ ချက် ဆက်တိုက်နှိပ်လျှင် တိုက်ရိုက် ခေါ်ယူမည့် Function
+window.openAdminPrompt = function() {
+  adminLogoClickCount++;
+  clearTimeout(adminLogoClickTimer);
+  adminLogoClickTimer = setTimeout(function() { 
+    adminLogoClickCount = 0; 
+  }, 1200);
 
-  if (adminClickCount >= 3) {
-    adminClickCount = 0;
-    openAdminPinModal();
+  if (adminLogoClickCount >= 3) {
+    adminLogoClickCount = 0;
+    openAdminPinModalDirect();
   }
-}
+};
 
-function openAdminPinModal() {
+function openAdminPinModalDirect() {
   currentEnteredPin = "";
   updatePinDotsUI();
-  const pinModal = document.getElementById('customAdminPinModal');
+  
+  var pinModal = document.getElementById('customAdminPinModal');
   if (pinModal) {
     pinModal.classList.add('active');
-    pinModal.style.setProperty('display', 'flex', 'important');
-    pinModal.style.setProperty('position', 'fixed', 'important');
-    pinModal.style.setProperty('inset', '0', 'important');
-    pinModal.style.setProperty('z-index', '2147483647', 'important');
-    pinModal.style.setProperty('background', 'rgba(0,0,0,0.85)', 'important');
+    pinModal.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.88) !important; align-items: center !important; justify-content: center !important;";
   } else {
-    alert("Error: customAdminPinModal ID ရှာမတွေ့ပါ");
+    var p = prompt("Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:");
+    if (p && (p.trim() === "1542" || p.trim() === "1234")) {
+      forceOpenAdminDashboard();
+    } else if (p) {
+      alert("PIN မှားယွင်းပါသည်!");
+    }
   }
 }
 
-function pressPinDigit(digit) {
+function closeAdminPinModalDirect() {
+  var pinModal = document.getElementById('customAdminPinModal');
+  if (pinModal) {
+    pinModal.classList.remove('active');
+    pinModal.style.setProperty('display', 'none', 'important');
+  }
+}
+
+window.pressPinDigit = function(digit) {
   if (currentEnteredPin.length < 4) {
     currentEnteredPin += digit;
     updatePinDotsUI();
     if (currentEnteredPin.length === 4) {
-      setTimeout(verifyAdminPin, 200);
+      setTimeout(verifyAdminPinNow, 200);
     }
   }
-}
+};
 
-function deleteLastPinDigit() {
+window.deleteLastPinDigit = function() {
   if (currentEnteredPin.length > 0) {
     currentEnteredPin = currentEnteredPin.slice(0, -1);
     updatePinDotsUI();
   }
-}
+};
 
-function clearPinDigits() {
+window.clearPinDigits = function() {
   currentEnteredPin = "";
   updatePinDotsUI();
-}
+};
 
 function updatePinDotsUI() {
-  for (let i = 0; i < 4; i++) {
-    const dot = document.getElementById(`pDot_${i}`);
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('pDot_' + i);
     if (dot) {
       if (i < currentEnteredPin.length) {
-        dot.classList.add('active');
+        dot.style.background = "#d4af37";
+        dot.style.boxShadow = "0 0 10px #d4af37";
       } else {
-        dot.classList.remove('active');
+        dot.style.background = "transparent";
+        dot.style.boxShadow = "none";
       }
     }
   }
 }
 
-async function verifyAdminPin() {
-  const entered = String(currentEnteredPin).trim();
-  const dbPin = String(localStorage.getItem('tm_admin_pin') || "1542").trim();
+function verifyAdminPinNow() {
+  var entered = String(currentEnteredPin).trim();
+  var savedPin = String(localStorage.getItem('tm_admin_pin') || "1542").trim();
 
-  // PIN နံပါတ် 1542 သို့မဟုတ် 1234 ဖြင့် လက်ခံပေးခြင်း
-  if (entered === "1542" || entered === "1234" || entered === dbPin) {
-    const pinModal = document.getElementById('customAdminPinModal');
-    if (pinModal) {
-      pinModal.classList.remove('active');
-      pinModal.style.setProperty('display', 'none', 'important');
-    }
+  if (entered === "1542" || entered === "1234" || entered === savedPin) {
+    closeAdminPinModalDirect();
     clearPinDigits();
+    forceOpenAdminDashboard();
+  } else {
+    alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်! (Default: 1542 သို့မဟုတ် 1234)");
+    clearPinDigits();
+  }
+}
 
-    // Admin Dashboard Modal အား ဖွင့်လှစ်ခြင်း
-    const adminEl = document.getElementById('adminModal');
-    if (adminEl) {
-      adminEl.classList.add('active');
-      adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important;";
-      
-      const content = adminEl.querySelector('.modal-content') || adminEl.querySelector('.admin-modal-content');
-      if (content) {
-        content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important;";
-      }
+function forceOpenAdminDashboard() {
+  var adminEl = document.getElementById('adminModal');
+  if (adminEl) {
+    adminEl.classList.add('active');
+    adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important;";
+    
+    var content = adminEl.querySelector('.modal-content') || adminEl.querySelector('.admin-modal-content');
+    if (content) {
+      content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important;";
     }
 
-    // Products Tab သို့ ရောက်ရှိစေခြင်း
-    document.querySelectorAll('.admin-tab').forEach(t => {
+    // Products Tab ဖွင့်ပေးခြင်း
+    document.querySelectorAll('.admin-tab').forEach(function(t) {
       t.classList.remove('active');
       t.style.setProperty('display', 'none', 'important');
     });
-    const prodTab = document.getElementById('productsTab');
+    var prodTab = document.getElementById('productsTab');
     if (prodTab) {
       prodTab.classList.add('active');
       prodTab.style.cssText = "display: flex !important; flex-direction: column !important;";
     }
-    document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-    const firstNavBtn = document.querySelector('.admin-nav-btn');
-    if (firstNavBtn) firstNavBtn.classList.add('active');
 
     // ဒေတာများ ဆွဲတင်ခြင်း
     try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
     try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
     try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
-    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
-    try { if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(entered); } catch(e){}
   } else {
-    alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်! (Default PIN: 1542 သို့မဟုတ် 1234)");
-    clearPinDigits();
+    alert("Error: adminModal Element ရှာမတွေ့ပါ");
   }
 }
 </script>
