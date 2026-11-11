@@ -4370,44 +4370,6 @@ function scrollCategories(amount) {
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
-    
-    var adminClicks = 0;
-var adminTimer = null;
-
-function openAdminPrompt() {
-  adminClicks++;
-  clearTimeout(adminTimer);
-  adminTimer = setTimeout(() => { adminClicks = 0; }, 1500);
-
-  if (adminClicks >= 3) {
-    adminClicks = 0;
-    const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-    const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
-    
-    if (p === null) return;
-
-    if (String(p).trim() === String(validPin).trim()) {
-      if (typeof fetchAdminOrdersWithPin === 'function') {
-        fetchAdminOrdersWithPin(p);
-      }
-      
-      const adminModal = document.getElementById('adminModal');
-      if (adminModal) {
-        adminModal.classList.add('active');
-        adminModal.style.setProperty('display', 'flex', 'important');
-        adminModal.style.setProperty('z-index', '2147483647', 'important');
-      }
-      
-      if (typeof renderAdminOrders === 'function') renderAdminOrders();
-      if (typeof renderAdminProducts === 'function') renderAdminProducts();
-      if (typeof renderStockTable === 'function') renderStockTable();
-      if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-      if (typeof renderAnalytics === 'function') renderAnalytics();
-    } else {
-      alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
-    }
-  }
-}
 
     function updateSoundToggleUI() {}
     if ('serviceWorker' in navigator) {
@@ -10261,6 +10223,34 @@ function closeModal(id) {
   const floatContainer = document.querySelector('.floating-action-container');
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
+
+    var adminClicks = 0; var adminTimer = null;
+    function openAdminPrompt() {
+      adminClicks++;
+      clearTimeout(adminTimer);
+      adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
+      if (adminClicks >= 999) {
+        adminClicks = 0;
+        const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+        const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
+        if (p !== null && p === validPin) {
+        fetchAdminOrdersWithPin(p);
+        renderCategoryUI();
+        syncSearchCategoryDropdown();
+        renderAdminCategoryChips();
+        renderAdminColorInputs();
+          renderAdminOrders();
+          renderAdminCustomers();
+          renderAnalytics();
+          renderDiscountsList();
+          loadCentralSettings();
+          renderAdminDeliverySettings();
+          openModal('adminModal');
+        } else if (p !== null) {
+          alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
+        }
+      }
+    }
 
     function switchAdminTab(tId, btn) {
   // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
