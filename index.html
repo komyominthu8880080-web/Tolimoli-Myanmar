@@ -15875,12 +15875,15 @@ function verifyAdminPinNow() {
 function forceOpenAdminDashboard() {
   var adminEl = document.getElementById('adminModal');
   if (adminEl) {
+    // အကယ်၍ အခြားနေရာတွင် ပိတ်မိနေပါက body အောက်သို့ အတင်း ဆွဲထုတ်ယူခြင်း
+    document.body.appendChild(adminEl);
+
     adminEl.classList.add('active');
-    adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important;";
+    adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
     
     var content = adminEl.querySelector('.modal-content') || adminEl.querySelector('.admin-modal-content');
     if (content) {
-      content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important;";
+      content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important; background: #18132d !important;";
     }
 
     // Products Tab ဖွင့်ပေးခြင်း
@@ -15893,13 +15896,20 @@ function forceOpenAdminDashboard() {
       prodTab.classList.add('active');
       prodTab.style.cssText = "display: flex !important; flex-direction: column !important;";
     }
+    document.querySelectorAll('.admin-nav-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    var firstBtn = document.querySelector('.admin-nav-btn');
+    if (firstBtn) firstBtn.classList.add('active');
 
-    // ဒေတာများ ဆွဲတင်ခြင်း
-    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
-    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
-    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
+    // ဒေတာများ ဆွဲတင်ပြသခြင်း (Error ဖြစ်သော်လည်း ရပ်မသွားစေရန်)
+    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){ console.warn(e); }
+    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){ console.warn(e); }
+    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){ console.warn(e); }
+    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){ console.warn(e); }
+    try { if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin('1542'); } catch(e){ console.warn(e); }
   } else {
-    alert("Error: adminModal Element ရှာမတွေ့ပါ");
+    alert("Error: adminModal HTML element ရှာမတွေ့ပါခင်ဗျာ");
   }
 }
 </script>
