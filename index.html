@@ -8427,6 +8427,18 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         currentActiveOrderForDetail.cancelRemark = cancelRemark;
       }
 
+      // Firebase Realtime Database ပေါ်ရှိ shop_orders status ကို တိုက်ရိုက် Update ပြုလုပ်ခြင်း
+      try {
+        if (typeof fbDb !== 'undefined' && currentActiveOrderForDetail.id) {
+          fbDb.ref('shop_orders/' + currentActiveOrderForDetail.id).update({
+            status: newStatus,
+            cancelRemark: currentActiveOrderForDetail.cancelRemark || ''
+          });
+        }
+      } catch (e) {
+        console.warn("Firebase Order Status Update Warning:", e);
+      }
+
       saveOrders();
       btn.disabled = false; btn.innerText = 'ဘောင်ချာနှင့် အဆင့်များ သိမ်းဆည်းမည်';
       closeModal('adminOrderDetailModal');
@@ -8569,10 +8581,18 @@ async function executeAdminBulkStatusUpdate() {
   orders.forEach(o => {
     if (idsToUpdate.includes(String(o.id))) {
       o.status = newStatus;
-      updatedCount++;
-      if (typeof db !== 'undefined' && o.docId) {
-        try { db.collection('orders').doc(o.docId).update({ status: newStatus }); } catch (err) {}
-      }
+        updatedCount++;
+        // Firebase Realtime Database (shop_orders) သို့ Update ပြုလုပ်ခြင်း
+        try {
+          if (typeof fbDb !== 'undefined' && o.id) {
+            fbDb.ref('shop_orders/' + o.id).update({ status: newStatus });
+          }
+        } catch (err) {
+          console.warn("Bulk status sync error:", err);
+        }
+        if (typeof db !== 'undefined' && o.docId) {
+          try { db.collection('orders').doc(o.docId).update({ status: newStatus }); } catch (err) {}
+        }
     }
   });
 
