@@ -10239,33 +10239,50 @@ function closeModal(id) {
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
 
-    var adminClicks = 0; var adminTimer = null;
-    function openAdminPrompt() {
-      adminClicks++;
-      clearTimeout(adminTimer);
-      adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
-      if (adminClicks >= 999) {
-        adminClicks = 0;
-        const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-        const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
-        if (p !== null && p === validPin) {
+    var adminClicks = 0; 
+var adminTimer = null;
+
+function openAdminPrompt() {
+  adminClicks++;
+  clearTimeout(adminTimer);
+  adminTimer = setTimeout(() => { adminClicks = 0; }, 1500);
+
+  // Logo ကို ၃ ချက်နှိပ်သည့်အခါ အလုပ်လုပ်စေခြင်း
+  if (adminClicks >= 3) {
+    adminClicks = 0;
+    const validPin = localStorage.getItem('tm_admin_pin') || '1234';
+    const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
+
+    // Cancel နှိပ်လိုက်ပါက ဘာမှမလုပ်ဘဲ မူလအတိုင်း ရပ်တန့်မည်
+    if (p === null) return;
+
+    if (String(p).trim() === String(validPin).trim()) {
+      if (typeof fetchAdminOrdersWithPin === 'function') {
         fetchAdminOrdersWithPin(p);
-        renderCategoryUI();
-        syncSearchCategoryDropdown();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-          renderAdminOrders();
-          renderAdminCustomers();
-          renderAnalytics();
-          renderDiscountsList();
-          loadCentralSettings();
-          renderAdminDeliverySettings();
-          openModal('adminModal');
-        } else if (p !== null) {
-          alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
-        }
       }
+      if (typeof renderCategoryUI === 'function') renderCategoryUI();
+      if (typeof syncSearchCategoryDropdown === 'function') syncSearchCategoryDropdown();
+      if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+      if (typeof renderAdminColorInputs === 'function') renderAdminColorInputs();
+      if (typeof renderAdminOrders === 'function') renderAdminOrders();
+      if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+      if (typeof renderAnalytics === 'function') renderAnalytics();
+      if (typeof renderDiscountsList === 'function') renderDiscountsList();
+      if (typeof loadCentralSettings === 'function') loadCentralSettings();
+      if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+      
+      // Admin Modal ကို စနစ်တကျ ဖွင့်ခြင်း
+      if (typeof openModal === 'function') {
+        openModal('adminModal');
+      } else {
+        const modalEl = document.getElementById('adminModal');
+        if (modalEl) modalEl.style.display = 'flex';
+      }
+    } else {
+      alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
     }
+  }
+}
 
     function switchAdminTab(tId, btn) {
   // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
