@@ -10166,26 +10166,31 @@ function onSearchCompanyTown(cIdx, query) {
     function openModal(id) {
   const m = document.getElementById(id);
   if (m) {
+    // အကယ်၍ အခြား modal အထဲ ပိတ်မိနေပါက body အောက်သို့ အတင်း ဆွဲထုတ်ပြသခြင်း
+    document.body.appendChild(m);
+
     m.classList.add('active');
-    m.style.display = 'flex';
-    m.style.zIndex = '2147483647';
+    m.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483640 !important; background: rgba(0,0,0,0.85) !important; align-items: center !important; justify-content: center !important;";
+    
+    document.body.classList.add('modal-open');
+
+    const topHeader = document.querySelector('header');
+    if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
+
+    const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
+    if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
+
+    const bottomBar = document.querySelector('.mobile-bottom-bar');
+    if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
+
+    const socialTier = document.querySelector('.fixed-social-call-tier');
+    if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
+
+    const floatContainer = document.querySelector('.floating-action-container');
+    if (floatContainer) floatContainer.style.setProperty('display', 'none', 'important');
+  } else {
+    console.warn("Modal not found:", id);
   }
-  document.body.classList.add('modal-open');
-
-  const topHeader = document.querySelector('header');
-  if (topHeader) topHeader.style.setProperty('display', 'none', 'important');
-
-  const catWrapper = document.querySelector('.category-bar-wrapper') || document.querySelector('.category-wrapper');
-  if (catWrapper) catWrapper.style.setProperty('display', 'none', 'important');
-
-  const bottomBar = document.querySelector('.mobile-bottom-bar');
-  if (bottomBar) bottomBar.style.setProperty('display', 'none', 'important');
-
-  const socialTier = document.querySelector('.fixed-social-call-tier');
-  if (socialTier) socialTier.style.setProperty('display', 'none', 'important');
-
-  const floatContainer = document.querySelector('.floating-action-container');
-  if (floatContainer) floatContainer.style.setProperty('display', 'none', 'important');
 }
 
 function closeModal(id) {
