@@ -1795,13 +1795,8 @@ header.sticky-scrolled .hero-compact {
   z-index: 2147483647 !important; /* Browser ၏ အမြင့်ဆုံး z-index သတ်မှတ်ချက် */
 }
 
-/* Modal တစ်ခုခု ပွင့်နေချိန်တွင် Header နှင့် အောက်ခြေ Bars များ အားလုံးကို အလိုအလျောက် ပုန်းနေစေရန် */
-body:has([id*="Modal"].active),
-body:has([id*="modal"].active),
-body:has(.modal.active),
-body:has(#cartModal.active),
-body:has(#adminModal.active),
-body.modal-open {
+/* Cart Modal ပွင့်ချိန်အတွက်သာ သီးသန့် ကန့်သတ်ခြင်း */
+body:has(#cartModal.active) {
   overflow: hidden !important;
 }
 
@@ -10223,30 +10218,48 @@ function closeModal(id) {
   const floatContainer = document.querySelector('.floating-action-container');
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
+var adminClicks = 0;
+    var adminTimer = null;
 
-    var adminClicks = 0; var adminTimer = null;
     function openAdminPrompt() {
       adminClicks++;
       clearTimeout(adminTimer);
-      adminTimer = setTimeout(() => { adminClicks = 0; }, 1400);
-      if (adminClicks >= 999) {
+      adminTimer = setTimeout(() => { adminClicks = 0; }, 1500);
+
+      // Logo ကို ၃ ချက်နှိပ်ပါက PIN prompt ခေါ်မည်
+      if (adminClicks >= 3) {
         adminClicks = 0;
         const validPin = localStorage.getItem('tm_admin_pin') || '1234';
-        const p = prompt('Admin PIN ရိုက်ထည့်ပါ:');
-        if (p !== null && p === validPin) {
-        fetchAdminOrdersWithPin(p);
-        renderCategoryUI();
-        syncSearchCategoryDropdown();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-          renderAdminOrders();
-          renderAdminCustomers();
-          renderAnalytics();
-          renderDiscountsList();
-          loadCentralSettings();
-          renderAdminDeliverySettings();
-          openModal('adminModal');
-        } else if (p !== null) {
+        const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
+
+        if (p === null) return;
+
+        if (String(p).trim() === String(validPin).trim()) {
+          if (typeof fetchAdminOrdersWithPin === 'function') {
+            fetchAdminOrdersWithPin(p);
+          }
+
+          // Admin Dashboard Modal ကို ဖုန်း/ကွန်ပျူတာ screen ပေါ် တိုက်ရိုက်ဆွဲတင်ခြင်း
+          const adminModal = document.getElementById('adminModal');
+          if (adminModal) {
+            adminModal.classList.add('active');
+            adminModal.style.setProperty('display', 'flex', 'important');
+            adminModal.style.setProperty('position', 'fixed', 'important');
+            adminModal.style.setProperty('inset', '0', 'important');
+            adminModal.style.setProperty('z-index', '2147483647', 'important');
+            adminModal.style.setProperty('opacity', '1', 'important');
+            adminModal.style.setProperty('visibility', 'visible', 'important');
+          }
+
+          if (typeof renderAdminOrders === 'function') renderAdminOrders();
+          if (typeof renderAdminProducts === 'function') renderAdminProducts();
+          if (typeof renderStockTable === 'function') renderStockTable();
+          if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+          if (typeof renderAnalytics === 'function') renderAnalytics();
+          if (typeof renderDiscountsList === 'function') renderDiscountsList();
+          if (typeof loadCentralSettings === 'function') loadCentralSettings();
+          if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings();
+        } else {
           alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
         }
       }
