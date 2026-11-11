@@ -15947,6 +15947,125 @@ window.resetDeliverySelection = function() {
     codBtn.style.pointerEvents = 'auto';
   }
 };
+// ==========================================
+// 👑 ADMIN PIN PAD & DASHBOARD LOGIN LOGIC
+// ==========================================
+var currentEnteredPin = "";
+var adminClickCount = 0;
+var adminClickTimer = null;
+
+// Logo ကို ၃ ချက်နှိပ်သည့်အခါ PIN Pad ဖွင့်ခြင်း
+function openAdminPrompt() {
+  adminClickCount++;
+  clearTimeout(adminClickTimer);
+  adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1200);
+
+  if (adminClickCount >= 3) {
+    adminClickCount = 0;
+    openAdminPinModal();
+  }
+}
+
+function openAdminPinModal() {
+  currentEnteredPin = "";
+  updatePinDotsUI();
+  openModal('customAdminPinModal');
+}
+
+function pressPinDigit(digit) {
+  if (currentEnteredPin.length < 4) {
+    currentEnteredPin += digit;
+    updatePinDotsUI();
+    if (currentEnteredPin.length === 4) {
+      setTimeout(verifyAdminPin, 200);
+    }
+  }
+}
+
+function deleteLastPinDigit() {
+  if (currentEnteredPin.length > 0) {
+    currentEnteredPin = currentEnteredPin.slice(0, -1);
+    updatePinDotsUI();
+  }
+}
+
+function clearPinDigits() {
+  currentEnteredPin = "";
+  updatePinDotsUI();
+}
+
+function updatePinDotsUI() {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById(`pDot_${i}`);
+    if (dot) {
+      if (i < currentEnteredPin.length) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    }
+  }
+}
+
+// PIN မှန်/မမှန် စစ်ဆေးပြီး Dashboard ဖွင့်ခြင်း
+async function verifyAdminPin() {
+  // Firebase Database ထဲရှိ PIN (1542) ကို အတည်ပြု စစ်ဆေးခြင်း
+  const correctPin = localStorage.getItem('tm_admin_pin') || "1542";
+
+  if (currentEnteredPin === correctPin) {
+    closeModal('customAdminPinModal');
+    currentEnteredPin = "";
+    updatePinDotsUI();
+
+    // Admin Dashboard Modal ကို ဖွင့်လှစ်ခြင်း
+    openModal('adminModal');
+    
+    if (typeof fetchAdminOrdersWithPin === 'function') {
+      fetchAdminOrdersWithPin(correctPin);
+    }
+    if (typeof renderAdminProducts === 'function') renderAdminProducts();
+    if (typeof renderStockTable === 'function') renderStockTable();
+    if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips();
+  } else {
+    alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်။ ကျေးဇူးပြု၍ ပြန်လည်စစ်ဆေးပါ။");
+    clearPinDigits();
+  }
+}
+
+// Modal အဖွင့်/အပိတ် Functions
+function openModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex';
+  }
+}
+
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+// Admin Tab များ ပြောင်းလဲပြသခြင်း
+function switchAdminTab(tabId, btnEl) {
+  document.querySelectorAll('.admin-tab').forEach(tab => {
+    tab.classList.remove('active');
+    tab.style.display = 'none';
+  });
+  document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+
+  const activeTab = document.getElementById(tabId);
+  if (activeTab) {
+    activeTab.classList.add('active');
+    activeTab.style.display = 'block';
+  }
+  if (btnEl) btnEl.classList.add('active');
+}
 </script>
 </body>
 </html>
