@@ -7669,6 +7669,19 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
     function showOrderSuccessScreen(o) {
       // --- SECURE TELEGRAM NOTIFICATION DISPATCH ---
   try {
+    // Discount နှင့် Total အမှန်ကို တိကျစွာ တွက်ချက်ခြင်း
+    const discAmount = Number(o.discount || o.discountAmount || (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
+    const subAmount = Number(o.subTotal || (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
+    const deliAmount = Number(o.deliveryFee || o.deliFee || (document.getElementById('cartDeliveryFeeText') ? document.getElementById('cartDeliveryFeeText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
+    
+    // ပစ္စည်းတန်ဖိုးထဲမှ Discount နှုတ်ပြီး Deli ပေါင်းသည့် စုစုပေါင်း အမှန်
+    const accurateTotal = (subAmount > 0) ? (Math.max(0, subAmount - discAmount) + deliAmount) : (Number(o.total || 0));
+
+    // Order Object အထဲရှိ total တန်ဖိုးများကိုပါ အမှန်ပြင်ဆင်ပေးခြင်း (Voucher Auto Save ပါ မှန်ကန်စေရန်)
+    o.total = accurateTotal;
+    o.discount = discAmount;
+    o.discountAmount = discAmount;
+
     fetch('/api/telegram-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7680,11 +7693,12 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
           phone: o.phone || '',
           address: o.address || '',
           township: o.township || '',
-          discount: Number(o.discount || o.discountAmount || 0),
-          discountAmount: Number(o.discount || o.discountAmount || 0),
-          deliveryFee: Number(o.deliveryFee || o.deliFee || 0),
-          deliFee: Number(o.deliveryFee || o.deliFee || 0),
-          total: o.total || 0,
+          subTotal: subAmount,
+          discount: discAmount,
+          discountAmount: discAmount,
+          deliveryFee: deliAmount,
+          deliFee: deliAmount,
+          total: accurateTotal,
           payment: o.payment || 'COD',
           specialNote: o.specialNote || '',
           slipUrl: o.slipUrl || '',
