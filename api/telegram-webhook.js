@@ -101,7 +101,50 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
       return res.status(500).json({ error: err.message });
     }
   }
+  // ==========================================
+  // ဝဘ်ဆိုက်မှ TELEGRAM GROUP သို့ LIVE CHAT စာပို့ခြင်း
+  // ==========================================
+  if (body.action === 'sendLiveChat') {
+    try {
+      const payload = {
+        chat_id: CHAT_GROUP_ID || ADMIN_CHAT_ID,
+        text: body.messageText,
+        parse_mode: 'HTML'
+      };
+      if (body.topicId) {
+        payload.message_thread_id = Number(body.topicId);
+      }
 
+      const tgRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const tgData = await tgRes.json();
+      return res.status(200).json(tgData);
+    } catch (err) {
+      console.error('Live Chat send error:', err);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ဝယ်သူအသစ်အတွက် Forum Topic ခေါင်းစဉ် ဖန်တီးပေးခြင်း
+  if (body.action === 'createForumTopic') {
+    try {
+      const tgRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/createForumTopic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: CHAT_GROUP_ID,
+          name: body.sessionName || 'Guest User'
+        })
+      });
+      const tgData = await tgRes.json();
+      return res.status(200).json(tgData);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
   // -------------------------------------------------------------
   // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK
   // -------------------------------------------------------------
