@@ -15969,7 +15969,12 @@ function openAdminPrompt() {
 function openAdminPinModal() {
   currentEnteredPin = "";
   updatePinDotsUI();
-  openModal('customAdminPinModal');
+  const pinModal = document.getElementById('customAdminPinModal');
+  if (pinModal) {
+    pinModal.classList.add('active');
+    pinModal.style.setProperty('display', 'flex', 'important');
+    pinModal.style.setProperty('z-index', '2147483647', 'important');
+  }
 }
 
 function pressPinDigit(digit) {
