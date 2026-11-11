@@ -4387,6 +4387,8 @@ function scrollCategories(amount) {
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <script>
+    
+    function updateSoundToggleUI() {}
     if ('serviceWorker' in navigator) {
       
     // GLOBAL ADMIN BACKGROUND CHAT NOTIFICATION LISTENER
@@ -13409,7 +13411,7 @@ function handleStationSelectAutoFill(typedText) {
       renderCommunityPostsUI();
       applyCosmeticsThemeUI();
       renderAdminDiscountReasonChips();
-      updateSoundToggleUI();
+      if (typeof updateSoundToggleUI === 'function') updateSoundToggleUI();
       renderDynamicFaqChips();
       initRealtimeChatListener();
       checkCustomerOrderUpdatesOnLoad();
