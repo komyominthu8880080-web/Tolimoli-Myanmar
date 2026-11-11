@@ -10218,64 +10218,6 @@ function closeModal(id) {
   const floatContainer = document.querySelector('.floating-action-container');
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
-var adminClicks = 0;
-    var adminTimer = null;
-
-    function openAdminPrompt() {
-      adminClicks++;
-      clearTimeout(adminTimer);
-      adminTimer = setTimeout(() => { adminClicks = 0; }, 1500);
-
-      if (adminClicks >= 3) {
-        adminClicks = 0;
-
-        const p = prompt('Tolimoli Admin PIN နံပါတ် ရိုက်ထည့်ပါ:');
-        if (p === null) return;
-
-        const entered = String(p).trim();
-        const storedPin = localStorage.getItem('tm_admin_pin');
-        const validPin = (storedPin && String(storedPin).trim() !== '') ? String(storedPin).trim() : '1234';
-
-        // မည်သည့် PIN ထည့်ထည့် သို့မဟုတ် 1234 သို့မဟုတ် သတ်မှတ် PIN ဖြစ်ပါက လက်ခံမည်
-        if (entered === validPin || entered === '1234' || entered === '0000') {
-
-          // ၁။ Admin Dashboard Modal ကို အရင်ဆုံး တန်းပွင့်စေခြင်း
-          const adminModal = document.getElementById('adminModal');
-          if (adminModal) {
-            adminModal.classList.add('active');
-            adminModal.style.cssText = 'display: flex !important; position: fixed !important; inset: 0 !important; z-index: 2147483647 !important; opacity: 1 !important; visibility: visible !important;';
-          }
-
-          // ၂။ Products Tab ကို တန်းဖွင့်ပေးခြင်း
-          document.querySelectorAll('.admin-tab').forEach(t => {
-            t.classList.remove('active');
-            t.style.display = 'none';
-          });
-          const prodTab = document.getElementById('productsTab');
-          if (prodTab) {
-            prodTab.classList.add('active');
-            prodTab.style.cssText = 'display: flex !important; flex-direction: column !important;';
-          }
-
-          const firstNav = document.querySelector('.admin-nav-btn');
-          if (firstNav) {
-            document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
-            firstNav.classList.add('active');
-          }
-
-          // ၃။ ဒေတာဆွဲတင်မှုများကို Safe Call ဖြင့် ခေါ်ယူခြင်း (Error တက်သော်လည်း Modal မပိတ်စေရန်)
-          try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
-          try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
-          try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
-          try { if (typeof renderAdminCustomers === 'function') renderAdminCustomers(); } catch(e){}
-          try { if (typeof renderAnalytics === 'function') renderAnalytics(); } catch(e){}
-          try { if (typeof fetchAdminOrdersWithPin === 'function') fetchAdminOrdersWithPin(entered); } catch(e){}
-
-        } else {
-          alert('PIN နံပါတ် မှားယွင်းနေပါသည်! (Default: 1234)');
-        }
-      }
-    }
 
     function switchAdminTab(tId, btn) {
   // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
@@ -11534,124 +11476,6 @@ function handleCustomerGateSelection(val) {
     function quickInquiryStock(pName, pSku) {
       const tgUrl = `https://t.me/tolimolimyanmarchannel`;
       window.open(tgUrl, '_blank');
-    }
-    var adminLogoClicks = 0;
-var adminLogoTimer = null;
-
-function triggerAdminPinPad() {
-  adminLogoClicks++;
-  clearTimeout(adminLogoTimer);
-  // နှိပ်ရလွယ်ကူစေရန် အချိန်ကို ၁.၅ စက္ကန့်အထိ တိုးပေးထားပါသည်
-  adminLogoTimer = setTimeout(() => { adminLogoClicks = 0; }, 1500);
-
-  // ၃ ချက် (သို့မဟုတ် ၄ ချက်) နှိပ်ရုံဖြင့် Custom PIN Modal ကို တိုက်ရိုက်ဖွင့်ပေးခြင်း
-  if (adminLogoClicks >= 3) {
-    adminLogoClicks = 0;
-    if (typeof openCustomPinModal === 'function') {
-      openCustomPinModal();
-    } else if (typeof openAdminPrompt === 'function') {
-      openAdminPrompt();
-    }
-  }
-}
-
-function openCustomPinModal() {
-  enteredPin = '';
-  if (typeof updatePinDisplayDots === 'function') {
-    updatePinDisplayDots();
-  }
-  const modal = document.getElementById('customAdminPinModal');
-  if (modal) {
-    modal.style.setProperty('display', 'flex', 'important');
-    modal.style.setProperty('z-index', '2147483647', 'important');
-    modal.classList.add('active');
-    document.body.classList.add('modal-open');
-  }
-}
-    // 12. LUXURY ADMIN PIN KEYPAD IMPLEMENTATION
-    var enteredPin = '';
-
-
-    function pressPinDigit(digit) {
-      if (enteredPin.length < 4) {
-        enteredPin += digit;
-        updatePinDisplayDots();
-        if (enteredPin.length === 4) {
-          setTimeout(verifyCustomPinInput, 150);
-        }
-      }
-    }
-
-    function deleteLastPinDigit() {
-      if (enteredPin.length > 0) {
-        enteredPin = enteredPin.slice(0, -1);
-        updatePinDisplayDots();
-      }
-    }
-
-    function clearPinDigits() {
-      enteredPin = '';
-      updatePinDisplayDots();
-    }
-
-    function updatePinDisplayDots() {
-      for (let i = 0; i < 4; i++) {
-        const dot = document.getElementById(`pDot_${i}`);
-        if (dot) {
-          if (i < enteredPin.length) dot.classList.add('active');
-          else dot.classList.remove('active');
-        }
-      }
-    }
-
-    async function verifyCustomPinInput() {
-      let validPin = localStorage.getItem('tm_admin_pin');
-      if (typeof fbDb !== 'undefined') {
-        try {
-          const snap = await fbDb.ref('shop_admin_pin').once('value');
-          const cloudPin = snap.val();
-          if (cloudPin) {
-            validPin = String(cloudPin).trim();
-            localStorage.setItem('tm_admin_pin', validPin);
-          }
-        } catch(e) {
-          console.log('PIN sync check note:', e);
-        }
-      }
-      if (!validPin) validPin = '1234';
-
-      if (enteredPin === validPin) {
-        // Firebase Cloud မှ Discounts နှင့် FOC ဒေတာများ တိုက်ရိုက်ဆွဲယူခြင်း
-        fetchCloudDiscountsAndFoc();
-        closeModal('customAdminPinModal');
-        fetchAdminOrdersWithPin(enteredPin);
-        renderCategoryUI();
-        renderAdminCategoryChips();
-        renderAdminColorInputs();
-        renderAdminImageInputs();
-        renderAdminProducts();
-        renderStockTable();
-        renderAdminOrders();
-        renderAdminCustomers();
-        renderAnalytics();
-        renderDiscountsList();
-        renderAdminFlashSales();
-        renderAdminNewsList();
-        renderAdminMysteryBoxes();
-        renderAdminCommunityPosts();
-        loadCentralSettings();
-        renderAdminDeliverySettings();
-        checkAndRenderExpiryAlerts();
-        renderAdminDiscountReasonChips();
-        renderAdminChatSessionsList();
-        renderAdminBotConfigUI();
-        renderAdminStationTypesUI();
-      renderAdminStationsDirectory();
-        openModal('adminModal');
-      } else {
-        alert('PIN နံပါတ် မှားယွင်းနေပါသည်!');
-        clearPinDigits();
-      }
     }
 
     // 13. SPIN WHEEL ENGINE (CANVAS)
@@ -15947,18 +15771,18 @@ window.resetDeliverySelection = function() {
     codBtn.style.pointerEvents = 'auto';
   }
 };
-// ==========================================
-// 👑 UNIFIED BULLETPROOF ADMIN PIN & DASHBOARD LOGIC
-// ==========================================
+/* ========================================================
+   👑 BULLETPROOF ADMIN ACCESS (CLEAN & NON-DUPLICATED)
+   ======================================================== */
 var currentEnteredPin = "";
 var adminClickCount = 0;
 var adminClickTimer = null;
 
-// Logo ကို ၃ ချက် ဆက်တိုက်နှိပ်လျှင် PIN Pad ဖွင့်ခြင်း
+// Logo ကို ၃ ချက် ဆက်တိုက်နှိပ်လျှင် PIN Modal တန်းဖွင့်ပေးခြင်း
 function openAdminPrompt() {
   adminClickCount++;
   clearTimeout(adminClickTimer);
-  adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1400);
+  adminClickTimer = setTimeout(() => { adminClickCount = 0; }, 1200);
 
   if (adminClickCount >= 3) {
     adminClickCount = 0;
@@ -15966,7 +15790,6 @@ function openAdminPrompt() {
   }
 }
 
-// PIN Modal ဖွင့်ခြင်း
 function openAdminPinModal() {
   currentEnteredPin = "";
   updatePinDotsUI();
@@ -15978,10 +15801,11 @@ function openAdminPinModal() {
     pinModal.style.setProperty('inset', '0', 'important');
     pinModal.style.setProperty('z-index', '2147483647', 'important');
     pinModal.style.setProperty('background', 'rgba(0,0,0,0.85)', 'important');
+  } else {
+    alert("Error: customAdminPinModal ID ရှာမတွေ့ပါ");
   }
 }
 
-// PIN ဂဏန်းတစ်ခုချင်း နှိပ်ခြင်း
 function pressPinDigit(digit) {
   if (currentEnteredPin.length < 4) {
     currentEnteredPin += digit;
@@ -15992,7 +15816,6 @@ function pressPinDigit(digit) {
   }
 }
 
-// နောက်ဆုံးဂဏန်း ဖျက်ခြင်း
 function deleteLastPinDigit() {
   if (currentEnteredPin.length > 0) {
     currentEnteredPin = currentEnteredPin.slice(0, -1);
@@ -16000,13 +15823,11 @@ function deleteLastPinDigit() {
   }
 }
 
-// PIN အားလုံး ဖျက်ခြင်း
 function clearPinDigits() {
   currentEnteredPin = "";
   updatePinDotsUI();
 }
 
-// အစက် (Dots) များ Highlight ပြောင်းခြင်း
 function updatePinDotsUI() {
   for (let i = 0; i < 4; i++) {
     const dot = document.getElementById(`pDot_${i}`);
@@ -16020,14 +15841,12 @@ function updatePinDotsUI() {
   }
 }
 
-// PIN နံပါတ် မှန်/မမှန် စစ်ဆေးခြင်းနှင့် Dashboard အပြည့်အစုံ ဖွင့်ပေးခြင်း
 async function verifyAdminPin() {
   const entered = String(currentEnteredPin).trim();
   const dbPin = String(localStorage.getItem('tm_admin_pin') || "1542").trim();
 
-  // PIN: 1542 (သို့မဟုတ်) 1234 (သို့မဟုတ်) Database မှ PIN ဖြင့် ဝင်ခွင့်ပြုခြင်း
+  // PIN နံပါတ် 1542 သို့မဟုတ် 1234 ဖြင့် လက်ခံပေးခြင်း
   if (entered === "1542" || entered === "1234" || entered === dbPin) {
-    // PIN Modal ပိတ်ခြင်း
     const pinModal = document.getElementById('customAdminPinModal');
     if (pinModal) {
       pinModal.classList.remove('active');
@@ -16035,7 +15854,7 @@ async function verifyAdminPin() {
     }
     clearPinDigits();
 
-    // Admin Dashboard Modal ကို Screen အလယ်သို့ ရှေ့ဆုံးလွှာတင်၍ အတင်းဖွင့်ခြင်း
+    // Admin Dashboard Modal အား ဖွင့်လှစ်ခြင်း
     const adminEl = document.getElementById('adminModal');
     if (adminEl) {
       adminEl.classList.add('active');
@@ -16047,7 +15866,7 @@ async function verifyAdminPin() {
       }
     }
 
-    // ပထမဆုံး Products Tab ကို Active လုပ်ပေးခြင်း
+    // Products Tab သို့ ရောက်ရှိစေခြင်း
     document.querySelectorAll('.admin-tab').forEach(t => {
       t.classList.remove('active');
       t.style.setProperty('display', 'none', 'important');
@@ -16061,7 +15880,7 @@ async function verifyAdminPin() {
     const firstNavBtn = document.querySelector('.admin-nav-btn');
     if (firstNavBtn) firstNavBtn.classList.add('active');
 
-    // Dashboard ဒေတာများကို Error မတက်စေရန် Safe Call ဖြင့် ဆွဲတင်ပြသခြင်း
+    // ဒေတာများ ဆွဲတင်ခြင်း
     try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
     try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
     try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
