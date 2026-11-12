@@ -4994,6 +4994,7 @@ fetchArticles();
     });
 
     function saveProducts() {
+      products = (products || []).filter(p => p && p.name && p.id);
       localStorage.setItem('tm_products', JSON.stringify(products));
       if (typeof fbDb !== 'undefined') {
         fbDb.ref('shop_products').set(products);
@@ -5378,6 +5379,7 @@ orders = deduplicateOrders(raw);
     }
 
     function renderCatalog() {
+      products = (products || []).filter(p => p && p.name && p.id);
       const grid = document.getElementById('productGrid');
       if (!grid) return;
 
