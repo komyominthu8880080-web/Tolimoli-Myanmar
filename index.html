@@ -7659,65 +7659,84 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
     function autoDownloadVoucherCapture(o) {
-      const box = document.getElementById('hiddenVoucherCaptureBox');
-      if (!box || typeof html2canvas === 'undefined') return;
+  const box = document.getElementById('hiddenVoucherCaptureBox');
+  if (!box || typeof html2canvas === 'undefined') return;
 
-      let itemsHtml = (o.items || []).map(it => `
-        <tr style="border-bottom:1px dashed #bbb;">
-          <td style="padding:3px 0;">${it.name} ${it.sku ? '('+it.sku+')' : ''}</td>
-          <td style="text-align:center;">${it.qty}</td>
-          <td style="text-align:right;">${(it.price * it.qty).toLocaleString()} Ks</td>
+  let itemsHtml = (o.items || []).map(it => `
+    <tr style="border-bottom:1px dashed #bbb;">
+      <td style="padding:3px 0;">${it.name} ${it.sku ? '(' + it.sku + ')' : ''}</td>
+      <td style="text-align:center;">${it.qty}</td>
+      <td style="text-align:right;">${(Number(it.price || 0) * Number(it.qty || 1)).toLocaleString()} Ks</td>
+    </tr>
+  `).join('');
+
+  box.innerHTML = `
+    <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:6px; margin-bottom:6px;">
+      <h3 style="margin:0; font-size:15px; font-weight:bold; color:#000;">TOLIMOLI STORE</h3>
+      <div style="font-size:10px; color:#333;">ဖုန်း: 09-768124433 | ရန်ကုန်မြို့</div>
+    </div>
+    <div style="line-height:1.45; margin-bottom:6px; font-size:11px; color:#000;">
+      <div><b>အော်ဒါအမှတ်:</b> ${o.id}</div>
+      <div><b>ရက်စွဲ/အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}</div>
+      <div><b>ဝယ်သူ:</b> ${o.customer} (${o.phone})</div>
+      <div><b>လိပ်စာ:</b> ${o.address} (${o.township})</div>
+      ${o.specialNote ? `<div style="color:#b45309; font-weight:bold;">မှတ်ချက်: ${o.specialNote}</div>` : ''}
+      <div><b>ငွေပေးချေမှု:</b> ${o.payment}</div>
+    </div>
+    <table style="width:100%; border-collapse:collapse; border-top:1px dashed #000; border-bottom:1px dashed #000; margin-bottom:6px; font-size:11px; color:#000;">
+      <thead>
+        <tr style="border-bottom:1px solid #ddd;">
+          <th style="text-align:left; padding:3px 0;">ပစ္စည်း</th>
+          <th style="text-align:center;">အရေအတွက်</th>
+          <th style="text-align:right;">သင့်ငွေ</th>
         </tr>
-      `).join('');
+      </thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <div style="font-size:11px; line-height:1.5; text-align:right; color:#000;">
+      <div>ပစ္စည်းကျသင့်ငွေ: ${(Number(o.subTotal || o.total)).toLocaleString()} Ks</div>
+      ${o.discountAmount ? `<div>လျှော့ဈေး: -${Number(o.discountAmount).toLocaleString()} Ks</div>` : ''}
+      <div>ပို့ဆောင်ခ (${o.deliveryService || 'Deli'}): ${(Number(o.deliveryFee || 0)).toLocaleString()} Ks</div>
+      <div style="font-size:13px; font-weight:bold; border-top:1px dashed #000; padding-top:4px; margin-top:4px;">
+        စုစုပေါင်း: ${Number(o.total).toLocaleString()} MMK
+      </div>
+    </div>
+    <div style="text-align:center; margin-top:8px; font-size:10px; color:#555;">Tolimoli Myanmar ကို အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်</div>
+  `;
 
-      box.innerHTML = `
-        <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:4px; margin-bottom:4px;">
-          <img src="logo.png" alt="Logo" crossorigin="anonymous" style="max-height:36px;" onerror="this.src='logo.jpg'">
-          <h3 style="margin:0; font-size:13px; font-weight:bold;">TOLIMOLI STORE</h3>
-          <div style="font-size:9.5px;">ဖုန်း: 09-768124433 | ရန်ကုန်မြို့</div>
-        </div>
-        <div style="line-height:1.35; margin-bottom:4px; font-size:10.5px;">
-          <div>အော်ဒါအမှတ်: <b>${o.id}</b></div>
-          <div>ရက်စွဲ/အချိန်: <b>${o.createdAtFormatted || formatExactDateTime(o.date)}</b></div>
-          <div>ဝယ်သူ: <b>${o.customer}</b> (${o.phone})</div>
-          <div>လိပ်စာ: ${o.address} (${o.township})</div>
-          ${o.specialNote ? `<div style="color:#b45309; font-weight:bold;">မှတ်ချက်: ${o.specialNote}</div>` : ''}
-          <div>ငွေပေးချေမှု: <b>${o.payment}</b></div>
-        </div>
-        <table style="width:100%; border-collapse:collapse; border-top:1px dashed #000; border-bottom:1px dashed #000; margin:4px 0; font-size:10px;">
-          <thead>
-            <tr style="text-align:left; border-bottom:1px solid #ddd;">
-              <th style="padding:2px 0;">ပစ္စည်း</th>
-              <th style="text-align:center;">ခုရေ</th>
-              <th style="text-align:right;">သင့်ငွေ</th>
-            </tr>
-          </thead>
-          <tbody>${itemsHtml}</tbody>
-        </table>
-        <div style="line-height:1.3; font-size:10.5px; text-align:right;">
-          <div>ပစ္စည်းကျသင့်ငွေ: ${(o.subTotal||o.total).toLocaleString()} Ks</div>
-          ${o.discountAmount ? `<div>လျှော့ဈေး: -${o.discountAmount.toLocaleString()} Ks</div>` : ''}
-          <div>ပို့ဆောင်ခ (${o.deliveryService}): ${(o.deliveryFee||0).toLocaleString()} Ks</div>
-          <div style="font-size:12px; font-weight:bold; border-top:1px dashed #000; padding-top:3px; margin-top:3px;">
-            စုစုပေါင်း: ${Number(o.total).toLocaleString()} Ks
-          </div>
-        </div>
-        <div style="text-align:center; margin-top:8px; font-size:9px; color:#555;">
-          Tolimoli Myanmar ကို အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်
-        </div>
-      `;
+  // html2canvas မရိုက်ခင် visible block အဖြစ် ခဏဖွင့်ပေးခြင်း (Empty PNG မဖြစ်စေရန်)
+  box.style.display = 'block';
+  box.style.position = 'fixed';
+  box.style.left = '-9999px';
+  box.style.top = '0';
+  box.style.width = '340px';
+  box.style.background = '#ffffff';
+  box.style.color = '#000000';
+  box.style.padding = '14px';
+  box.style.zIndex = '-1';
 
-      setTimeout(() => {
-        html2canvas(box, { scale: 2, useCORS: true, allowTaint: true }).then(cvs => {
-          const a = document.createElement('a');
-          a.download = `Voucher-${o.id}.png`;
-          a.href = cvs.toDataURL('image/png');
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-        }).catch(e => console.log('Auto voucher download note:', e));
-      }, 300);
-    }
+  setTimeout(() => {
+    html2canvas(box, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    }).then(cvs => {
+      box.style.display = 'none';
+      const dataUrl = cvs.toDataURL('image/png');
+      if (!dataUrl || dataUrl.length < 100) return;
+      const a = document.createElement('a');
+      a.download = `Voucher-${o.id}.png`;
+      a.href = dataUrl;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }).catch(e => {
+      box.style.display = 'none';
+      console.log('Auto voucher download note:', e);
+    });
+  }, 200);
+}
     
     function showOrderSuccessScreen(o) {
       // --- SECURE TELEGRAM NOTIFICATION DISPATCH ---
