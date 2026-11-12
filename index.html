@@ -7334,15 +7334,20 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
 
       // ၄။ ကူပွန် မှန်ကန်ပါက လျှော့စျေး တွက်ချက်ခြင်း
       let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-      currentAppliedDiscount = (dObj.type === 'percent') 
-        ? Math.round((subTotal * Number(dObj.val)) / 100) 
-        : (Number(dObj.val) || 0);
+  const calcDisc = (dObj.type === 'percent')
+    ? Math.round((subTotal * Number(dObj.val)) / 100)
+    : (Number(dObj.val) || 0);
+  currentAppliedDiscount = calcDisc;
+  window.currentAppliedDiscount = calcDisc;
 
-      if (notice) {
-        notice.innerHTML = `<span style="color:#00ff88;">Promo Code '${code}' အောင်မြင်ပါသည် (- ${currentAppliedDiscount.toLocaleString()} Ks)</span>`;
-      }
-      renderCartUI();
-    }
+  if (notice) {
+    notice.innerHTML = `<span style="color:#00ff88;">Promo Code '${code}' အောင်မြင်ပါသည် (- ${calcDisc.toLocaleString()} Ks)</span>`;
+  }
+  renderCartUI();
+  if (typeof updateCheckoutGrandTotal === 'function') {
+    updateCheckoutGrandTotal(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : 0);
+  }
+}
 
     function updateCartBadge() {
       const cnt = cart.reduce((acc, c) => acc + c.qty, 0);
@@ -7615,14 +7620,14 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
   if (typeof currentRedeemedPointsDiscount !== 'undefined') currentRedeemedPointsDiscount = 0;
 
   // Promo Code နှင့် ဖောင်အကွက်အဟောင်းများ အားလုံးကို အလိုအလျောက် ပြန်ရှင်းလင်းခြင်း
-  const clearIds = ['couponInput', 'custName', 'custPhone', 'custAddress', 'custTownshipInput', 'custBusGate', 'custSpecialNote', 'paymentTrxId', 'paymentSlipInput'];
+  const clearIds = ['couponCodeInput', 'couponInput', 'custName', 'custPhone', 'custAddress', 'custTownshipInput', 'custBusGate', 'custSpecialNote', 'slipTrxIdInput', 'slipFileInput'];
   clearIds.forEach(elId => {
     const el = document.getElementById(elId);
     if (el) el.value = '';
   });
   const couponNotice = document.getElementById('couponNotice');
   if (couponNotice) couponNotice.innerHTML = '';
-  const slipPreview = document.getElementById('paymentSlipPreview');
+  const slipPreview = document.getElementById('slipPreviewImg') || document.getElementById('paymentSlipPreview');
   if (slipPreview) { slipPreview.src = ''; slipPreview.style.display = 'none'; }
   const deliBox = document.getElementById('dynamicDeliOptionsContainer');
   if (deliBox) deliBox.style.setProperty('display', 'none', 'important');
@@ -7638,6 +7643,20 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
   closeModal('cartModal');
   showOrderSuccessScreen(newOrder);
 }
+
+// စာမျက်နှာ Refresh လုပ်တိုင်း ဖောင်အကွက်အဟောင်းများ မကျန်စေရန် အလိုအလျောက် ရှင်းလင်းခြင်း
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    ['couponCodeInput', 'custName', 'custPhone', 'custAddress', 'custTownshipInput', 'custBusGate', 'custSpecialNote', 'slipTrxIdInput', 'slipFileInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    currentAppliedDiscount = 0;
+    window.currentAppliedDiscount = 0;
+    currentDeliveryFee = 0;
+    if (typeof renderCartUI === 'function') renderCartUI();
+  }, 300);
+});
 
     function autoDownloadVoucherCapture(o) {
       const box = document.getElementById('hiddenVoucherCaptureBox');
