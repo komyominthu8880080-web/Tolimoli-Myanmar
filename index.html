@@ -16015,6 +16015,51 @@ function forceOpenAdminDashboard() {
     try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
   }
 }
+// ============================================================
+// MASTER CHECKOUT SYNC & AUTO-CLEAR GUARD (100% EXACT TOTAL)
+// ============================================================
+(function() {
+  function forceExactCheckoutSync() {
+    const subEl = document.getElementById('cartSubTotal');
+    const discEl = document.getElementById('cartDiscountText');
+    const feeEl = document.getElementById('cartDeliveryFeeText');
+    const totalEl = document.getElementById('cartTotalPrice');
+    if (!subEl || !totalEl) return;
+
+    const subNum = Number(subEl.innerText.replace(/[^0-9]/g, '')) || 0;
+    const discNum = discEl ? (Number(discEl.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
+    const feeNum = feeEl ? (Number(feeEl.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
+
+    const exactGrand = Math.max(0, subNum - discNum) + feeNum;
+    const expectedText = exactGrand.toLocaleString() + ' MMK';
+
+    if (totalEl.innerText !== expectedText) {
+      totalEl.innerText = expectedText;
+      window.currentCheckoutTotalAmount = exactGrand;
+      if (typeof renderQrBoxContent === 'function') renderQrBoxContent();
+    }
+  }
+
+  // စက္ကန့်ဝက်တိုင်း မျက်နှာပြင်ပေါ်က SubTotal - Discount + DeliFee ကို အမြဲ အတိအကျ ညှိပေးခြင်း
+  setInterval(forceExactCheckoutSync, 400);
+
+  // Page Refresh / Load လုပ်တိုင်း Form အကွက်အဟောင်းများကို ရှင်းလင်းခြင်း
+  window.addEventListener('pageshow', () => {
+    ['couponCodeInput', 'custName', 'custPhone', 'custAddress', 'custTownshipInput', 'custBusGate', 'custSpecialNote', 'slipTrxIdInput', 'slipFileInput'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.setAttribute('autocomplete', 'off');
+        el.value = '';
+      }
+    });
+    const couponNotice = document.getElementById('couponNotice');
+    if (couponNotice) couponNotice.innerHTML = '';
+    if (typeof currentAppliedDiscount !== 'undefined') currentAppliedDiscount = 0;
+    window.currentAppliedDiscount = 0;
+    if (typeof currentDeliveryFee !== 'undefined') currentDeliveryFee = 0;
+    if (typeof renderCartUI === 'function') renderCartUI();
+  });
+})();
 </script>
 </body>
 </html>
