@@ -4781,22 +4781,20 @@ function updateCheckoutGrandTotal(deliFee) {
     discEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
   }
 
-  // Active ဖြစ်နေသော Discount ကို အတိအကျ ဆွဲထုတ်ယူခြင်း
-    let discVal = 0;
-  if (typeof currentAppliedDiscount !== 'undefined') discVal += Number(currentAppliedDiscount) || 0;
-  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) discVal += Number(currentVipStatus.discountAmount) || 0;
-  if (typeof currentRedeemedPointsDiscount !== 'undefined') discVal += Number(currentRedeemedPointsDiscount) || 0;
+  // မျက်နှာပြင်ပေါ်ရှိ SubTotal, Discount နှင့် Delivery Fee တို့မှ တိုက်ရိုက် အတိအကျ တွက်ချက်ခြင်း
+  const subEl = document.getElementById('cartSubTotal');
+  const discEl2 = document.getElementById('cartDiscountText');
+  const feeEl2 = document.getElementById('cartDeliveryFeeText');
 
-  if (discVal === 0) {
-    const discountElement = document.getElementById('cartDiscountText');
-    if (discountElement && discountElement.innerText) {
-      discVal = Number(discountElement.innerText.replace(/[^0-9]/g, '')) || 0;
-    }
+  const currentSub = subEl ? (Number(subEl.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
+  let discVal = discEl2 ? (Number(discEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
+  if (discVal === 0 && typeof currentAppliedDiscount !== 'undefined') {
+    discVal = Number(currentAppliedDiscount) || 0;
   }
+  const actualDeli = deliFee !== undefined ? (Number(deliFee) || 0) : (feeEl2 ? (Number(feeEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0);
 
-  const currentSub = Number(typeof subTotal !== 'undefined' ? subTotal : (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-  const finalGrandTotal = Math.max(0, currentSub - discVal) + Number(deliFee || 0);
-    const totalEl = document.getElementById('cartTotalPrice');
+  const finalGrandTotal = Math.max(0, currentSub - discVal) + actualDeli;
+  const totalEl = document.getElementById('cartTotalPrice');
   if (totalEl) {
     totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
   }
@@ -7230,22 +7228,26 @@ setTimeout(() => {
     const feeEl = document.getElementById('cartDeliveryFeeText');
     if (feeEl) feeEl.innerText = effectiveFee.toLocaleString() + ' Ks' + (isFreeDeliveryApplied ? ' (Free)' : '');
 
-    // Active ဖြစ်နေသော Discount အားလုံးကို ဟိုက်ပိုက် ဖျက်ထုတ် တွက်ချက်ခြင်း
-    let activeDisc = 0;
-  if (typeof currentAppliedDiscount !== 'undefined') activeDisc += Number(currentAppliedDiscount) || 0;
-  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) activeDisc += Number(currentVipStatus.discountAmount) || 0;
-  if (typeof currentRedeemedPointsDiscount !== 'undefined') activeDisc += Number(currentRedeemedPointsDiscount) || 0;
 
-  const baseSubTotal = Number(typeof subTotal !== 'undefined' ? subTotal : 0) || 0;
-  const deliAmount = Number(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : (typeof effectiveFee !== 'undefined' ? effectiveFee : 0)) || 0;
+   // မျက်နှာပြင်ပေါ်ရှိ SubTotal, Discount နှင့် Delivery Fee တို့မှ တိုက်ရိုက် အတိအကျ တွက်ချက်ခြင်း
+  const subEl = document.getElementById('cartSubTotal');
+  const discEl2 = document.getElementById('cartDiscountText');
+  const feeEl2 = document.getElementById('cartDeliveryFeeText');
+
+  const baseSubTotal = subEl ? (Number(subEl.innerText.replace(/[^0-9]/g, '')) || 0) : (Number(typeof subTotal !== 'undefined' ? subTotal : 0) || 0);
+  let activeDisc = discEl2 ? (Number(discEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
+  if (activeDisc === 0 && typeof currentAppliedDiscount !== 'undefined') {
+    activeDisc = Number(currentAppliedDiscount) || 0;
+  }
+  const deliAmount = feeEl2 ? (Number(feeEl2.innerText.replace(/[^0-9]/g, '')) || 0) : (Number(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : 0) || 0);
+
   const grandTotal = Math.max(0, baseSubTotal - activeDisc) + deliAmount;
   window.currentCheckoutTotalAmount = grandTotal;
 
-    const totalEl = document.getElementById('cartTotalPrice');
-    if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
-    if (typeof renderQrBoxContent === 'function') renderQrBoxContent();
+  const totalEl = document.getElementById('cartTotalPrice');
+  if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
+  if (typeof renderQrBoxContent === 'function') renderQrBoxContent();
 
-    if (typeof renderCheckoutFocSection === 'function') renderCheckoutFocSection();
     }
     // မြို့နယ်ရွေးချယ်ချိန်တွင် စနစ်ဟောင်း Deli / ဂိတ်များနှင့် စနစ်သစ်ကို ပေါင်းစပ်ပေးသည့် Function
 function handleTownshipSelectionIntegration(townshipInputVal) {
