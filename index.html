@@ -10199,7 +10199,10 @@ function onSearchCompanyTown(cIdx, query) {
     document.body.appendChild(m);
 
     m.classList.add('active');
-    m.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483640 !important; background: rgba(0,0,0,0.85) !important; align-items: center !important; justify-content: center !important;";
+    window._topModalZ = (window._topModalZ || 100000) + 10;
+    m.style.cssText = `display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: ${window._topModalZ} !important; align-items: center; justify-content: center;`;
+    window._topModalZ = (window._topModalZ || 100000) + 10;
+    m.style.setProperty('z-index', String(window._topModalZ), 'important');
     
     document.body.classList.add('modal-open');
 
