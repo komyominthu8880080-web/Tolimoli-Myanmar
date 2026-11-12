@@ -7242,7 +7242,7 @@ setTimeout(() => {
     const totalEl = document.getElementById('cartTotalPrice');
     if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
     if (typeof renderQrBoxContent === 'function') renderQrBoxContent();
-    
+
     if (typeof renderCheckoutFocSection === 'function') renderCheckoutFocSection();
     }
     // မြို့နယ်ရွေးချယ်ချိန်တွင် စနစ်ဟောင်း Deli / ဂိတ်များနှင့် စနစ်သစ်ကို ပေါင်းစပ်ပေးသည့် Function
@@ -8049,14 +8049,19 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
     }
 
     function openStockAdjustmentModal(pId) {
-      const p = products.find(x => x.id === pId);
-      if (!p) return;
-      currentAdjProductId = pId;
-      document.getElementById('adjProductInfo').innerText = `${p.name} (SKU: ${p.sku||'-'} | လက်ရှိလက်ကျန်: ${p.stock||0} ခု)`;
-      document.getElementById('adjActionQty').value = '1';
-      document.getElementById('adjActionReason').value = '';
-      openModal('stockAdjustmentModal');
-    }
+  const p = products.find(x => x.id === pId);
+  if (!p) return;
+  currentAdjProductId = pId;
+  document.getElementById('adjProductInfo').innerText = `${p.name} (SKU: ${p.sku||'-'} | လက်ရှိလက်ကျန်: ${p.stock||0} ခု)`;
+  document.getElementById('adjActionQty').value = '1';
+  document.getElementById('adjActionReason').value = '';
+  const adjModal = document.getElementById('stockAdjustmentModal');
+  if (adjModal) {
+    document.body.appendChild(adjModal);
+    adjModal.style.zIndex = '999999';
+  }
+  openModal('stockAdjustmentModal');
+}
 
     function confirmStockAdjustment() {
       const p = products.find(x => x.id === currentAdjProductId);
