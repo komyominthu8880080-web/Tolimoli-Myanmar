@@ -7605,14 +7605,39 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
       }).catch(e => console.error('Order API error:', e));
 
       lastSubmittedOrder = newOrder;
-      cart = [];
-      currentAppliedDiscount = 0;
-      saveCart();
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-check-circle"></i> အော်ဒါ အတည်ပြုတင်မည်';
-      closeModal('cartModal');
-      showOrderSuccessScreen(newOrder);
-    }
+  cart = [];
+  currentAppliedDiscount = 0;
+  currentDeliveryFee = 0;
+  currentSelectedTownship = '';
+  currentDeliveryService = '';
+  currentEstimatedDays = '';
+  currentCustomerSelectedFocGift = null;
+  if (typeof currentRedeemedPointsDiscount !== 'undefined') currentRedeemedPointsDiscount = 0;
+
+  // Promo Code နှင့် ဖောင်အကွက်အဟောင်းများ အားလုံးကို အလိုအလျောက် ပြန်ရှင်းလင်းခြင်း
+  const clearIds = ['couponInput', 'custName', 'custPhone', 'custAddress', 'custTownshipInput', 'custBusGate', 'custSpecialNote', 'paymentTrxId', 'paymentSlipInput'];
+  clearIds.forEach(elId => {
+    const el = document.getElementById(elId);
+    if (el) el.value = '';
+  });
+  const couponNotice = document.getElementById('couponNotice');
+  if (couponNotice) couponNotice.innerHTML = '';
+  const slipPreview = document.getElementById('paymentSlipPreview');
+  if (slipPreview) { slipPreview.src = ''; slipPreview.style.display = 'none'; }
+  const deliBox = document.getElementById('dynamicDeliOptionsContainer');
+  if (deliBox) deliBox.style.setProperty('display', 'none', 'important');
+  const gateBox = document.getElementById('customerBusGateSection');
+  if (gateBox) gateBox.style.display = 'none';
+  const chkPoints = document.getElementById('chkUsePoints');
+  if (chkPoints) chkPoints.checked = false;
+
+  saveCart();
+  if (typeof renderCartUI === 'function') renderCartUI();
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fas fa-check-circle"></i> အော်ဒါ အတည်ပြုတင်မည်';
+  closeModal('cartModal');
+  showOrderSuccessScreen(newOrder);
+}
 
     function autoDownloadVoucherCapture(o) {
       const box = document.getElementById('hiddenVoucherCaptureBox');
