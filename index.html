@@ -7659,14 +7659,23 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
     function autoDownloadVoucherCapture(o) {
-  const box = document.getElementById('hiddenVoucherCaptureBox');
-  if (!box || typeof html2canvas === 'undefined') return;
+  if (typeof html2canvas === 'undefined') return;
+
+  // hiddenVoucherCaptureBox မရှိလျှင် (သို့မဟုတ် Modal ထဲရောက်နေလျှင်) document.body ထဲသို့ တိုက်ရိုက်ထုတ်ခြင်း
+  let box = document.getElementById('hiddenVoucherCaptureBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'hiddenVoucherCaptureBox';
+  }
+  if (box.parentElement !== document.body) {
+    document.body.appendChild(box);
+  }
 
   let itemsHtml = (o.items || []).map(it => `
     <tr style="border-bottom:1px dashed #bbb;">
-      <td style="padding:3px 0;">${it.name} ${it.sku ? '(' + it.sku + ')' : ''}</td>
-      <td style="text-align:center;">${it.qty}</td>
-      <td style="text-align:right;">${(Number(it.price || 0) * Number(it.qty || 1)).toLocaleString()} Ks</td>
+      <td style="padding:4px 0; color:#000;">${it.name} ${it.sku ? '(' + it.sku + ')' : ''}</td>
+      <td style="text-align:center; color:#000;">${it.qty}</td>
+      <td style="text-align:right; color:#000;">${(Number(it.price || 0) * Number(it.qty || 1)).toLocaleString()} Ks</td>
     </tr>
   `).join('');
 
@@ -7677,7 +7686,7 @@ window.addEventListener('DOMContentLoaded', () => {
     </div>
     <div style="line-height:1.45; margin-bottom:6px; font-size:11px; color:#000;">
       <div><b>အော်ဒါအမှတ်:</b> ${o.id}</div>
-      <div><b>ရက်စွဲ/အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}</div>
+      <div><b>ရက်စွဲ/အချိန်:</b> ${o.createdAtFormatted || (typeof formatExactDateTime === 'function' ? formatExactDateTime(o.date) : o.date)}</div>
       <div><b>ဝယ်သူ:</b> ${o.customer} (${o.phone})</div>
       <div><b>လိပ်စာ:</b> ${o.address} (${o.township})</div>
       ${o.specialNote ? `<div style="color:#b45309; font-weight:bold;">မှတ်ချက်: ${o.specialNote}</div>` : ''}
@@ -7686,9 +7695,9 @@ window.addEventListener('DOMContentLoaded', () => {
     <table style="width:100%; border-collapse:collapse; border-top:1px dashed #000; border-bottom:1px dashed #000; margin-bottom:6px; font-size:11px; color:#000;">
       <thead>
         <tr style="border-bottom:1px solid #ddd;">
-          <th style="text-align:left; padding:3px 0;">ပစ္စည်း</th>
-          <th style="text-align:center;">အရေအတွက်</th>
-          <th style="text-align:right;">သင့်ငွေ</th>
+          <th style="text-align:left; padding:3px 0; color:#000;">ပစ္စည်း</th>
+          <th style="text-align:center; color:#000;">အရေအတွက်</th>
+          <th style="text-align:right; color:#000;">သင့်ငွေ</th>
         </tr>
       </thead>
       <tbody>${itemsHtml}</tbody>
@@ -7697,23 +7706,15 @@ window.addEventListener('DOMContentLoaded', () => {
       <div>ပစ္စည်းကျသင့်ငွေ: ${(Number(o.subTotal || o.total)).toLocaleString()} Ks</div>
       ${o.discountAmount ? `<div>လျှော့ဈေး: -${Number(o.discountAmount).toLocaleString()} Ks</div>` : ''}
       <div>ပို့ဆောင်ခ (${o.deliveryService || 'Deli'}): ${(Number(o.deliveryFee || 0)).toLocaleString()} Ks</div>
-      <div style="font-size:13px; font-weight:bold; border-top:1px dashed #000; padding-top:4px; margin-top:4px;">
+      <div style="font-size:13px; font-weight:bold; border-top:1px dashed #000; padding-top:4px; margin-top:4px; color:#000;">
         စုစုပေါင်း: ${Number(o.total).toLocaleString()} MMK
       </div>
     </div>
     <div style="text-align:center; margin-top:8px; font-size:10px; color:#555;">Tolimoli Myanmar ကို အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်</div>
   `;
 
-  // html2canvas မရိုက်ခင် visible block အဖြစ် ခဏဖွင့်ပေးခြင်း (Empty PNG မဖြစ်စေရန်)
-  box.style.display = 'block';
-  box.style.position = 'fixed';
-  box.style.left = '-9999px';
-  box.style.top = '0';
-  box.style.width = '340px';
-  box.style.background = '#ffffff';
-  box.style.color = '#000000';
-  box.style.padding = '14px';
-  box.style.zIndex = '-1';
+  // မျက်နှာပြင်ပေါ်တွင် အမှန်တကယ် Render ဖြစ်စေရန် document.body အောက်၌ ထားရှိခြင်း
+  box.style.cssText = 'display:block !important; position:fixed; left:-9999px; top:0; width:340px; background:#ffffff; color:#000000; padding:14px; z-index:-1; opacity:1; visibility:visible;';
 
   setTimeout(() => {
     html2canvas(box, {
@@ -7724,7 +7725,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }).then(cvs => {
       box.style.display = 'none';
       const dataUrl = cvs.toDataURL('image/png');
-      if (!dataUrl || dataUrl.length < 100) return;
       const a = document.createElement('a');
       a.download = `Voucher-${o.id}.png`;
       a.href = dataUrl;
@@ -7733,9 +7733,9 @@ window.addEventListener('DOMContentLoaded', () => {
       document.body.removeChild(a);
     }).catch(e => {
       box.style.display = 'none';
-      console.log('Auto voucher download note:', e);
+      console.error('Auto voucher download error:', e);
     });
-  }, 200);
+  }, 250);
 }
     
     function showOrderSuccessScreen(o) {
