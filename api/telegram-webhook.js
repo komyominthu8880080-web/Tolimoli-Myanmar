@@ -12,50 +12,101 @@ export default async function handler(req, res) {
     return res.status(200).send('Method Not Allowed');
   }
 
-  // @Tolimolimyanmar_bot ၏ Token အသစ်စက်စက်
   const ORDER_BOT_TOKEN = process.env.ORDER_BOT_TOKEN;
-const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
-const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
-const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
+  const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
+  const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
+  const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
   const FIREBASE_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   const body = req.body || {};
+
+  // စာသားနှင့် ငွေလွှဲပြေစာပုံ တစ်ဆက်တည်း (သို့မဟုတ်) စာသီးသန့် ပို့ပေးမည့် Helper Function
+  async function sendOrderToTelegram(targetChat, targetTopic, textMsg, slipUrl) {
+    if (slipUrl && typeof slipUrl === 'string' && slipUrl.trim() !== '') {
+      // ၁။ Base64 ပုံဖိုင် ဖြစ်နေပါက FormData (Blob) ဖြင့် sendPhoto ပို့ခြင်း
+      if (slipUrl.startsWith('data:image')) {
+        const matches = slipUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+        if (matches) {
+          const mimeType = matches[1];
+          const ext = mimeType.split('/')[1] || 'jpg';
+          const buffer = Buffer.from(matches[2], 'base64');
+          const blob = new Blob([buffer], { type: mimeType });
+
+          const formData = new FormData();
+          formData.append('chat_id', String(targetChat));
+          if (targetTopic) formData.append('message_thread_id', String(targetTopic));
+          formData.append('photo', blob, `slip.${ext}`);
+          formData.append('caption', textMsg.slice(0, 1024));
+          formData.append('parse_mode', 'HTML');
+
+          const photoRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+          });
+          const photoData = await photoRes.json();
+          if (photoData.ok) return photoData;
+        }
+      } else if (slipUrl.startsWith('http')) {
+        // ၂။ HTTP Image URL ဖြစ်နေပါက URL ဖြင့် တိုက်ရိုက် sendPhoto ပို့ခြင်း
+        const photoPayload = {
+          chat_id: targetChat,
+          photo: slipUrl,
+          caption: textMsg.slice(0, 1024),
+          parse_mode: 'HTML'
+        };
+        if (targetTopic) photoPayload.message_thread_id = targetTopic;
+
+        const photoRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendPhoto`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(photoPayload)
+        });
+        const photoData = await photoRes.json();
+        if (photoData.ok) return photoData;
+      }
+    }
+
+    // စလစ်ပုံ မပါလျှင် (သို့မဟုတ် sendPhoto မအောင်မြင်လျှင်) စာသားအပြည့်အစုံ ပို့ပေးခြင်း
+    const textPayload = {
+      chat_id: targetChat,
+      text: textMsg,
+      parse_mode: 'HTML'
+    };
+    if (targetTopic) textPayload.message_thread_id = targetTopic;
+
+    const tgRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(textPayload)
+    });
+    return await tgRes.json();
+  }
 
   // -------------------------------------------------------------
   // ၁။ FRONTEND မှ အော်ဒါသစ် ပို့ဆောင်ခြင်း (ORDER BOT သီးသန့်)
   // -------------------------------------------------------------
   if (body.action === 'sendOrderNotification') {
-    const { orderData, messageText, chatId, topicId } = body;
+    const { orderData, messageText, chatId, topicId, slipUrl } = body;
 
-    // ၁။ အကယ်၍ Frontend မှ messageText ဖြင့် တိုက်ရိုက်ပို့လာပါက ချက်ချင်းပို့ပေးခြင်း
     if (messageText) {
       try {
-        const directPayload = {
-          chat_id: chatId || ADMIN_CHAT_ID,
-          text: messageText,
-          parse_mode: 'HTML'
-        };
-        if (topicId) directPayload.message_thread_id = topicId;
-
-        const tgRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(directPayload)
-        });
-        const tgData = await tgRes.json();
+        const tgData = await sendOrderToTelegram(
+          chatId || ADMIN_CHAT_ID,
+          topicId,
+          messageText,
+          slipUrl || (orderData && orderData.slipUrl)
+        );
         return res.status(200).json({ success: true, tgResponse: tgData });
       } catch (err) {
         return res.status(500).json({ error: err.message });
       }
     }
 
-    // ၂။ orderData ဖြင့် ပို့လာပါက စစ်ဆေးခြင်း
     if (!orderData) {
       return res.status(400).json({ error: 'Missing order data' });
     }
 
     try {
-      // မူလ Screenshot ပါ Format အတိုင်း ပစ္စည်းစာရင်း ပြုလုပ်ခြင်း
       let itemsText = '';
       if (Array.isArray(orderData.items) && orderData.items.length > 0) {
         itemsText = orderData.items.map(it => {
@@ -64,11 +115,10 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
           const color = it.color || it.selectedColor ? ` [${it.color || it.selectedColor}]` : '';
           const qty = it.qty || 1;
           const price = Number(it.price || 0) * qty;
-          return `• ${name}${color}${sku} x${qty} - ${price.toLocaleString()} Ks`;
+          return `• ${name}${color}${sku} x${qty}\n  ${price.toLocaleString()} Ks`;
         }).join('\n');
       }
 
-      // ရက်စွဲနှင့် အချိန် format (မြန်မာစံတော်ချိန် Yangon Timezone UTC+6:30 အတိအကျ တွက်ထုတ်ခြင်း)
       const now = new Date();
       const mmDateStr = new Intl.DateTimeFormat('en-GB', {
         timeZone: 'Asia/Yangon',
@@ -86,11 +136,9 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
       }).format(now);
 
       const timeStr = `${mmDateStr} | ${mmTimeStr}`;
-
-      // ပို့ဆောင်ခ တန်ဖိုးကို Variable အမည်အမျိုးမျိုးမှ သေချာပေါက် ဆွဲယူခြင်း
       const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
+      const isHttpSlip = orderData.slipUrl && String(orderData.slipUrl).startsWith('http');
 
-      // Telegram Message Body (မူလ အတိုင်း ပုံစံမပျက်)
       const orderMessageText = '🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n' +
         '🆔 <b>Order ID:</b> <code>' + (orderData.id || '-') + '</code>\n' +
         '📅 <b>ရက်စွဲနှင့် အချိန်:</b> ' + timeStr + '\n\n' +
@@ -105,26 +153,21 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
         '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
         '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
         (orderData.specialNote ? '\n\n📝 <b>မှတ်ချက်:</b> ' + orderData.specialNote : '') +
-        (orderData.slipUrl ? '\n\n📷 <b>ငွေလွှဲပြေစာ:</b> <a href="' + orderData.slipUrl + '">ပြေစာကြည့်ရန် နှိပ်ပါ</a>' : '');
+        (isHttpSlip ? '\n\n🧾 <b>ငွေလွှဲပြေစာ:</b> ' + orderData.slipUrl : '');
 
-      const payload = {
-        chat_id: ADMIN_CHAT_ID,
-        text: orderMessageText,
-        parse_mode: 'HTML'
-      };
-
-      const tgRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const tgData = await tgRes.json();
+      const tgData = await sendOrderToTelegram(
+        chatId || ADMIN_CHAT_ID,
+        topicId,
+        orderMessageText,
+        slipUrl || orderData.slipUrl
+      );
       return res.status(200).json({ success: true, tgResponse: tgData });
     } catch (err) {
       console.error('Telegram Send Order Error:', err);
       return res.status(500).json({ error: err.message });
     }
   }
+
   // ==========================================
   // ဝဘ်ဆိုက်မှ TELEGRAM GROUP သို့ LIVE CHAT စာပို့ခြင်း
   // ==========================================
@@ -169,6 +212,7 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
       return res.status(500).json({ error: err.message });
     }
   }
+
   // -------------------------------------------------------------
   // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK
   // -------------------------------------------------------------

@@ -7229,17 +7229,20 @@ setTimeout(() => {
     if (feeEl) feeEl.innerText = effectiveFee.toLocaleString() + ' Ks' + (isFreeDeliveryApplied ? ' (Free)' : '');
 
 
-   // မျက်နှာပြင်ပေါ်ရှိ SubTotal, Discount နှင့် Delivery Fee တို့မှ တိုက်ရိုက် အတိအကျ တွက်ချက်ခြင်း
-  const subEl = document.getElementById('cartSubTotal');
+   // subTotal (cart ထဲမှ တကယ့်ပစ္စည်းဖိုး) မှ တိုက်ရိုက် တွက်ချက်ခြင်း
   const discEl2 = document.getElementById('cartDiscountText');
   const feeEl2 = document.getElementById('cartDeliveryFeeText');
 
-  const baseSubTotal = subEl ? (Number(subEl.innerText.replace(/[^0-9]/g, '')) || 0) : (Number(typeof subTotal !== 'undefined' ? subTotal : 0) || 0);
-  let activeDisc = discEl2 ? (Number(discEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
-  if (activeDisc === 0 && typeof currentAppliedDiscount !== 'undefined') {
-    activeDisc = Number(currentAppliedDiscount) || 0;
+  const baseSubTotal = Number(typeof subTotal !== 'undefined' ? subTotal : 0) || 0;
+  let activeDisc = 0;
+  if (typeof currentAppliedDiscount !== 'undefined') activeDisc += Number(currentAppliedDiscount) || 0;
+  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) activeDisc += Number(currentVipStatus.discountAmount) || 0;
+  if (typeof currentRedeemedPointsDiscount !== 'undefined') activeDisc += Number(currentRedeemedPointsDiscount) || 0;
+  if (activeDisc === 0 && discEl2) {
+    activeDisc = Number(discEl2.innerText.replace(/[^0-9]/g, '')) || 0;
   }
-  const deliAmount = feeEl2 ? (Number(feeEl2.innerText.replace(/[^0-9]/g, '')) || 0) : (Number(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : 0) || 0);
+
+  const deliAmount = Number(typeof currentDeliveryFee !== 'undefined' && currentDeliveryFee > 0 ? currentDeliveryFee : (feeEl2 ? (Number(feeEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0)) || 0;
 
   const grandTotal = Math.max(0, baseSubTotal - activeDisc) + deliAmount;
   window.currentCheckoutTotalAmount = grandTotal;
@@ -7835,8 +7838,12 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
     `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${(o.subTotal || o.total).toLocaleString()} Ks\n` +
     (o.discountAmount ? `🏷️ <b>လျှော့ဈေး:</b> -${Number(o.discountAmount).toLocaleString()} Ks\n` : '') +
     `🛵 <b>ပို့ဆောင်ခ:</b> ${(o.deliveryFee || 0).toLocaleString()} Ks\n` +
-    `💵 <b>စုစုပေါင်းကျသင့်ငွေ:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n` +
-    (o.slipUrl ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">👉 ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : '');
+    `💵 <b>စုစုပေါင်းကျသင့်ငွေ:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n`  ;
+    const isHttpSlip = o.slipUrl && String(o.slipUrl).startsWith('http');
+  const slipLine = o.slipUrl 
+    ? (isHttpSlip ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <i>(Admin Dashboard နှင့် ပုံတွင် စစ်ဆေးပါ)</i>`)
+    : '';
+  const finalMsg = msg + slipLine;
 
   // Backend Webhook API သို့ လုံခြုံစွာ လွှဲပြောင်းပေးပို့ခြင်း
   fetch('/api/telegram-webhook', {
@@ -7846,7 +7853,8 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       action: 'sendOrderNotification',
       chatId: targetChatId,
       topicId: targetTopicId,
-      messageText: msg
+      messageText: finalMsg,
+      slipUrl: o.slipUrl || null
     })
   })
   .then(res => res.json())
