@@ -2706,7 +2706,7 @@ function scrollCategories(amount) {
 
   <div class="modal-overlay" id="stockAdjustmentModal" style="z-index: 99999 !important;">
     <div class="modal-content" style="max-width:400px;">
-      <button class="modal-close" onclick="closeModal('stockAdjustmentModal')"><i class="fas fa-times"></i></button>
+      <button class="modal-close" onclick="closeModal('stockAdjustmentModal'); openModal('adminModal');"><i class="fas fa-times"></i></button>
       <h3 style="color:var(--gold); font-size:1rem; margin-bottom:8px;"><i class="fas fa-cogs"></i> Stock ချိန်ညှိခြင်းနှင့် ပျက်စီးစာရင်း</h3>
       <div id="adjProductInfo" style="font-size:0.8rem; color:#38bdf8; margin-bottom:10px;"></div>
 
@@ -8055,42 +8055,58 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
   document.getElementById('adjProductInfo').innerText = `${p.name} (SKU: ${p.sku||'-'} | လက်ရှိလက်ကျန်: ${p.stock||0} ခု)`;
   document.getElementById('adjActionQty').value = '1';
   document.getElementById('adjActionReason').value = '';
+
+  // Admin Modal ကို ယာယီပိတ်ပြီး Stock ချိန်ညှိ Modal ကို ရှေ့ဆုံး တန်းတင်ခြင်း
+  const adminM = document.getElementById('adminModal');
+  if (adminM) {
+    adminM.classList.remove('active');
+    adminM.style.setProperty('display', 'none', 'important');
+  }
+
+  openModal('stockAdjustmentModal');
   const adjModal = document.getElementById('stockAdjustmentModal');
   if (adjModal) {
-    document.body.appendChild(adjModal);
-    adjModal.style.zIndex = '999999';
+    adjModal.classList.add('active');
+    adjModal.style.setProperty('display', 'flex', 'important');
+    adjModal.style.setProperty('z-index', '2147483647', 'important');
   }
-  openModal('stockAdjustmentModal');
 }
 
-    function confirmStockAdjustment() {
-      const p = products.find(x => x.id === currentAdjProductId);
-      if (!p) return;
+function confirmStockAdjustment() {
+  const p = products.find(x => x.id === currentAdjProductId);
+  if (!p) return;
 
-      const act = document.getElementById('adjActionType').value;
-      const qty = Number(document.getElementById('adjActionQty').value) || 1;
-      const reason = document.getElementById('adjActionReason').value.trim() || 'ပုံမှန် ချိန်ညှိချက်';
+  const act = document.getElementById('adjActionType').value;
+  const qty = Number(document.getElementById('adjActionQty').value) || 1;
+  const reason = document.getElementById('adjActionReason').value.trim() || 'ပုံမှန် ချိန်ညှိချက်';
 
-      if (act === 'damage') {
-        if ((Number(p.stock) || 0) < qty) return alert('လက်ကျန်ထက် ပို၍ ပျက်စီးစာရင်း မသွင်းနိုင်ပါ');
-        p.damaged = (Number(p.damaged) || 0) + qty;
-        p.stock = Math.max(0, (Number(p.stock) || 0) - qty);
-      } else {
-        p.stock = (Number(p.stock) || 0) + qty;
-      }
+  if (act === 'damage') {
+    if ((Number(p.stock) || 0) < qty) return alert('လက်ကျန်ထက် ပို၍ ပျက်စီးစာရင်း မသွင်းနိုင်ပါ');
+    p.damaged = (Number(p.damaged) || 0) + qty;
+    p.stock = Math.max(0, (Number(p.stock) || 0) - qty);
+  } else {
+    p.stock = (Number(p.stock) || 0) + qty;
+  }
 
-      if (!p.adjustmentLogs) p.adjustmentLogs = [];
-      p.adjustmentLogs.push({
-        action: act, qty: qty, reason: reason, date: formatExactDateTime(new Date())
-      });
+  if (!p.adjustmentLogs) p.adjustmentLogs = [];
+  p.adjustmentLogs.push({
+    action: act, qty: qty, reason: reason, date: formatExactDateTime(new Date())
+  });
 
-      saveProducts();
-      renderStockTable();
-      renderCatalog();
-      closeModal('stockAdjustmentModal');
-      alert(`${p.name} ၏ Stock ကို အောင်မြင်စွာ ချိန်ညှိမှတ်တမ်းတင်ပြီးပါပြီ!`);
-    }
+  saveProducts();
+  renderStockTable();
+  renderCatalog();
+  closeModal('stockAdjustmentModal');
 
+  // Admin Modal ကို ပြန်ဖွင့်ပေးခြင်း
+  const adminM = document.getElementById('adminModal');
+  if (adminM) {
+    adminM.classList.add('active');
+    adminM.style.setProperty('display', 'flex', 'important');
+  }
+
+  alert(`${p.name} ၏ Stock ကို အောင်မြင်စွာ ချိန်ညှိမှတ်တမ်းတင်ပြီးပါပြီ!`);
+}
     var currentActiveOrderForDetail = null;
 
     function renderAdminOrders() {
@@ -10203,7 +10219,7 @@ function onSearchCompanyTown(cIdx, query) {
     m.style.cssText = `display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: ${window._topModalZ} !important; align-items: center; justify-content: center;`;
     window._topModalZ = (window._topModalZ || 100000) + 10;
     m.style.setProperty('z-index', String(window._topModalZ), 'important');
-    
+
     document.body.classList.add('modal-open');
 
     const topHeader = document.querySelector('header');
