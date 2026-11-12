@@ -9173,20 +9173,20 @@ function renderVisualSalesCharts(orderList) {
           const p = products.find(x => x.id === editId);
           if (p) {
             Object.assign(p, {
-              name, sku, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, isNonCod, cost, stock,
-              weight, expiryDate, length, width, girth, desc,
-              image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
-              youtube: yt, facebook: fb, telegram: tg, tiktok: tt
-            });
-            alert('ပစ္စည်း ပြင်ဆင်ပြီးပါပြီ');
-          }
-        } else {
-          products.unshift({
-            id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, discountReason, isPromo, isHidden, isNonCod, cost,
-            weight, expiryDate, length, width, girth,
-            description: desc, image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
-            youtube: yt, facebook: fb, telegram: tg, tiktok: tt, rating: 5.0
-          });
+          name, sku, category: primaryCat, categories: allCats, price, originalPrice, cost, stock, discountReason, isPromo, isHidden, isNonCod,
+          weight, expiryDate, length, width, girth, desc,
+          image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
+          youtube: yt, facebook: fb, telegram: tg, tiktok: tt
+        });
+        alert('ပစ္စည်း ပြင်ဆင်ပြီးပါပြီ');
+      }
+    } else {
+      products.unshift({
+        id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, cost, stock, discountReason, isPromo, isHidden, isNonCod,
+        weight, expiryDate, length, width, girth,
+        description: desc, image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
+        youtube: yt, facebook: fb, telegram: tg, tiktok: tt, rating: 5.0
+      });
           alert('ပစ္စည်းအသစ် ထည့်သွင်းပြီးပါပြီ');
         }
 
