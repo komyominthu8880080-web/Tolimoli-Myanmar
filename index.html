@@ -4783,16 +4783,19 @@ function updateCheckoutGrandTotal(deliFee) {
 
   // Active ဖြစ်နေသော Discount ကို အတိအကျ ဆွဲထုတ်ယူခြင်း
     let discVal = 0;
+  if (typeof currentAppliedDiscount !== 'undefined') discVal += Number(currentAppliedDiscount) || 0;
+  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) discVal += Number(currentVipStatus.discountAmount) || 0;
+  if (typeof currentRedeemedPointsDiscount !== 'undefined') discVal += Number(currentRedeemedPointsDiscount) || 0;
+
+  if (discVal === 0) {
     const discountElement = document.getElementById('cartDiscountText');
     if (discountElement && discountElement.innerText) {
       discVal = Number(discountElement.innerText.replace(/[^0-9]/g, '')) || 0;
     }
-    if (discVal === 0) {
-      discVal = Number(typeof totalDiscount !== 'undefined' ? totalDiscount : (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0;
-    }
+  }
 
-    const currentSub = Number(typeof subTotal !== 'undefined' ? subTotal : (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-    const finalGrandTotal = Math.max(0, currentSub - discVal) + Number(deliFee || 0);
+  const currentSub = Number(typeof subTotal !== 'undefined' ? subTotal : (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
+  const finalGrandTotal = Math.max(0, currentSub - discVal) + Number(deliFee || 0);
     const totalEl = document.getElementById('cartTotalPrice');
   if (totalEl) {
     totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
@@ -7227,17 +7230,14 @@ setTimeout(() => {
 
     // Active ဖြစ်နေသော Discount အားလုံးကို ဟိုက်ပိုက် ဖျက်ထုတ် တွက်ချက်ခြင်း
     let activeDisc = 0;
-    const discountTextElement = document.getElementById('cartDiscountText');
-    if (discountTextElement && discountTextElement.innerText) {
-      activeDisc = Number(discountTextElement.innerText.replace(/[^0-9]/g, '')) || 0;
-    }
-    if (activeDisc === 0) {
-      activeDisc = Number(typeof totalDiscount !== 'undefined' ? totalDiscount : (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0)) || 0;
-    }
+  if (typeof currentAppliedDiscount !== 'undefined') activeDisc += Number(currentAppliedDiscount) || 0;
+  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) activeDisc += Number(currentVipStatus.discountAmount) || 0;
+  if (typeof currentRedeemedPointsDiscount !== 'undefined') activeDisc += Number(currentRedeemedPointsDiscount) || 0;
 
-    const baseSubTotal = Number(typeof subTotal !== 'undefined' ? subTotal : (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-    const grandTotal = Math.max(0, baseSubTotal - activeDisc) + Number(effectiveFee || 0);
-    window.currentCheckoutTotalAmount = grandTotal;
+  const baseSubTotal = Number(typeof subTotal !== 'undefined' ? subTotal : 0) || 0;
+  const deliAmount = Number(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : (typeof effectiveFee !== 'undefined' ? effectiveFee : 0)) || 0;
+  const grandTotal = Math.max(0, baseSubTotal - activeDisc) + deliAmount;
+  window.currentCheckoutTotalAmount = grandTotal;
 
     const totalEl = document.getElementById('cartTotalPrice');
     if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
