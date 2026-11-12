@@ -25,7 +25,31 @@ const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
   // ၁။ FRONTEND မှ အော်ဒါသစ် ပို့ဆောင်ခြင်း (ORDER BOT သီးသန့်)
   // -------------------------------------------------------------
   if (body.action === 'sendOrderNotification') {
-    const { orderData } = body;
+    const { orderData, messageText, chatId, topicId } = body;
+
+    // ၁။ အကယ်၍ Frontend မှ messageText ဖြင့် တိုက်ရိုက်ပို့လာပါက ချက်ချင်းပို့ပေးခြင်း
+    if (messageText) {
+      try {
+        const directPayload = {
+          chat_id: chatId || ADMIN_CHAT_ID,
+          text: messageText,
+          parse_mode: 'HTML'
+        };
+        if (topicId) directPayload.message_thread_id = topicId;
+
+        const tgRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(directPayload)
+        });
+        const tgData = await tgRes.json();
+        return res.status(200).json({ success: true, tgResponse: tgData });
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
+    // ၂။ orderData ဖြင့် ပို့လာပါက စစ်ဆေးခြင်း
     if (!orderData) {
       return res.status(400).json({ error: 'Missing order data' });
     }
