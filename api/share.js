@@ -39,8 +39,8 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/7jX4mZ1/lube.jpg'
     },
     'dildo': {
-      title: 'ကျားတု - Tolimoli Myanmar',
-      desc: 'ကျားတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      title: 'အတု - Tolimoli Myanmar',
+      desc: 'အတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
       img: 'https://i.ibb.co/mH1m6s4/dildo.jpg'
     },
     'vibrator': {
@@ -49,9 +49,9 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/VMy4k6s/vibrator.jpg'
     },
     'masturbator': {
-      title: 'မတု - Tolimoli Myanmar',
-      desc: 'မတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/dsLCjmtF/Website-FL-20261013-080112-0000.png'
+      title: 'မတု / ကျားတု - Tolimoli Myanmar',
+      desc: 'မတု / ကျားတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
     },
     'condom': {
       title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
@@ -59,8 +59,8 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
     },
     'sleeve': {
-      title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      title: 'စီလီကွန်းအစွပ် - Tolimoli Myanmar',
+      desc: 'စီလီကွန်းအစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
       img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
     },
     'ring': {
