@@ -42,9 +42,30 @@ export default async function handler(req, res) {
     return `${mmDateStr} | ${mmTimeStr}`;
   }
 
-  // စာသားနှင့် ငွေလွှဲပြေစာပုံ တစ်ဆက်တည်း (သို့မဟုတ်) စာသီးသန့် ပို့ပေးမည့် Helper Function
+  // စာသားနှင့် ငွေလွှဲပြေစာပုံ တစ်ဆက်တည်း (သို့မဟုတ်) 1024 လုံးကျော်ပါက Message ခွဲပို့ပေးမည့် Helper Function
   async function sendOrderToTelegram(targetChat, targetTopic, textMsg, slipUrl) {
-    if (slipUrl && typeof slipUrl === 'string' && slipUrl.trim() !== '') {
+    const hasSlip = slipUrl && typeof slipUrl === 'string' && slipUrl.trim() !== '';
+    const isLongMessage = textMsg.length > 1000;
+
+    // ၁,၀၂၄ လုံးထက် ကျော်လွန်ပါက ပုံသီးသန့် + စာသားအပြည့်အစုံ သီးသန့် ခွဲပို့ခြင်း (HTML Tag များ မပြတ်စေရန်)
+    let photoCaption = textMsg;
+    let followUpText = '';
+
+    if (hasSlip && isLongMessage) {
+      const splitIndex = textMsg.indexOf('🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>');
+      if (splitIndex > 0 && splitIndex <= 1000) {
+        photoCaption = textMsg.slice(0, splitIndex).trim() + '\n\n⬇️ <i>(မှာယူထားသော ပစ္စည်းစာရင်းအပြည့်အစုံကို အောက်ပါစာတိုတွင် ဖော်ပြထားပါသည်)</i>';
+        followUpText = '📋 <b>အော်ဒါ ပစ္စည်းစာရင်းအပြည့်အစုံ</b>\n' + textMsg.slice(splitIndex).trim();
+      } else {
+        photoCaption = '🧾 <b>ငွေလွှဲပြေစာ (Payment Slip)</b>\n⬇️ <i>(အော်ဒါအသေးစိတ်ကို အောက်ပါစာတိုတွင် ဖော်ပြထားပါသည်)</i>';
+        followUpText = textMsg;
+      }
+    }
+
+    if (hasSlip) {
+      let photoSentOk = false;
+      let photoResultData = null;
+
       // ၁။ Base64 ပုံဖိုင် ဖြစ်နေပါက FormData (Blob) ဖြင့် sendPhoto ပို့ခြင်း
       if (slipUrl.startsWith('data:image')) {
         const matches = slipUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
@@ -58,22 +79,22 @@ export default async function handler(req, res) {
           formData.append('chat_id', String(targetChat));
           if (targetTopic) formData.append('message_thread_id', String(targetTopic));
           formData.append('photo', blob, `slip.${ext}`);
-          formData.append('caption', textMsg.slice(0, 1024));
+          formData.append('caption', photoCaption.slice(0, 1024));
           formData.append('parse_mode', 'HTML');
 
           const photoRes = await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendPhoto`, {
             method: 'POST',
             body: formData
           });
-          const photoData = await photoRes.json();
-          if (photoData.ok) return photoData;
+          photoResultData = await photoRes.json();
+          if (photoResultData.ok) photoSentOk = true;
         }
       } else if (slipUrl.startsWith('http')) {
         // ၂။ HTTP Image URL ဖြစ်နေပါက URL ဖြင့် တိုက်ရိုက် sendPhoto ပို့ခြင်း
         const photoPayload = {
           chat_id: targetChat,
           photo: slipUrl,
-          caption: textMsg.slice(0, 1024),
+          caption: photoCaption.slice(0, 1024),
           parse_mode: 'HTML'
         };
         if (targetTopic) photoPayload.message_thread_id = targetTopic;
@@ -83,15 +104,34 @@ export default async function handler(req, res) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(photoPayload)
         });
-        const photoData = await photoRes.json();
-        if (photoData.ok) return photoData;
+        photoResultData = await photoRes.json();
+        if (photoResultData.ok) photoSentOk = true;
+      }
+
+      if (photoSentOk) {
+        // စာရှည်နေ၍ ခွဲထုတ်ထားသော ပစ္စည်းစာရင်း အပိုင်း (၂) ရှိပါက ဆက်တိုက် ထပ်ပို့ပေးခြင်း
+        if (followUpText) {
+          const followPayload = {
+            chat_id: targetChat,
+            text: followUpText.slice(0, 4096),
+            parse_mode: 'HTML'
+          };
+          if (targetTopic) followPayload.message_thread_id = targetTopic;
+
+          await fetch(`https://api.telegram.org/bot${ORDER_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(followPayload)
+          });
+        }
+        return photoResultData;
       }
     }
 
-    // စလစ်ပုံ မပါလျှင် (သို့မဟုတ် sendPhoto မအောင်မြင်လျှင်) စာသားအပြည့်အစုံ ပို့ပေးခြင်း
+    // စလစ်ပုံ မပါလျှင် (သို့မဟုတ် sendPhoto မအောင်မြင်လျှင်) စာသားအပြည့်အစုံ ပို့ပေးခြင်း (4096 chars limit)
     const textPayload = {
       chat_id: targetChat,
-      text: textMsg,
+      text: textMsg.slice(0, 4096),
       parse_mode: 'HTML'
     };
     if (targetTopic) textPayload.message_thread_id = targetTopic;
