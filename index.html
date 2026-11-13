@@ -9278,7 +9278,7 @@ function renderVisualSalesCharts(orderList) {
           if (p) {
             Object.assign(p, {
           name, sku, category: primaryCat, categories: allCats, price, originalPrice, cost, stock, discountReason, isPromo, isHidden, isNonCod,
-          weight, expiryDate, length, width, girth, desc,
+          weight, expiryDate, length, width, girth, description: desc,
           image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
           youtube: yt, facebook: fb, telegram: tg, tiktok: tt
         });
@@ -9576,7 +9576,7 @@ function renderAdminColorInputs() {
       document.getElementById('pLength').value = p.length || '';
       document.getElementById('pWidth').value = p.width || '';
       document.getElementById('pGirth').value = p.girth || '';
-      document.getElementById('pDesc').value = p.description || p.desc || '';
+      document.getElementById('pDesc').value = p.description || p.desc || p.details || p.info || '';
 
       // Populate Dynamic Colors & Variants
     if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
