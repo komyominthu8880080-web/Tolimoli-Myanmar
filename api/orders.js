@@ -1,3 +1,4 @@
+// api/orders.js
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const FIREBASE_BASE_URL = 'https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app';
+  const FIREBASE_BASE_URL = process.env.FIREBASE_DB_URL || 'https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app';
 
   // ၁။ အော်ဒါအသစ် ရေးသွင်းခြင်း (Customer Submit / Admin Update)
   if (req.method === 'POST' || req.method === 'PUT') {
@@ -19,7 +20,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Order data or ID missing' });
       }
 
-      const FIREBASE_ORDER_URL = `${FIREBASE_BASE_URL}/shop_orders/${orderData.id}.json`;
+      const FIREBASE_ORDER_URL = `${FIREBASE_BASE_URL}/shop_orders/${encodeURIComponent(orderData.id)}.json`;
       const response = await fetch(FIREBASE_ORDER_URL, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -41,20 +42,22 @@ export default async function handler(req, res) {
 
       // (က) Customer Tracking: အော်ဒါ ID သီးသန့်ဖြင့် စစ်ဆေးခြင်း (Public ခွင့်ပြုသည်)
       if (id) {
-        const response = await fetch(`${FIREBASE_BASE_URL}/shop_orders/${id}.json`);
+        const response = await fetch(`${FIREBASE_BASE_URL}/shop_orders/${encodeURIComponent(id)}.json`);
+        if (!response.ok) throw new Error('Failed to fetch order');
         const data = await response.json();
         return res.status(200).json(data);
       }
 
       // (ခ) Admin Dashboard: အော်ဒါအားလုံး ဆွဲထုတ်ခြင်း (Admin PIN မဖြစ်မနေ လိုအပ်သည်)
-      const SERVER_ADMIN_PIN = process.env.ADMIN_PIN || "1234";
+      const SERVER_ADMIN_PIN = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN || '1542';
 
-      if (clientPin !== SERVER_ADMIN_PIN) {
+      if (!clientPin || String(clientPin).trim() !== String(SERVER_ADMIN_PIN).trim()) {
         return res.status(401).json({ error: 'Unauthorized: လျှို့ဝှက် Admin PIN မှားယွင်းနေပါသည်' });
       }
 
       // PIN မှန်ကန်မှသာ အော်ဒါအားလုံးကို Firebase ဆီမှ ဆွဲထုတ်ခွင့်ပြုမည်
       const response = await fetch(`${FIREBASE_BASE_URL}/shop_orders.json`);
+      if (!response.ok) throw new Error('Failed to fetch all orders');
       const data = await response.json();
 
       let ordersArray = [];

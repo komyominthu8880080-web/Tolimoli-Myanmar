@@ -7,8 +7,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const { pin } = req.body;
-  const serverPin = process.env.ADMIN_SECRET_PIN || '1542';
+  const { pin } = req.body || {};
+  const serverPin = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN || '1542';
 
   if (pin && String(pin).trim() === String(serverPin).trim()) {
     const sessionToken = 'auth_' + Buffer.from(Date.now() + '_' + serverPin).toString('base64');

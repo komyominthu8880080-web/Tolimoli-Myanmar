@@ -32,6 +32,16 @@
         }
       ],
       "destination": "/api/share"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "query",
+          "key": "cat"
+        }
+      ],
+      "destination": "/api/share"
     }
   ]
 }
