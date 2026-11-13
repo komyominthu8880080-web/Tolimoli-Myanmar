@@ -6478,7 +6478,7 @@ if (socBox) {
           <a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#1877F2; color:#fff; border-radius:6px; font-size:11px; text-decoration:none;">
             <i class="fab fa-facebook-f"></i> Share
           </a>
-          <button type="button" onclick="navigator.clipboard.writeText('${currentUrl}').then(()=>alert('ပစ္စည်း Link ကို Copy ကူးပြီးပါပြီ!'))" style="flex:1; min-width:70px; display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 8px; background:#334155; color:#fff; border:none; border-radius:6px; font-size:11px; cursor:pointer;">
+          <button type="button" onclick="copyTextToClipboard('${currentUrl}', this, 'ပစ္စည်း Link ကို Copy ကူးပြီးပါပြီ!')" style="flex:1; min-width:70px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:6px 10px; border-radius:6px; font-size:0.74rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:5px; transition:all 0.2s ease;">
             <i class="fas fa-copy"></i> Copy Link
           </button>
         </div>
