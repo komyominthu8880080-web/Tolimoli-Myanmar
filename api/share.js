@@ -1,5 +1,16 @@
+// api/share.js
 export default async function handler(req, res) {
-  const { product, cat, article } = req.query;
+  const { product, cat, article } = req.query || {};
+
+  // HTML Meta Tag များ မပျက်စီးစေရန် အထူးသင်္ကေတများကို စစ်ထုတ်ပေးမည့် Helper Function
+  function escapeHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   // Viber cache မလွဲစေရန် Canonical URL သတ်မှတ်ခြင်း
   const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
@@ -20,12 +31,12 @@ export default async function handler(req, res) {
     'pump': {
       title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar',
       desc: 'ကြီးရှည်ကျင့်ပြောင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/3kZc5kQ/pump.jpg' // Database ထဲရှိ ကျင့်ပြောင်းပုံ သို့မဟုတ် သက်ဆိုင်ရာ ပုံ link
+      img: 'https://i.ibb.co/3kZc5kQ/pump.jpg'
     },
     'lube': {
       title: 'ချောဆီ - Tolimoli Myanmar',
       desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/7jX4mZ1/lube.jpg' // Database ထဲရှိ ချောဆီပုံ သို့မဟုတ် သက်ဆိုင်ရာ ပုံ link
+      img: 'https://i.ibb.co/7jX4mZ1/lube.jpg'
     },
     'dildo': {
       title: 'အတု - Tolimoli Myanmar',
@@ -59,12 +70,13 @@ export default async function handler(req, res) {
     }
   };
 
-  const RTDB_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/shop_products.json";
+  const FIREBASE_BASE = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const RTDB_URL = `${FIREBASE_BASE}/shop_products.json`;
 
   try {
     // ၀။ ဆောင်းပါး Link ဖြစ်ပါက (Database မှ ဆောင်းပါး Title, Summary, Cover ပုံ ဆွဲယူမည်)
     if (article) {
-      const artUrl = `https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app/articles/${encodeURIComponent(article)}.json`;
+      const artUrl = `${FIREBASE_BASE}/articles/${encodeURIComponent(article)}.json`;
       const response = await fetch(artUrl);
       if (response.ok) {
         const artData = await response.json();
@@ -78,17 +90,16 @@ export default async function handler(req, res) {
           if (artData.coverImage) image = artData.coverImage;
         }
       }
-    } else
-      
+    }
     // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက (Database မှ တိုက်ရိုက်ဆွဲယူမည်)
-    if (product) {
+    else if (product) {
       const response = await fetch(RTDB_URL);
       if (response.ok) {
         const rawData = await response.json();
         let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
         if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
-        const item = productsList.find(p => String(p.id) === String(product) || String(p.sku) === String(product));
+        const item = productsList.find(p => p && (String(p.id) === String(product) || String(p.sku) === String(product)));
         if (item) {
           title = item.name || item.title || title;
           if (item.price) {
@@ -110,6 +121,7 @@ export default async function handler(req, res) {
       if (CATEGORY_PREVIEWS[slugKey]) {
         title = CATEGORY_PREVIEWS[slugKey].title;
         description = CATEGORY_PREVIEWS[slugKey].desc;
+        if (CATEGORY_PREVIEWS[slugKey].img) image = CATEGORY_PREVIEWS[slugKey].img;
       }
 
       // Database ထဲမှ ပုံကို ချက်ချင်း ရှာဖွေရယူခြင်း
@@ -139,6 +151,11 @@ export default async function handler(req, res) {
     console.error("Fetch Error:", err);
   }
 
+  const safeTitle = escapeHtml(title);
+  const safeDesc = escapeHtml(description);
+  const safeImg = escapeHtml(image);
+  const safeCanonical = escapeHtml(canonicalUrl);
+
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
 
@@ -146,24 +163,24 @@ export default async function handler(req, res) {
 <html lang="my" prefix="og: http://ogp.me/ns#">
 <head>
   <meta charset="UTF-8">
-  <title>${title}</title>
+  <title>${safeTitle}</title>
 
   <!-- Open Graph Meta Tags (Viber / Facebook) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
-  <meta property="og:image" content="${image}">
-  <meta property="og:image:secure_url" content="${image}">
+  <meta property="og:title" content="${safeTitle}">
+  <meta property="og:description" content="${safeDesc}">
+  <meta property="og:image" content="${safeImg}">
+  <meta property="og:image:secure_url" content="${safeImg}">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="600">
   <meta property="og:image:height" content="600">
-  <meta property="og:url" content="${canonicalUrl}">
+  <meta property="og:url" content="${safeCanonical}">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${image}">
+  <meta name="twitter:title" content="${safeTitle}">
+  <meta name="twitter:description" content="${safeDesc}">
+  <meta name="twitter:image" content="${safeImg}">
 
   <style>
     body { font-family: sans-serif; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background: #0b0f19; color: #fff; }
@@ -176,9 +193,9 @@ export default async function handler(req, res) {
 </head>
 <body>
   <div class="card">
-    <img src="${image}" alt="${title}">
-    <h2>${title}</h2>
-    <p>${description}</p>
+    <img src="${safeImg}" alt="${safeTitle}">
+    <h2>${safeTitle}</h2>
+    <p>${safeDesc}</p>
     <a href="${targetUrl}" class="btn">ဝဘ်ဆိုဒ်သို့ သွားနေပါသည်...</a>
   </div>
 
