@@ -9576,6 +9576,7 @@ function renderAdminColorInputs() {
       document.getElementById('pLength').value = p.length || '';
       document.getElementById('pWidth').value = p.width || '';
       document.getElementById('pGirth').value = p.girth || '';
+      document.getElementById('pDesc').value = p.description || p.desc || '';
 
       // Populate Dynamic Colors & Variants
     if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
