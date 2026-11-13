@@ -7097,11 +7097,13 @@ setTimeout(() => {
 
       let subTotal = 0;
       list.innerHTML = cart.map((it, idx) => {
-        const itemTot = it.price * it.qty;
-        subTotal += itemTot;
-        return `
-          <div class="cart-item">
-            <img src="${it.image}" onerror="this.src='logo.png'">
+    const itemTot = it.price * it.qty;
+    subTotal += itemTot;
+    const origProd = (typeof products !== 'undefined' && Array.isArray(products)) ? products.find(p => p && p.id === it.id) : null;
+    const itemImg = it.image || it.img || it.imageUrl || (Array.isArray(it.images) && it.images[0]) || (origProd && (origProd.image || origProd.img || origProd.imageUrl || (Array.isArray(origProd.images) && origProd.images[0]))) || 'logo.png';
+    return `
+      <div class="cart-item">
+        <img src="${itemImg}" onerror="this.src='logo.png'">
             <div style="flex:1;">
               <h4 style="font-size:0.8rem; color:#fff;">${it.name}</h4>
               <div style="font-size:0.68rem; color:#38bdf8;">SKU: ${it.sku || '-'} ${it.color ? '| ' + it.color : ''}</div>
