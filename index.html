@@ -12121,30 +12121,6 @@ applySoundToggleUI(isAudioMuted);
       }, 400);
     }
 
-    function inquireProductInLiveChat() {
-      if (!currentDetailProduct) return;
-      closeModal('productDetailModal');
-      openModal('liveChatModal');
-
-      const prevBox = document.getElementById('chatProductInquiryPreview');
-      if (prevBox) {
-        prevBox.innerHTML = `
-          <div class="chat-inquire-card">
-            <div style="display:flex; align-items:center; gap:6px;">
-              <img src="${(Array.isArray(currentDetailProduct.images)&&currentDetailProduct.images[0])||currentDetailProduct.image||'logo.png'}" style="width:34px; height:34px; border-radius:4px; object-fit:cover;">
-              <div>
-                <b style="color:#fff; font-size:11px;">${currentDetailProduct.name}</b>
-                <div style="color:var(--gold); font-size:10.5px;">${Number(currentDetailProduct.price).toLocaleString()} Ks</div>
-              </div>
-            </div>
-            <button type="button" class="btn-gold" style="width:auto; padding:3px 8px; font-size:10px;" onclick="sendProductInquiryMessage()">
-              <i class="fas fa-paper-plane"></i> မေးမည်
-            </button>
-          </div>
-        `;
-      }
-    }
-
     function sendProductInquiryMessage() {
       if (!currentDetailProduct) return;
       const msg = `📦 [ပစ္စည်းမေးမြန်းမှု] ${currentDetailProduct.name} (SKU: ${currentDetailProduct.sku||'-'}) - ဈေးနှုန်း: ${Number(currentDetailProduct.price).toLocaleString()} MMK အကြောင်း သိရှိလိုပါသည်ခင်ဗျာ။`;
@@ -12286,13 +12262,6 @@ applySoundToggleUI(isAudioMuted);
       }
 
       modal.classList.add('active');
-    }
-
-    function closeInAppMediaViewer() {
-      const modal = document.getElementById('inAppMediaModal');
-      const box = document.getElementById('inAppMediaContainer');
-      if (box) box.innerHTML = ''; // Stop video playback immediately
-      if (modal) modal.classList.remove('active');
     }
 
     // Chat Bubble Renderer (Supports YouTube, Videos, Images and Links)
@@ -14276,24 +14245,6 @@ saveFocCampaignSettings = function() {
     alert('Firebase သိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်ပါသည်: ' + err.message);
   });
 };
-    // Missing Helper Functions
-
-    function trackOrderAccountFree() {
-      trackOrder();
-    }
-
-    function notifyCustomerOrderStatusChange(order) {
-      console.log('Order status updated:', order.id, order.status);
-    }
-
-    function closeInAppMediaViewer() {
-      closeModal('inAppMediaModal');
-    }
-
-    function inquireProductInLiveChat() {
-      closeModal('productDetailModal');
-      openModal('liveChatModal');
-    }
 
     // --- CATEGORY BOTTOM SHEET MODAL LOGIC ---
 function openCategorySheet() {
