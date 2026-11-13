@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     'masturbator': {
       title: 'မတု - Tolimoli Myanmar',
       desc: 'မတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
+      img: 'https://i.ibb.co/dsLCjmtF/Website-FL-20261013-080112-0000.png'
     },
     'condom': {
       title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
