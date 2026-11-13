@@ -12571,20 +12571,18 @@ applySoundToggleUI(isAudioMuted);
 
         fbDb.ref(`support_chats/${adminActiveSelectedSession}/telegramThreadId`).once('value', snap => {
           const tId = snap.val() || localStorage.getItem('tm_tg_topic_' + adminActiveSelectedSession);
-          const chatBotToken = '8900618964:AAF-CceJIWtm3in19vLP4-kOxBzZyrfYJUY';
-          const chatGroupId = '-1004499567704';
-
           const adminMsg = `👑 <b>[ဆိုင်ရှင် / Admin ပြန်ကြားချက်]</b>\n` +
             `💬 <b>စာသား:</b> ${text || '(မီဒီယာဖိုင်)'}\n` +
             (mediaUrl ? `📎 <b>ဖိုင်:</b> <a href="${mediaUrl}">မီဒီယာကြည့်ရန် နှိပ်ပါ</a>` : '');
 
-          const payload = { chat_id: chatGroupId, text: adminMsg, parse_mode: 'HTML' };
-          if (tId) payload.message_thread_id = Number(tId);
-
-          fetch(`https://api.telegram.org/bot${chatBotToken}/sendMessage`, {
+          fetch('/api/telegram-webhook', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify({
+              action: 'sendLiveChat',
+              messageText: adminMsg,
+              topicId: tId || null
+            })
           }).catch(e => console.warn('Admin Telegram Reply error:', e));
         });
       }
@@ -13187,11 +13185,18 @@ function cancelStationEdit() {
   const addrInp = document.getElementById('newStationAddressInput');
   if (addrInp) addrInp.value = '';
   const townInp = document.getElementById('newStationTownship');
-    if (townInp) townInp.value = '';
-    const durInp = document.getElementById('newStationDuration');
-    if (durInp) durInp.value = '';
-  stationPhoneList = [''];
-  renderStationPhoneInputs();
+  if (townInp) townInp.value = '';
+  const durInp = document.getElementById('newStationDuration');
+  if (durInp) durInp.value = '';
+
+  const phoneBox = document.getElementById('stationPhoneInputsContainer');
+  if (phoneBox) {
+    phoneBox.innerHTML = `
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <input type="text" class="station-phone-input" placeholder="09xxxxxxxxx" style="flex: 1; padding: 7px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;">
+      </div>
+    `;
+  }
 
   const btnSave = document.getElementById('btnSaveStationSubmit');
   if (btnSave) {
@@ -15988,6 +15993,7 @@ async function verifyAdminPinNow() {
 
     if (result.success) {
       sessionStorage.setItem('admin_auth_token', result.token);
+      localStorage.setItem('tm_admin_pin', entered);
       closeAdminPinModalDirect();
       clearPinDigits();
       forceOpenAdminDashboard();
