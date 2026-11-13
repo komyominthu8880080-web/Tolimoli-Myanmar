@@ -4998,7 +4998,7 @@ fetchArticles();
     fbDb.ref('shop_products').set(products);
   }
   
-  const currentPin = localStorage.getItem('tm_admin_pin') || '1234';
+  const currentPin = localStorage.getItem('tm_admin_pin') || '';
   fetch('/api/products', {
     method: 'PUT',
     headers: { 
@@ -5341,7 +5341,7 @@ function deduplicateOrders(orderList) {
     }
     // PERSISTENT ORDER FETCHING (FIREBASE DIRECT + SERVER BACKUP)
     async function fetchAdminOrdersWithPin(pin) {
-      const currentPin = pin || localStorage.getItem('tm_admin_pin') || '1234';
+      const currentPin = pin || localStorage.getItem('tm_admin_pin') || '';
 
       // နည်းလမ်း ၁ - Firebase Cloud မှ အရင်ဆုံး တိုက်ရိုက်ဆွဲယူခြင်း (အမြဲတမ်း Persistent ဖြစ်သည်)
       if (typeof fbDb !== 'undefined') {
@@ -10274,7 +10274,7 @@ function onSearchCompanyTown(cIdx, query) {
           if (snap.val()) cur = String(snap.val()).trim();
         } catch(e) {}
       }
-      if (!cur) cur = '1234';
+      if (!cur) return alert('လက်ရှိ PIN အချက်အလက် မတွေ့ရှိပါ။ ကျေးဇူးပြု၍ Admin PIN ဖြင့် အရင် Log in ဝင်ပေးပါ။');
 
       const o = document.getElementById('cfgOldPin').value.trim();
       const n = document.getElementById('cfgNewPin').value.trim();
