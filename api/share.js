@@ -2,7 +2,6 @@
 export default async function handler(req, res) {
   const { product, cat, article } = req.query || {};
 
-  // HTML Meta Tag များ မပျက်စီးစေရန် အထူးသင်္ကေတများကို စစ်ထုတ်ပေးမည့် Helper Function
   function escapeHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
@@ -12,10 +11,8 @@ export default async function handler(req, res) {
       .replace(/'/g, '&#39;');
   }
 
-  // Viber cache မလွဲစေရန် Canonical URL သတ်မှတ်ခြင်း
   const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
 
-  // Browser တွင် ဖွင့်ပါက ဝဘ်ဆိုဒ် UI သို့ ဦးတည်မည့် target URL
   const targetUrl = article
     ? `https://www.tolimolimyanmar.com/?article=${encodeURIComponent(article)}`
     : (product
@@ -23,58 +20,48 @@ export default async function handler(req, res) {
       : (cat ? `https://www.tolimolimyanmar.com/?cat=${encodeURIComponent(cat)}` : 'https://www.tolimolimyanmar.com/'));
 
   let title = "Tolimoli Myanmar Adult Toys Shop";
-  let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် ရှာယူရရှိနိုင်ပါသည်။";
+  let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် မှာယူရရှိနိုင်ပါသည်။";
   let image = "https://www.tolimolimyanmar.com/logo.png";
 
-  // Category များအတွက် Fast-Lookup ဇယား (Viber bot ချက်ချင်း ဖတ်ရှုနိုင်ရန်)
-  const CATEGORY_PREVIEWS = {
-    'pump': {
-      title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar',
-      desc: 'ကြီးရှည်ကျင့်ပြောင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/3kZc5kQ/pump.jpg'
-    },
-    'lube': {
-      title: 'ချောဆီ - Tolimoli Myanmar',
-      desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/7jX4mZ1/lube.jpg'
-    },
-    'dildo': {
-      title: 'အတု - Tolimoli Myanmar',
-      desc: 'အတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/mH1m6s4/dildo.jpg'
-    },
-    'vibrator': {
-      title: 'တုန်စက် - Tolimoli Myanmar',
-      desc: 'တုန်စက် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/VMy4k6s/vibrator.jpg'
-    },
-    'masturbator': {
-      title: 'မတု / ကျားတု - Tolimoli Myanmar',
-      desc: 'မတု / ကျားတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
-    },
-    'condom': {
-      title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
-    },
-    'sleeve': {
-      title: 'စီလီကွန်းအစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်းအစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
-    },
-    'ring': {
-      title: 'သုတ်ထိန်းကွင်း - Tolimoli Myanmar',
-      desc: 'သုတ်ထိန်းကွင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
-      img: 'https://i.ibb.co/KzWd8Zq/ring.jpg'
-    }
+  // index.html ရှိ CATEGORY_SLUGS နှင့် ၁၀၀% ကိုက်ညီသော Category Mapping
+  const CATEGORY_MAP = {
+    'promotion': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'promo': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'deals': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'hot': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'vibrator': { myName: 'တုန်စက်', title: 'တုန်စက် - Tolimoli Myanmar', desc: 'တုန်စက် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'dildo': { myName: 'ကျားတု', title: 'ကျားတု - Tolimoli Myanmar', desc: 'ကျားတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'lube': { myName: 'ချောဆီ', title: 'ချောဆီ - Tolimoli Myanmar', desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'lubricant': { myName: 'ချောဆီ', title: 'ချောဆီ - Tolimoli Myanmar', desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'masturbator': { myName: 'မတု', title: 'မတု - Tolimoli Myanmar', desc: 'မတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'pump': { myName: 'ကြီးရှည်ကျင့်ပြောင်း', title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar', desc: 'ကြီးရှည်ကျင့်ပြောင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'condom': { myName: 'စီလီကွန်အစွပ်', title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar', desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'sleeve': { myName: 'စီလီကွန်အစွပ်', title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar', desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'bdsm': { myName: 'BDSM ပစ္စည်းများ', title: 'BDSM ပစ္စည်းများ - Tolimoli Myanmar', desc: 'BDSM အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'anal': { myName: 'နောက်ပေါက်သုံးပစ္စည်း', title: 'နောက်ပေါက်သုံးပစ္စည်း - Tolimoli Myanmar', desc: 'နောက်ပေါက်သုံးပစ္စည်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'delay': { myName: 'ကြာဆေး', title: 'ကြာဆေး - Tolimoli Myanmar', desc: 'ကြာဆေး အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'enlarge': { myName: 'ကြီးဆေး', title: 'ကြီးဆေး - Tolimoli Myanmar', desc: 'ကြီးဆေး အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'female': { myName: 'အမျိုးသမီးသုံးဖီးဆေး', title: 'အမျိုးသမီးသုံးဖီးဆေး - Tolimoli Myanmar', desc: 'အမျိုးသမီးသုံးဖီးဆေး အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'ring': { myName: 'သုတ်ထိန်းကွင်း', title: 'သုတ်ထိန်းကွင်း - Tolimoli Myanmar', desc: 'သုတ်ထိန်းကွင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' }
   };
+
+  // ပစ္စည်းတစ်ခုမှ ပုံ URL အစစ်ကို ထုတ်ယူပေးမည့် Helper Function
+  function extractProductImage(item) {
+    if (!item) return '';
+    if (typeof item.image === 'string' && item.image.startsWith('http')) return item.image.trim();
+    if (typeof item.imageUrl === 'string' && item.imageUrl.startsWith('http')) return item.imageUrl.trim();
+    if (Array.isArray(item.images)) {
+      const validImg = item.images.find(img => typeof img === 'string' && img.startsWith('http'));
+      if (validImg) return validImg.trim();
+    }
+    return '';
+  }
 
   const FIREBASE_BASE = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
   const RTDB_URL = `${FIREBASE_BASE}/shop_products.json`;
 
   try {
-    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက (Database မှ ဆောင်းပါး Title, Summary, Cover ပုံ ဆွဲယူမည်)
+    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက
     if (article) {
       const artUrl = `${FIREBASE_BASE}/articles/${encodeURIComponent(article)}.json`;
       const response = await fetch(artUrl);
@@ -82,16 +69,13 @@ export default async function handler(req, res) {
         const artData = await response.json();
         if (artData) {
           if (artData.title) title = artData.title;
-          if (artData.summary) {
-            description = artData.summary;
-          } else if (artData.content) {
-            description = artData.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
-          }
-          if (artData.coverImage) image = artData.coverImage;
+          if (artData.summary) description = artData.summary;
+          else if (artData.content) description = artData.content.replace(/<[^>]*>?/gm, '').substring(0, 150) + '...';
+          if (artData.coverImage && artData.coverImage.startsWith('http')) image = artData.coverImage;
         }
       }
     }
-    // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက (Database မှ တိုက်ရိုက်ဆွဲယူမည်)
+    // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
     else if (product) {
       const response = await fetch(RTDB_URL);
       if (response.ok) {
@@ -105,44 +89,53 @@ export default async function handler(req, res) {
           if (item.price) {
             description = `ဈေးနှုန်း - ${Number(item.price).toLocaleString()} MMK | ၁၀၀% လျှို့ဝှက်လုံခြုံစွာ ပို့ဆောင်ပေးပါသည်။`;
           }
-          let pImg = '';
-          if (typeof item.image === 'string' && item.image.trim()) pImg = item.image.trim();
-          else if (typeof item.imageUrl === 'string' && item.imageUrl.trim()) pImg = item.imageUrl.trim();
-          else if (Array.isArray(item.images) && item.images.length > 0 && typeof item.images[0] === 'string') pImg = item.images[0].trim();
-
+          const pImg = extractProductImage(item);
           if (pImg) image = pImg;
         }
       }
     }
-    // ၂။ Category Link ဖြစ်ပါက (Instant Lookup ဖြင့် အရင်စစ်ဆေးပြီး လိုအပ်ပါက DB ဆွဲမည်)
+    // ၂။ Category Link ဖြစ်ပါက
     else if (cat) {
-      const slugKey = decodeURIComponent(String(cat)).trim().toLowerCase();
+      const rawCat = decodeURIComponent(String(cat)).trim();
+      const slugKey = rawCat.toLowerCase();
+      const mapped = CATEGORY_MAP[slugKey];
+      const targetMyName = mapped ? mapped.myName : rawCat;
 
-      if (CATEGORY_PREVIEWS[slugKey]) {
-        title = CATEGORY_PREVIEWS[slugKey].title;
-        description = CATEGORY_PREVIEWS[slugKey].desc;
-        if (CATEGORY_PREVIEWS[slugKey].img) image = CATEGORY_PREVIEWS[slugKey].img;
+      if (mapped) {
+        title = mapped.title;
+        description = mapped.desc;
+      } else {
+        title = `${rawCat} - Tolimoli Myanmar`;
+        description = `${rawCat} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
       }
 
-      // Database ထဲမှ ပုံကို ချက်ချင်း ရှာဖွေရယူခြင်း
+      // Database ထဲမှ သက်ဆိုင်ရာ Category ထဲက ပစ္စည်းတစ်ခုခု၏ ပုံကို တိုက်ရိုက်ရှာဖွေခြင်း
       const response = await fetch(RTDB_URL);
       if (response.ok) {
         const rawData = await response.json();
         let productsList = Array.isArray(rawData) ? rawData : Object.values(rawData || {});
         if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
+        const normTarget = targetMyName.replace(/\s+/g, '').toLowerCase();
+
         const matchedItem = productsList.find(p => {
-          if (!p) return false;
-          const pCat = `${p.category || ''} ${(Array.isArray(p.categories) ? p.categories.join(' ') : '')} ${p.name || ''}`.toLowerCase();
-          return pCat.includes(slugKey) || (slugKey === 'pump' && pCat.includes('ကျင့်ပြောင်း')) || (slugKey === 'lube' && pCat.includes('ချောဆီ'));
+          if (!p || p.isHidden) return false;
+          const pCats = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
+          const hasValidImg = extractProductImage(p) !== '';
+          if (!hasValidImg) return false;
+
+          if (normTarget === 'promotion') {
+            return Number(p.originalPrice) > Number(p.price) || p.isPromo === true;
+          }
+
+          return pCats.some(c => {
+            const normC = String(c).replace(/\s+/g, '').toLowerCase();
+            return normC === normTarget || normC.includes(normTarget) || normTarget.includes(normC);
+          });
         });
 
         if (matchedItem) {
-          let catImg = '';
-          if (typeof matchedItem.image === 'string' && matchedItem.image.trim()) catImg = matchedItem.image.trim();
-          else if (typeof matchedItem.imageUrl === 'string' && matchedItem.imageUrl.trim()) catImg = matchedItem.imageUrl.trim();
-          else if (Array.isArray(matchedItem.images) && matchedItem.images.length > 0 && typeof matchedItem.images[0] === 'string') catImg = matchedItem.images[0].trim();
-
+          const catImg = extractProductImage(matchedItem);
           if (catImg) image = catImg;
         }
       }
@@ -165,14 +158,12 @@ export default async function handler(req, res) {
   <meta charset="UTF-8">
   <title>${safeTitle}</title>
 
-  <!-- Open Graph Meta Tags (Viber / Facebook) -->
   <meta property="og:site_name" content="Tolimoli Myanmar">
   <meta property="og:type" content="website">
   <meta property="og:title" content="${safeTitle}">
   <meta property="og:description" content="${safeDesc}">
   <meta property="og:image" content="${safeImg}">
   <meta property="og:image:secure_url" content="${safeImg}">
-  <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="600">
   <meta property="og:image:height" content="600">
   <meta property="og:url" content="${safeCanonical}">
