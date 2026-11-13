@@ -54,8 +54,8 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
     },
     'condom': {
-      title: 'စီလီကွန်းအစွပ် - Tolimoli Myanmar',
-      desc: 'စီလီကွန်းအစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar',
+      desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
       img: 'https://i.ibb.co/Bb7vfFH/condom.jpg'
     },
     'sleeve': {
