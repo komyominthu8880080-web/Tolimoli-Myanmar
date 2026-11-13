@@ -1,3 +1,4 @@
+// api/telegram-webhook.js
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,9 +17,30 @@ export default async function handler(req, res) {
   const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
   const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
   const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
-  const FIREBASE_URL = "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const FIREBASE_URL = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   const body = req.body || {};
+
+  // မြန်မာစံတော်ချိန် (Asia/Yangon) ရက်စွဲနှင့် အချိန် တွက်ချက်ပေးမည့် Helper Function
+  function getMyanmarDateTime() {
+    const now = new Date();
+    const mmDateStr = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Asia/Yangon',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(now).replace(/\//g, '-');
+
+    const mmTimeStr = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Yangon',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(now);
+
+    return `${mmDateStr} | ${mmTimeStr}`;
+  }
 
   // စာသားနှင့် ငွေလွှဲပြေစာပုံ တစ်ဆက်တည်း (သို့မဟုတ်) စာသီးသန့် ပို့ပေးမည့် Helper Function
   async function sendOrderToTelegram(targetChat, targetTopic, textMsg, slipUrl) {
@@ -119,23 +141,7 @@ export default async function handler(req, res) {
         }).join('\n');
       }
 
-      const now = new Date();
-      const mmDateStr = new Intl.DateTimeFormat('en-GB', {
-        timeZone: 'Asia/Yangon',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }).format(now).replace(/\//g, '-');
-
-      const mmTimeStr = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Yangon',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }).format(now);
-
-      const timeStr = `${mmDateStr} | ${mmTimeStr}`;
+      const timeStr = getMyanmarDateTime();
       const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
       const isHttpSlip = orderData.slipUrl && String(orderData.slipUrl).startsWith('http');
 
@@ -266,16 +272,7 @@ export default async function handler(req, res) {
       }
 
       if (targetSessionId) {
-        const d = new Date();
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        let hours = d.getHours();
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        const seconds = String(d.getSeconds()).padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        const timeFormatted = `${day}-${month}-${year} | ${hours}:${minutes}:${seconds} ${ampm}`;
+        const timeFormatted = getMyanmarDateTime();
 
         await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
           method: 'POST',
