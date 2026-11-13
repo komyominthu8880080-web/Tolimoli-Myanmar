@@ -49,8 +49,8 @@ export default async function handler(req, res) {
       img: 'https://i.ibb.co/VMy4k6s/vibrator.jpg'
     },
     'masturbator': {
-      title: 'မတု / ကျားတု - Tolimoli Myanmar',
-      desc: 'မတု / ကျားတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
+      title: 'မတု - Tolimoli Myanmar',
+      desc: 'မတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။',
       img: 'https://i.ibb.co/0Vp02Jt/masturbator.jpg'
     },
     'condom': {
