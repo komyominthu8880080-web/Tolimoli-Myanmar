@@ -9215,7 +9215,7 @@ function renderVisualSalesCharts(orderList) {
 
     async function handleSaveProduct(e) {
       e.preventDefault();
-      const editId = document.getElementById('editProductId').value;
+      const editId = document.getElementById('editProductId').value.trim();
       const name = document.getElementById('pName').value.trim();
       const sku = document.getElementById('pSku').value.trim();
       if (!selectedAdminCategories || selectedAdminCategories.length === 0) {
@@ -9237,7 +9237,10 @@ function renderVisualSalesCharts(orderList) {
       const length = document.getElementById('pLength').value.trim();
       const width = document.getElementById('pWidth').value.trim();
       const girth = document.getElementById('pGirth').value.trim();
-      const desc = document.getElementById('pDesc').value.trim();
+      
+      // Description စာသားကို တိတိကျကျ ရယူခြင်း
+      const descEl = document.getElementById('pDesc');
+      const desc = descEl ? descEl.value.trim() : '';
 
       const yt = document.getElementById('pYtLink').value.trim();
       const fb = document.getElementById('pFbLink').value.trim();
@@ -9245,11 +9248,14 @@ function renderVisualSalesCharts(orderList) {
       const tt = document.getElementById('pTtLink').value.trim();
 
       // Read Dynamic Colors & Variants
-      const colors = adminProductVariants.map(v => (v.color || '').trim()).filter(Boolean);
-      const colorVariants = adminProductVariants.filter(v => v.color && v.color.trim() !== '');
+      const colors = (adminProductVariants || []).map(v => (v.color || '').trim()).filter(Boolean);
+      const colorVariants = (adminProductVariants || []).filter(v => v.color && v.color.trim() !== '');
 
       const btn = document.getElementById('btnSubmitProduct');
-      btn.disabled = true; btn.innerText = 'ပုံများ တင်နေပါသည်...';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'သိမ်းဆည်းနေပါသည်...';
+      }
 
       // Read Dynamic Images & upload files if chosen
       const numImages = adminProductImages.length;
@@ -9266,42 +9272,66 @@ function renderVisualSalesCharts(orderList) {
       });
 
       const videoFile = document.getElementById('pVideoFile')?.files[0];
-      const videoPromise = videoFile ? readFileAsBase64(videoFile) : Promise.resolve(document.getElementById('pVideoUrl').value);
+      const videoPromise = videoFile ? readFileAsBase64(videoFile) : Promise.resolve(document.getElementById('pVideoUrl').value || '');
 
       Promise.all([...imgUploadPromises, videoPromise]).then(results => {
         const uploadedImgs = results.slice(0, numImages).filter(x => x && x.trim() !== '');
         const finalVideo = results[numImages] || '';
         const primaryImg = uploadedImgs.length > 0 ? uploadedImgs[0] : 'logo.png';
 
+        const productData = {
+          sku: sku || '',
+          name: name || '',
+          category: primaryCat || 'တုန်စက်',
+          categories: allCats,
+          price: price,
+          originalPrice: originalPrice,
+          cost: cost,
+          stock: stock,
+          discountReason: discountReason,
+          isPromo: isPromo,
+          isHidden: isHidden,
+          isNonCod: isNonCod,
+          weight: weight,
+          expiryDate: expiryDate,
+          length: length,
+          width: width,
+          girth: girth,
+          description: desc, // ပင်မ Description
+          desc: desc,        // အရန် Desc Key (မည်သည့်နေရာမှ ဖတ်ဖတ် မပျောက်စေရန်)
+          image: primaryImg,
+          images: uploadedImgs.length > 0 ? uploadedImgs : ['logo.png'],
+          video: finalVideo,
+          colors: colors,
+          colorVariants: colorVariants,
+          youtube: yt,
+          facebook: fb,
+          telegram: tg,
+          tiktok: tt
+        };
+
         if (editId) {
           const p = products.find(x => x.id === editId);
           if (p) {
-            Object.assign(p, {
-          name, sku, category: primaryCat, categories: allCats, price, originalPrice, cost, stock, discountReason, isPromo, isHidden, isNonCod,
-          weight, expiryDate, length, width, girth, description: desc,
-          image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
-          youtube: yt, facebook: fb, telegram: tg, tiktok: tt
-        });
-        alert('ပစ္စည်း ပြင်ဆင်ပြီးပါပြီ');
-      }
-    } else {
-      products.unshift({
-        id: 'p_' + Date.now(), sku, name, category: primaryCat, categories: allCats, price, originalPrice, cost, stock, discountReason, isPromo, isHidden, isNonCod,
-        weight, expiryDate, length, width, girth,
-        description: desc, image: primaryImg, images: uploadedImgs, video: finalVideo, colors, colorVariants,
-        youtube: yt, facebook: fb, telegram: tg, tiktok: tt, rating: 5.0
-      });
+            Object.assign(p, productData);
+            alert('ပစ္စည်း ပြင်ဆင်ပြီးပါပြီ');
+          }
+        } else {
+          products.unshift(Object.assign({
+            id: 'p_' + Date.now(),
+            rating: 5.0
+          }, productData));
           alert('ပစ္စည်းအသစ် ထည့်သွင်းပြီးပါပြီ');
         }
 
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
         saveProducts();
         renderCatalog();
         renderAdminProducts();
         renderStockTable();
         resetProductForm();
       }).catch(err => {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
         alert('ပစ္စည်းသိမ်းဆည်းရာတွင် အမှားဖြစ်ပေါ်ခဲ့ပါသည်: ' + err.message);
       });
     }
@@ -9596,7 +9626,6 @@ function renderAdminColorInputs() {
       document.getElementById('pTgLink').value = p.telegram || '';
       document.getElementById('pTtLink').value = p.tiktok || '';
 
-      document.getElementById('pDesc').value = p.description || '';
       document.getElementById('pVideoUrl').value = p.video || '';
 
       calculateProfitMargin();
