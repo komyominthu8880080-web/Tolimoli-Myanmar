@@ -4992,17 +4992,22 @@ fetchArticles();
     });
 
     function saveProducts() {
-      products = (products || []).filter(p => p && p.name && p.id);
-      localStorage.setItem('tm_products', JSON.stringify(products));
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('shop_products').set(products);
-      }
-      fetch('/api/products', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(products)
-      }).catch(e => console.log('Products API Note:', e));
-    }
+  products = (products || []).filter(p => p && p.name && p.id);
+  localStorage.setItem('tm_products', JSON.stringify(products));
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_products').set(products);
+  }
+  
+  const currentPin = localStorage.getItem('tm_admin_pin') || '1234';
+  fetch('/api/products', {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      'x-admin-pin': currentPin
+    },
+    body: JSON.stringify(products)
+  }).catch(e => console.log('Products API Note:', e));
+}
 
     function saveOrders() {
       localStorage.setItem('tm_orders', JSON.stringify(orders));
