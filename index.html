@@ -3541,11 +3541,10 @@ function scrollCategories(amount) {
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             <div class="form-group" style="margin:0;">
               <label>ကူပွန် အမျိုးအစား (Category)</label>
-              <select id="newDiscountCategory">
-                <option value="discount">🏷️ ပစ္စည်း လျှော့ဈေး (Product)</option>
-                <option value="deli">🚚 Deli ပို့ခ လျှော့ဈေး (Delivery)</option>
-                <option value="vip">👑 VIP / အထူး ကူပွန် (Special)</option>
-              </select>
+              <div style="display:flex; gap:5px; align-items:center;">
+                <select id="newDiscountCategory" style="flex:1;"></select>
+                <button type="button" onclick="addCustomCouponCategory()" title="အမျိုးအစားအသစ် ထပ်တိုးမည်" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:8px 11px; font-weight:700; cursor:pointer; flex-shrink:0;">+</button>
+              </div>
             </div>
             <div class="form-group" style="margin:0;">
               <label>ကူပွန်ကုဒ် (Coupon Code)</label>
@@ -9942,22 +9941,61 @@ function renderAdminColorInputs() {
       if (document.getElementById('newDiscountExpiry')) document.getElementById('newDiscountExpiry').value = '';
     }
 
+    var defaultCouponCategories = [
+      { id: 'discount', label: '🏷️ ပစ္စည်း လျှော့ဈေး', badge: '🏷️ ပစ္စည်း', color: '#34d399', bg: 'rgba(16,185,129,0.18)', border: 'rgba(16,185,129,0.4)' },
+      { id: 'deli', label: '🚚 Deli ပို့ခ လျှော့ဈေး', badge: '🚚 Deli', color: '#38bdf8', bg: 'rgba(56,189,248,0.18)', border: 'rgba(56,189,248,0.4)' },
+      { id: 'vip', label: '👑 VIP / အထူး ကူပွန်', badge: '👑 VIP/အထူး', color: '#fde047', bg: 'rgba(250,204,21,0.18)', border: 'rgba(250,204,21,0.4)' }
+    ];
+
+    var customCouponCategories = JSON.parse(localStorage.getItem('tm_coupon_categories') || '[]');
     var currentCouponFilterTab = 'all';
 
-    function setCouponFilterTab(tab, btnEl) {
-      currentCouponFilterTab = tab;
-      document.querySelectorAll('.coupon-tab-btn').forEach(b => {
-        b.style.borderColor = '#334155';
-        b.style.background = '#1e293b';
-        b.style.color = '#cbd5e1';
-        b.style.fontWeight = '400';
+    function getAllCouponCategories() {
+      return [...defaultCouponCategories, ...customCouponCategories];
+    }
+
+    function addCustomCouponCategory() {
+      const name = prompt('ထပ်တိုးလိုသော ကူပွန် အမျိုးအစား အမည်ကို ရိုက်ထည့်ပါ (ဥပမာ - 🔥 Flash Sale သို့မဟုတ် 🎁 Gift):');
+      if (!name || !name.trim()) return;
+      const cleanName = name.trim();
+      const catId = 'cat_' + Date.now();
+      customCouponCategories.push({
+        id: catId,
+        label: cleanName,
+        badge: cleanName,
+        color: '#c084fc',
+        bg: 'rgba(192,132,252,0.18)',
+        border: 'rgba(192,132,252,0.4)'
       });
-      if (btnEl) {
-        btnEl.style.borderColor = '#10b981';
-        btnEl.style.background = 'rgba(16,185,129,0.2)';
-        btnEl.style.color = '#6ee7b7';
-        btnEl.style.fontWeight = '700';
+      localStorage.setItem('tm_coupon_categories', JSON.stringify(customCouponCategories));
+      renderCouponCategoryControls();
+      const sel = document.getElementById('newDiscountCategory');
+      if (sel) sel.value = catId;
+    }
+
+    function renderCouponCategoryControls() {
+      const allCats = getAllCouponCategories();
+      const sel = document.getElementById('newDiscountCategory');
+      if (sel) {
+        const prevVal = sel.value;
+        sel.innerHTML = allCats.map(c => `<option value="${c.id}">${c.label}</option>`).join('');
+        if (prevVal && allCats.some(c => c.id === prevVal)) sel.value = prevVal;
       }
+
+      const tabsBox = document.getElementById('couponFilterTabs');
+      if (tabsBox) {
+        const allBtn = `<button type="button" onclick="setCouponFilterTab('all')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${currentCouponFilterTab === 'all' ? '#10b981' : '#334155'}; background:${currentCouponFilterTab === 'all' ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${currentCouponFilterTab === 'all' ? '#6ee7b7' : '#cbd5e1'}; font-weight:${currentCouponFilterTab === 'all' ? '700' : '400'}; cursor:pointer;">အားလုံး</button>`;
+        const catBtns = allCats.map(c => {
+          const isAct = currentCouponFilterTab === c.id;
+          return `<button type="button" onclick="setCouponFilterTab('${c.id}')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${isAct ? '#10b981' : '#334155'}; background:${isAct ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${isAct ? '#6ee7b7' : '#cbd5e1'}; font-weight:${isAct ? '700' : '400'}; cursor:pointer;">${c.badge}</button>`;
+        }).join('');
+        tabsBox.innerHTML = allBtn + catBtns;
+      }
+    }
+
+    function setCouponFilterTab(tab) {
+      currentCouponFilterTab = tab;
+      renderCouponCategoryControls();
       renderDiscountsList();
     }
 
@@ -9970,6 +10008,7 @@ function renderAdminColorInputs() {
     }
 
     function renderDiscountsList() {
+      renderCouponCategoryControls();
       const box = document.getElementById('adminDiscountsList');
       if (!box) return;
 
@@ -9977,15 +10016,12 @@ function renderAdminColorInputs() {
       if (totalBadge) totalBadge.textContent = `(စုစုပေါင်း ${discounts.length} ခု)`;
 
       const searchVal = (document.getElementById('couponSearchInput')?.value || '').trim().toUpperCase();
+      const allCats = getAllCouponCategories();
 
       const mapped = discounts.map((d, idx) => {
         const cat = getCouponCategory(d);
-        let badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.4);">🏷️ ပစ္စည်း</span>';
-        if (cat === 'deli') {
-          badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(56,189,248,0.18); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">🚚 Deli</span>';
-        } else if (cat === 'vip') {
-          badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(250,204,21,0.18); color:#fde047; border:1px solid rgba(250,204,21,0.4);">👑 VIP/အထူး</span>';
-        }
+        const catObj = allCats.find(c => c.id === cat) || allCats[0];
+        const badgeHtml = `<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:${catObj.bg}; color:${catObj.color}; border:1px solid ${catObj.border};">${catObj.badge}</span>`;
         return { d, idx, cat, badgeHtml };
       }).filter(item => {
         const matchTab = (currentCouponFilterTab === 'all') || (item.cat === currentCouponFilterTab);
