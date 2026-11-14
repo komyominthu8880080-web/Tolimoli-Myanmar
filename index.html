@@ -11046,7 +11046,11 @@ function closeModal(id) {
 
       localStorage.setItem('tm_bot_config', JSON.stringify(botConfig));
       if (typeof fbDb !== 'undefined') {
-        fbDb.ref('shop_bot_config').set(botConfig);
+        fbDb.ref('shop_stock_config').set({
+          stockOutMode: mode,
+          autoHideOutOfStock: (mode === 'hide'),
+          minOrderAmount: minAmt
+        });
       }
       renderMinOrderPresetButtons();
       if (typeof renderCatalog === 'function') renderCatalog();
@@ -11070,7 +11074,7 @@ function closeModal(id) {
 
     // Clear Data လုပ်ပြီး ပြန်ဝင်ချိန်တွင် Firebase Cloud မှ ဒေတာများကို ချက်ချင်း ပြန်ဆွဲယူခြင်း
     if (typeof fbDb !== 'undefined') {
-      fbDb.ref('shop_bot_config').on('value', snap => {
+      fbDb.ref('shop_stock_config').on('value', snap => {
         const val = snap.val();
         if (val) {
           botConfig = Object.assign({}, botConfig, val);
