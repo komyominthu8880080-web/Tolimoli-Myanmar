@@ -11051,21 +11051,43 @@ function closeModal(id) {
       alert('✅ Stock ပြသမှုစနစ်နှင့် အနည်းဆုံးမှာယူငွေ သတ်မှတ်ချက်ကို သိမ်းဆည်းပြီးပါပြီ!');
     }
 
-    // စာမျက်နှာ စဖွင့်ချိန်တွင် ခလုတ်များနှင့် လက်ရှိတန်ဖိုးများ ပြသပေးခြင်း
-    window.addEventListener('load', () => {
+    // UI ကို botConfig တန်ဖိုးများနှင့် တိုက်ရိုက် ချိတ်ဆက်ပြသပေးခြင်း
+    function syncStockAndMinOrderUI() {
       const modeSel = document.getElementById('cfgStockOutMode');
       if (modeSel) {
         modeSel.value = botConfig.stockOutMode || (botConfig.autoHideOutOfStock ? 'hide' : 'bottom');
-      }
-      const lowInp = document.getElementById('cfgLowStockAlertThreshold');
-      if (lowInp && botConfig.lowStockThreshold) {
-        lowInp.value = botConfig.lowStockThreshold;
       }
       const minInp = document.getElementById('cfgMinOrderAmount');
       if (minInp) {
         minInp.value = botConfig.minOrderAmount || 0;
       }
       renderMinOrderPresetButtons();
+    }
+
+    window.addEventListener('load', () => {
+      syncStockAndMinOrderUI();
+
+      // Clear Data လုပ်ပြီး ပြန်ဝင်ချိန်တွင် Firebase Cloud မှ ဒေတာများကို အလိုအလျောက် ပြန်ဆွဲယူခြင်း
+      if (typeof fbDb !== 'undefined') {
+        fbDb.ref('shop_bot_config').on('value', snap => {
+          const val = snap.val();
+          if (val) {
+            botConfig = Object.assign({}, botConfig, val);
+            localStorage.setItem('tm_bot_config', JSON.stringify(botConfig));
+            syncStockAndMinOrderUI();
+            if (typeof renderCatalog === 'function') renderCatalog();
+          }
+        });
+
+        fbDb.ref('shop_min_order_presets').on('value', snap => {
+          const val = snap.val();
+          if (Array.isArray(val) && val.length > 0) {
+            minOrderPresets = val;
+            localStorage.setItem('tm_min_order_presets', JSON.stringify(minOrderPresets));
+            renderMinOrderPresetButtons();
+          }
+        });
+      }
     });
 
     function loadCentralSettings() {
