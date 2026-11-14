@@ -5502,6 +5502,9 @@ orders = deduplicateOrders(raw);
         // Admin က လက်ဖြင့် မျက်လုံးပိတ် (ဖျောက်ထား) သော ပစ္စည်းများကိုသာ Customers ထံမှ ဖျောက်ခြင်း
     if (p.isHidden) return false;
 
+        const stockMode = botConfig.stockOutMode || (botConfig.autoHideOutOfStock ? 'hide' : 'bottom');
+      if (stockMode === 'hide' && (Number(p.stock) || 0) <= 0) return false;
+      
     return matchCat && matchSearch;
       });
 
@@ -11068,7 +11071,7 @@ function closeModal(id) {
       }
       renderMinOrderPresetButtons();
     });
-    
+
     function loadCentralSettings() {
       document.getElementById('cfgTgBotToken').value = botConfig.tgToken || '';
       document.getElementById('cfgTgChatId').value = botConfig.tgChatId || '';
