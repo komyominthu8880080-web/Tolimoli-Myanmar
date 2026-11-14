@@ -3385,37 +3385,104 @@ function scrollCategories(amount) {
         <div id="adminCustomerContainer"></div>
       </div>
 
-      <!-- Tab 5: Sales Analytics -->
+      <!-- Tab 5: Sales Analytics (Modern Pro Dashboard) -->
       <div class="admin-tab" id="analyticsTab">
-        <input type="text" id="adminAnalyticsSearchInput" class="admin-filter-search" placeholder="🔍 အရောင်းစာရင်း ရှာဖွေရန်..." oninput="renderAnalytics()">
-
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
-          <h4 style="color:#fff; font-size:0.9rem;">ရောင်းအားနှင့် အမြတ်ငွေ အစီရင်ခံစာ</h4>
-          <div style="display:flex; gap:6px;">
-            <button class="btn-secondary" style="background:#0088cc; color:#fff;" onclick="sendDailySalesSummaryTelegram()"><i class="fab fa-telegram-plane"></i> Telegram အစီရင်ခံစာ ပို့မည်</button>
-            <button class="btn-secondary" onclick="exportAnalyticsExcel()"><i class="fas fa-file-excel"></i> Financial Report</button>
+          <h4 style="color:#fff; font-size:0.95rem; margin:0;"><i class="fas fa-chart-line" style="color:var(--gold);"></i> ရောင်းအားနှင့် အမြတ်ငွေ အစီရင်ခံစာ (Analytics)</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" style="background:#0088cc; color:#fff; border:none;" onclick="sendDailySalesSummaryTelegram()"><i class="fab fa-telegram-plane"></i> Telegram အစီရင်ခံစာ ပို့မည်</button>
+            <button type="button" class="btn-secondary" onclick="exportAnalyticsExcel()"><i class="fas fa-file-excel"></i> Financial Report</button>
           </div>
         </div>
 
-        <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px; margin-bottom:12px;">
-          <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.82rem;">
-            <span>Gross Sales (ရောင်းရငွေစုစုပေါင်း)</span><b id="statGrossSales" style="color:#fff;">Ks 0</b>
+        <!-- 1. Date Filter Pills & Custom Date Range -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:12px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+            <button type="button" class="admin-filter-pill-btn active" id="anFilter_all" onclick="setAnalyticsDateFilter('all')">အားလုံး (All Time)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_today" onclick="setAnalyticsDateFilter('today')">ယနေ့ (Today)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_yesterday" onclick="setAnalyticsDateFilter('yesterday')">မနေ့က (Yesterday)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_7days" onclick="setAnalyticsDateFilter('7days')">၇ ရက်အတွင်း (7 Days)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_month" onclick="setAnalyticsDateFilter('month')">ယခုလ (This Month)</button>
           </div>
-          <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.82rem;">
-            <span>Cancel / Returned (ပြန်လှည့်ငွေ)</span><b id="statRefunds" style="color:#f87171;">Ks 0</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:0.82rem;">
-            <span>Discounts (လျှော့ပေးငွေ)</span><b id="statDiscounts" style="color:#fbbf24;">Ks 0</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:2px solid rgba(255,255,255,0.15); font-size:0.9rem; font-weight:bold;">
-            <span>Net Sales (အမှန်ရောင်းရငွေ)</span><b id="statNetSales" style="color:#38bdf8;">Ks 0</b>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:0.95rem; font-weight:bold; color:#00ff88;">
-            <span>Net Profit (အသားတင်အမြတ်ငွေ)</span><b id="statNetProfit">Ks 0</b>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:0.72rem; color:#94a3b8;">စိတ်ကြိုက်ရက်:</span>
+            <input type="date" id="anDateFrom" onchange="setAnalyticsDateFilter('custom')" style="padding:5px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.74rem;">
+            <span style="color:#94a3b8; font-size:0.75rem;">မှ</span>
+            <input type="date" id="anDateTo" onchange="setAnalyticsDateFilter('custom')" style="padding:5px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.74rem;">
+            <input type="text" id="adminAnalyticsSearchInput" placeholder="🔍 အော်ဒါ ID / ဝယ်သူ / ပစ္စည်း ရှာရန်..." oninput="renderAnalytics()" style="flex:1; min-width:150px; padding:6px 10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.75rem; outline:none;">
           </div>
         </div>
 
-        <div style="background:rgba(0,0,0,0.3); padding:10px; border-radius:8px;" id="analyticsOrdersBreakdown"></div>
+        <!-- 2. KPI Summary Cards (Gross, Net Sales, Net Profit, AOV & Margin %) -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:12px;">
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Gross Sales (စုစုပေါင်းရောင်းရငွေ)</span>
+            <b id="statGrossSales" style="font-size:0.95rem; color:#fff; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statOrderCountSub" style="font-size:0.68rem; color:#38bdf8;">အော်ဒါ 0 ခု</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid #0284c7; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Net Sales (အမှန်ရောင်းရငွေ)</span>
+            <b id="statNetSales" style="font-size:0.95rem; color:#38bdf8; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statDiscRefSub" style="font-size:0.65rem; color:#f87171;">လျှော့ငွေ/Cancel: Ks 0</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid #10b981; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Net Profit (အသားတင်အမြတ်)</span>
+            <b id="statNetProfit" style="font-size:0.95rem; color:#00ff88; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statProfitMarginPct" style="font-size:0.68rem; color:#a7f3d0; font-weight:bold;">Margin: 0%</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid var(--gold); border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">ပျမ်းမျှအော်ဒါတန်ဖိုး (AOV)</span>
+            <b id="statAovVal" style="font-size:0.95rem; color:var(--gold); display:block; margin-top:2px;">Ks 0</b>
+            <small id="statDeliCostSub" style="font-size:0.65rem; color:#cbd5e1;">ပို့ခစုစုပေါင်း: Ks 0</small>
+          </div>
+        </div>
+
+        <!-- Hidden legacy spans for backward compatibility -->
+        <span id="statRefunds" style="display:none;">Ks 0</span>
+        <span id="statDiscounts" style="display:none;">Ks 0</span>
+
+        <!-- 3. Visual Charts Row (Sales Trend Line Chart & Payment Breakdown Doughnut Chart) -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:12px;">
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:var(--gold); font-weight:bold; margin-bottom:6px;">
+              <i class="fas fa-chart-area"></i> ရက်အလိုက် ရောင်းအားနှင့် အမြတ်ငွေ ပြဂရပ်
+            </div>
+            <div style="position:relative; height:190px; width:100%;">
+              <canvas id="salesTrendChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#38bdf8; font-weight:bold; margin-bottom:6px;">
+              <i class="fas fa-wallet"></i> ငွေပေးချေမှုအလိုက် ခွဲခြမ်းစိတ်ဖြာမှု (Payment Split)
+            </div>
+            <div style="position:relative; height:190px; width:100%;">
+              <canvas id="paymentSplitChartCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Top Selling Products & Top Locations Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:12px;">
+          <!-- Top Selling Products -->
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#00ff88; font-weight:bold; margin-bottom:8px;">
+              <i class="fas fa-trophy" style="color:var(--gold);"></i> ရောင်းအားအကောင်းဆုံး ပစ္စည်းများ (Top 5 Products)
+            </div>
+            <div id="analyticsTopProductsList"></div>
+          </div>
+
+          <!-- Top Locations / Townships -->
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#f59e0b; font-weight:bold; margin-bottom:8px;">
+              <i class="fas fa-map-marked-alt"></i> ဝယ်လိုအားအများဆုံး မြို့နယ်များ (Top Townships)
+            </div>
+            <div id="analyticsTopLocationsList"></div>
+          </div>
+        </div>
+
+        <!-- 5. Recent Orders Breakdown -->
+        <div style="background:rgba(0,0,0,0.3); border:1px solid #334155; padding:10px; border-radius:8px;" id="analyticsOrdersBreakdown"></div>
       </div>
 
       <!-- Tab 6: Discounts & VIP Loyalty Management -->
@@ -10554,22 +10621,96 @@ function closeModal(id) {
     }
 
     // ========================================================
-    // 📊 SALES ANALYTICS RENDERER (ရောင်းအားနှင့် အမြတ်ငွေ အစီရင်ခံစာ)
+    // 📊 MODERN SALES ANALYTICS ENGINE (CHARTS, FILTERS, KPIs)
     // ========================================================
+    var currentAnalyticsDateFilter = 'all';
+    var salesTrendChartInstance = null;
+    var paymentSplitChartInstance = null;
+
+    function setAnalyticsDateFilter(mode) {
+      currentAnalyticsDateFilter = mode;
+      ['all', 'today', 'yesterday', '7days', 'month'].forEach(m => {
+        const btn = document.getElementById('anFilter_' + m);
+        if (btn) btn.classList.toggle('active', m === mode);
+      });
+      if (mode !== 'custom') {
+        const fInp = document.getElementById('anDateFrom');
+        const tInp = document.getElementById('anDateTo');
+        if (fInp) fInp.value = '';
+        if (tInp) tInp.value = '';
+      }
+      renderAnalytics();
+    }
+
+    function parseAnalyticsOrderDate(o) {
+      if (o.timestamp && !isNaN(Number(o.timestamp))) return new Date(Number(o.timestamp));
+      if (o.createdAt && !isNaN(Number(o.createdAt))) return new Date(Number(o.createdAt));
+      if (o.date) {
+        const parsed = Date.parse(o.date);
+        if (!isNaN(parsed)) return new Date(parsed);
+        const m = String(o.date).match(/(\d{1,2})[-/](\d{1,2})[-/](\d{4})(?:.*?(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)?)?/i);
+        if (m) {
+          let day = parseInt(m[1], 10);
+          let month = parseInt(m[2], 10) - 1;
+          let year = parseInt(m[3], 10);
+          let hr = m[4] ? parseInt(m[4], 10) : 0;
+          let min = m[5] ? parseInt(m[5], 10) : 0;
+          let sec = m[6] ? parseInt(m[6], 10) : 0;
+          const ampm = m[7] ? m[7].toUpperCase() : '';
+          if (ampm === 'PM' && hr < 12) hr += 12;
+          if (ampm === 'AM' && hr === 12) hr = 0;
+          return new Date(year, month, day, hr, min, sec);
+        }
+      }
+      return null;
+    }
+
     function renderAnalytics() {
       const searchVal = (document.getElementById('adminAnalyticsSearchInput')?.value || '').toLowerCase().trim();
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const startOfYesterday = startOfToday - 86400000;
+      const startOf7Days = startOfToday - (6 * 86400000);
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+
+      const customFromVal = document.getElementById('anDateFrom')?.value;
+      const customToVal = document.getElementById('anDateTo')?.value;
+      const customFromTs = customFromVal ? new Date(customFromVal + 'T00:00:00').getTime() : 0;
+      const customToTs = customToVal ? new Date(customToVal + 'T23:59:59').getTime() : Infinity;
+
       let grossSales = 0;
       let refunds = 0;
       let totalDiscounts = 0;
       let totalCost = 0;
       let totalDeliveryFees = 0;
+      let activeOrderCount = 0;
+
+      const dailyMap = {};
+      const paymentMap = { KBZPay: 0, WavePay: 0, COD: 0, Other: 0 };
+      const productSalesMap = {};
+      const locationMap = {};
 
       const validOrders = (orders || []).filter(o => {
         if (!o) return false;
+        const dObj = parseAnalyticsOrderDate(o);
+        const ts = dObj ? dObj.getTime() : 0;
+
+        if (currentAnalyticsDateFilter === 'today' && ts < startOfToday) return false;
+        if (currentAnalyticsDateFilter === 'yesterday' && (ts < startOfYesterday || ts >= startOfToday)) return false;
+        if (currentAnalyticsDateFilter === '7days' && ts < startOf7Days) return false;
+        if (currentAnalyticsDateFilter === 'month' && ts < startOfMonth) return false;
+        if (currentAnalyticsDateFilter === 'custom') {
+          if (customFromTs && ts < customFromTs) return false;
+          if (customToTs !== Infinity && ts > customToTs) return false;
+        }
+
         if (!searchVal) return true;
+        const itemsMatch = Array.isArray(o.items) && o.items.some(i => (i.name || '').toLowerCase().includes(searchVal));
         return (o.id || '').toLowerCase().includes(searchVal) ||
                (o.customer || '').toLowerCase().includes(searchVal) ||
-               (o.phone || '').toLowerCase().includes(searchVal);
+               (o.phone || '').toLowerCase().includes(searchVal) ||
+               (o.township || '').toLowerCase().includes(searchVal) ||
+               itemsMatch;
       });
 
       validOrders.forEach(o => {
@@ -10584,47 +10725,196 @@ function closeModal(id) {
         if (isCancelled) {
           refunds += orderTotal;
         } else {
+          activeOrderCount++;
           totalDiscounts += orderDisc;
           totalDeliveryFees += orderDeli;
 
+          let orderCost = 0;
           if (Array.isArray(o.items)) {
             o.items.forEach(item => {
               const qty = Number(item.qty) || 1;
+              const price = Number(item.price) || 0;
               let itemCost = Number(item.cost) || 0;
               if (!itemCost && Array.isArray(products)) {
                 const foundP = products.find(p => p.id === item.id || p.sku === item.sku);
                 if (foundP) itemCost = Number(foundP.cost) || 0;
               }
-              totalCost += (itemCost * qty);
+              orderCost += (itemCost * qty);
+
+              const pKey = item.name || 'ပစ္စည်း';
+              if (!productSalesMap[pKey]) {
+                productSalesMap[pKey] = { name: pKey, qty: 0, revenue: 0, profit: 0 };
+              }
+              productSalesMap[pKey].qty += qty;
+              productSalesMap[pKey].revenue += (price * qty);
+              productSalesMap[pKey].profit += ((price - itemCost) * qty);
             });
           }
+          totalCost += orderCost;
+
+          // Daily Chart Grouping
+          const dObj = parseAnalyticsOrderDate(o);
+          const dayLabel = dObj
+            ? `${String(dObj.getDate()).padStart(2, '0')}/${String(dObj.getMonth() + 1).padStart(2, '0')}`
+            : 'Other';
+          if (!dailyMap[dayLabel]) dailyMap[dayLabel] = { sales: 0, profit: 0, sortTs: dObj ? dObj.getTime() : 0 };
+          dailyMap[dayLabel].sales += orderTotal;
+          dailyMap[dayLabel].profit += Math.max(0, orderTotal - orderDeli - orderCost);
+
+          // Payment Split Grouping
+          const payRaw = String(o.payment || '').toLowerCase();
+          if (payRaw.includes('kbz') || payRaw.includes('kpay')) paymentMap.KBZPay += orderTotal;
+          else if (payRaw.includes('wave')) paymentMap.WavePay += orderTotal;
+          else if (payRaw.includes('cod')) paymentMap.COD += orderTotal;
+          else paymentMap.Other += orderTotal;
+
+          // Location Grouping
+          const locName = (o.township || o.address || 'မဖော်ပြထားပါ').split(',')[0].trim();
+          if (!locationMap[locName]) locationMap[locName] = { name: locName, count: 0, amount: 0 };
+          locationMap[locName].count += 1;
+          locationMap[locName].amount += orderTotal;
         }
       });
 
       const netSales = Math.max(0, grossSales - refunds - totalDiscounts);
       const netProfit = Math.max(0, netSales - totalDeliveryFees - totalCost);
+      const marginPct = netSales > 0 ? ((netProfit / netSales) * 100).toFixed(1) : '0.0';
+      const aovVal = activeOrderCount > 0 ? Math.round(netSales / activeOrderCount) : 0;
 
-      const elGross = document.getElementById('statGrossSales');
-      const elRef = document.getElementById('statRefunds');
-      const elDisc = document.getElementById('statDiscounts');
-      const elNet = document.getElementById('statNetSales');
-      const elProf = document.getElementById('statNetProfit');
+      // Update KPI Cards
+      if (document.getElementById('statGrossSales')) document.getElementById('statGrossSales').textContent = 'Ks ' + grossSales.toLocaleString();
+      if (document.getElementById('statOrderCountSub')) document.getElementById('statOrderCountSub').textContent = `အောင်မြင်သောအော်ဒါ ${activeOrderCount} ခု`;
+      if (document.getElementById('statNetSales')) document.getElementById('statNetSales').textContent = 'Ks ' + netSales.toLocaleString();
+      if (document.getElementById('statDiscRefSub')) document.getElementById('statDiscRefSub').textContent = `လျှော့ငွေ/Cancel: Ks ${(totalDiscounts + refunds).toLocaleString()}`;
+      if (document.getElementById('statNetProfit')) document.getElementById('statNetProfit').textContent = 'Ks ' + netProfit.toLocaleString();
+      if (document.getElementById('statProfitMarginPct')) document.getElementById('statProfitMarginPct').textContent = `အမြတ်ရာခိုင်နှုန်း (Margin): ${marginPct}%`;
+      if (document.getElementById('statAovVal')) document.getElementById('statAovVal').textContent = 'Ks ' + aovVal.toLocaleString();
+      if (document.getElementById('statDeliCostSub')) document.getElementById('statDeliCostSub').textContent = `ပို့ဆောင်ခစုစုပေါင်း: Ks ${totalDeliveryFees.toLocaleString()}`;
 
-      if (elGross) elGross.textContent = 'Ks ' + grossSales.toLocaleString();
-      if (elRef) elRef.textContent = 'Ks ' + refunds.toLocaleString();
-      if (elDisc) elDisc.textContent = 'Ks ' + totalDiscounts.toLocaleString();
-      if (elNet) elNet.textContent = 'Ks ' + netSales.toLocaleString();
-      if (elProf) elProf.textContent = 'Ks ' + netProfit.toLocaleString();
+      if (document.getElementById('statRefunds')) document.getElementById('statRefunds').textContent = 'Ks ' + refunds.toLocaleString();
+      if (document.getElementById('statDiscounts')) document.getElementById('statDiscounts').textContent = 'Ks ' + totalDiscounts.toLocaleString();
 
+      // Render Chart.js Graphs
+      if (typeof Chart !== 'undefined') {
+        // 1. Sales & Profit Trend Line Chart
+        const trendCtx = document.getElementById('salesTrendChartCanvas')?.getContext('2d');
+        if (trendCtx) {
+          if (salesTrendChartInstance) salesTrendChartInstance.destroy();
+          const sortedDays = Object.entries(dailyMap).sort((a, b) => a[1].sortTs - b[1].sortTs).slice(-14);
+          salesTrendChartInstance = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+              labels: sortedDays.length > 0 ? sortedDays.map(d => d[0]) : ['No Data'],
+              datasets: [
+                {
+                  label: 'ရောင်းရငွေ (Net Sales)',
+                  data: sortedDays.length > 0 ? sortedDays.map(d => d[1].sales) : [0],
+                  borderColor: '#38bdf8',
+                  backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                  fill: true,
+                  tension: 0.35
+                },
+                {
+                  label: 'အမြတ်ငွေ (Profit)',
+                  data: sortedDays.length > 0 ? sortedDays.map(d => d[1].profit) : [0],
+                  borderColor: '#00ff88',
+                  backgroundColor: 'rgba(0, 255, 136, 0.12)',
+                  fill: true,
+                  tension: 0.35
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 10 } } } },
+              scales: {
+                x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+              }
+            }
+          });
+        }
+
+        // 2. Payment Method Doughnut Chart
+        const payCtx = document.getElementById('paymentSplitChartCanvas')?.getContext('2d');
+        if (payCtx) {
+          if (paymentSplitChartInstance) paymentSplitChartInstance.destroy();
+          paymentSplitChartInstance = new Chart(payCtx, {
+            type: 'doughnut',
+            data: {
+              labels: [
+                `KBZPay (${paymentMap.KBZPay.toLocaleString()} Ks)`,
+                `WavePay (${paymentMap.WavePay.toLocaleString()} Ks)`,
+                `COD (${paymentMap.COD.toLocaleString()} Ks)`,
+                `Banking/Other (${paymentMap.Other.toLocaleString()} Ks)`
+              ],
+              datasets: [{
+                data: [paymentMap.KBZPay, paymentMap.WavePay, paymentMap.COD, paymentMap.Other],
+                backgroundColor: ['#0284c7', '#eab308', '#f97316', '#8b5cf6'],
+                borderColor: '#0f172a',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { position: 'right', labels: { color: '#e2e8f0', font: { size: 10 }, boxWidth: 12 } } }
+            }
+          });
+        }
+      }
+
+      // Render Top 5 Selling Products
+      const topProdBox = document.getElementById('analyticsTopProductsList');
+      if (topProdBox) {
+        const topProds = Object.values(productSalesMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
+        const maxQty = topProds.length > 0 ? topProds[0].qty : 1;
+        topProdBox.innerHTML = topProds.length === 0
+          ? '<div style="color:#64748b; font-size:0.74rem; text-align:center; padding:12px;">အရောင်းမှတ်တမ်း မရှိသေးပါ</div>'
+          : topProds.map((tp, idx) => `
+              <div style="margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.73rem; color:#fff;">
+                  <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:65%;">${idx + 1}. ${tp.name}</span>
+                  <span style="color:#00ff88; font-weight:bold;">${tp.qty} ခု (${tp.revenue.toLocaleString()} Ks)</span>
+                </div>
+                <div class="visual-stat-bar">
+                  <div class="visual-stat-fill" style="width:${Math.round((tp.qty / maxQty) * 100)}%;"></div>
+                </div>
+              </div>
+            `).join('');
+      }
+
+      // Render Top 5 Locations / Townships
+      const topLocBox = document.getElementById('analyticsTopLocationsList');
+      if (topLocBox) {
+        const topLocs = Object.values(locationMap).sort((a, b) => b.amount - a.amount).slice(0, 5);
+        const maxAmt = topLocs.length > 0 ? topLocs[0].amount : 1;
+        topLocBox.innerHTML = topLocs.length === 0
+          ? '<div style="color:#64748b; font-size:0.74rem; text-align:center; padding:12px;">ဒေသအချက်အလက် မရှိသေးပါ</div>'
+          : topLocs.map((loc, idx) => `
+              <div style="margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.73rem; color:#fff;">
+                  <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:60%;">${idx + 1}. ${loc.name}</span>
+                  <span style="color:#fbbf24; font-weight:bold;">${loc.count} ကြိမ် (${loc.amount.toLocaleString()} Ks)</span>
+                </div>
+                <div class="visual-stat-bar">
+                  <div class="visual-stat-fill" style="width:${Math.round((loc.amount / maxAmt) * 100)}%; background:linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
+                </div>
+              </div>
+            `).join('');
+      }
+
+      // Render Recent Orders Breakdown
       const breakdownBox = document.getElementById('analyticsOrdersBreakdown');
       if (breakdownBox) {
         breakdownBox.innerHTML = `
           <div style="font-size:0.78rem; color:var(--gold); font-weight:bold; margin-bottom:6px;">
-            📦 စုစုပေါင်း အော်ဒါအရေအတွက်: ${validOrders.length} ခု (ပို့ဆောင်ခ စုစုပေါင်း: ${totalDeliveryFees.toLocaleString()} Ks | အရင်းစုစုပေါင်း: ${totalCost.toLocaleString()} Ks)
+            📦 စစ်ထုတ်ထားသော အော်ဒါစာရင်း (${validOrders.length} ခု | အရင်းစုစုပေါင်း: ${totalCost.toLocaleString()} Ks)
           </div>
           ${validOrders.slice(0, 15).map(o => `
             <div style="display:flex; justify-content:space-between; font-size:0.74rem; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:#cbd5e1;">
-              <span><b>${o.id}</b> - ${o.customer || '-'}</span>
+              <span><b>${o.id}</b> - ${o.customer || '-'} <small style="color:#94a3b8;">(${o.payment || 'COD'})</small></span>
               <span style="color:#00ff88; font-weight:600;">${Number(o.total || 0).toLocaleString()} Ks</span>
             </div>
           `).join('')}
