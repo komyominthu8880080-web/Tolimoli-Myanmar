@@ -11108,6 +11108,7 @@ function closeModal(id) {
       const nEn = document.getElementById('cfgNewsEnable'); if (nEn) nEn.checked = !!botConfig.newsEnable;
       const autoHideBox = document.getElementById('cfgAutoHideOutOfStock');
       if (autoHideBox) autoHideBox.checked = botConfig.autoHideOutOfStock !== false;
+      if (typeof syncStockAndMinOrderUI === 'function') syncStockAndMinOrderUI();
     }
 
     // ==========================================
