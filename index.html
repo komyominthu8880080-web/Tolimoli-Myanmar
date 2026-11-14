@@ -8010,20 +8010,35 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         return { status: 'none', label: 'သက်တမ်းရက် မသတ်မှတ်ရသေးပါ', color: '#94a3b8', daysLeft: null, isExpiring6m: false, isExpired: false };
       }
       const now = new Date();
-      now.setHours(0,0,0,0);
-      const exp = new Date(p.expiryDate);
+      now.setHours(0, 0, 0, 0);
+
+      // DD/MM/YYYY နှင့် YYYY-MM-DD နှစ်မျိုးလုံးကို မှန်ကန်စွာ ဖတ်ယူခြင်း
+      let exp = null;
+      const cleanStr = String(p.expiryDate).trim();
+      const parts = cleanStr.split(/[-/]/);
+      if (parts.length === 3) {
+        if (parts[2].length === 4) {
+          exp = new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        } else if (parts[0].length === 4) {
+          exp = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        }
+      }
+      if (!exp || isNaN(exp.getTime())) {
+        exp = new Date(cleanStr);
+      }
+
       if (isNaN(exp.getTime())) {
         return { status: 'none', label: 'ရက်စွဲမှားယွင်း', color: '#94a3b8', daysLeft: null, isExpiring6m: false, isExpired: false };
       }
-      exp.setHours(0,0,0,0);
+      exp.setHours(0, 0, 0, 0);
 
       const diffMs = exp.getTime() - now.getTime();
       const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      const formattedDate = exp.toLocaleDateString('en-GB'); // DD/MM/YYYY
+      const formattedDate = `${String(exp.getDate()).padStart(2, '0')}/${String(exp.getMonth() + 1).padStart(2, '0')}/${exp.getFullYear()}`;
 
       if (daysLeft < 0) {
         return { status: 'expired', label: `❌ သက်တမ်းကုန်ပြီး (${Math.abs(daysLeft)} ရက်ကျော်လွန်) • ${formattedDate}`, color: '#ef4444', daysLeft, isExpiring6m: false, isExpired: true };
-      } else if (daysLeft <= 180) { // 6 Months (approx 180 days)
+      } else if (daysLeft <= 180) {
         const months = Math.ceil(daysLeft / 30);
         return { status: 'expiring_6m', label: `⚠️ ၆ လအတွင်း ကုန်မည် (ကျန် ${daysLeft} ရက် / ခန့်မှန်း ${months} လ) • ${formattedDate}`, color: '#f59e0b', daysLeft, isExpiring6m: true, isExpired: false };
       } else {
