@@ -3309,10 +3309,6 @@ function scrollCategories(amount) {
                 <option value="show">🏷️ ပုံမှန်အတိုင်း "ပစ္စည်းကုန်" တံဆိပ်ဖြင့် ပြမည်</option>
               </select>
               <input type="checkbox" id="cfgAutoHideOutOfStock" style="display:none;">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; margin-top:4px;">
-                <span style="font-size:0.7rem; color:#94a3b8;">🔥 လက်ကျန်နည်း သတိပေးမည့် အရေအတွက်:</span>
-                <input type="number" id="cfgLowStockAlertThreshold" value="3" min="1" max="50" style="width:55px; padding:3px 6px; background:#1e293b; border:1px solid #334155; color:#fde047; border-radius:4px; font-size:0.75rem; text-align:center;">
-              </div>
             </div>
 
             <!-- 2. Smart Minimum Order Amount with Custom Preset Manager -->
@@ -5504,7 +5500,7 @@ orders = deduplicateOrders(raw);
 
         const stockMode = botConfig.stockOutMode || (botConfig.autoHideOutOfStock ? 'hide' : 'bottom');
       if (stockMode === 'hide' && (Number(p.stock) || 0) <= 0) return false;
-      
+
     return matchCat && matchSearch;
       });
 
