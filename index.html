@@ -3537,23 +3537,37 @@ function scrollCategories(amount) {
       <div class="admin-tab" id="discountsTab">
         <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">လျှော့ဈေး ကူပွန်များ စီမံခန့်ခွဲခြင်း (Promo Codes)</h4>
         
-        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:14px;">
-          <div class="form-group">
-            <label>ကူပွန်ကုဒ် (Coupon Code)</label>
-            <input type="text" id="newDiscountCode" placeholder="ဥပမာ - WELCOME10 သို့မဟုတ် SPECIAL">
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label>ကူပွန် အမျိုးအစား (Category)</label>
+              <select id="newDiscountCategory">
+                <option value="discount">🏷️ ပစ္စည်း လျှော့ဈေး (Product)</option>
+                <option value="deli">🚚 Deli ပို့ခ လျှော့ဈေး (Delivery)</option>
+                <option value="vip">👑 VIP / အထူး ကူပွန် (Special)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>ကူပွန်ကုဒ် (Coupon Code)</label>
+              <input type="text" id="newDiscountCode" placeholder="ဥပမာ - WELCOME10 သို့မဟုတ် DE3000">
+            </div>
           </div>
-          <div class="form-group">
-            <label>လျှော့ချမည့် ပုံစံ</label>
-            <select id="newDiscountType">
-              <option value="fixed">ငွေပမာဏ တိုက်ရိုက် လျှော့ချမည် (Ks)</option>
-              <option value="percent">ရာခိုင်နှုန်းဖြင့် လျှော့ချမည် (%)</option>
-            </select>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div class="form-group" style="margin:0;">
+              <label>လျှော့ချမည့် ပုံစံ</label>
+              <select id="newDiscountType">
+                <option value="fixed">ငွေပမာဏ တိုက်ရိုက် လျှော့ချမည် (Ks)</option>
+                <option value="percent">ရာခိုင်နှုန်းဖြင့် လျှော့ချမည် (%)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>လျှော့ပေးမည့် တန်ဖိုး (Value)</label>
+              <input type="number" id="newDiscountVal" placeholder="ဥပမာ - 2000 သို့မဟုတ် 10">
+            </div>
           </div>
-          <div class="form-group">
-            <label>လျှော့ပေးမည့် တန်ဖိုး (Value)</label>
-            <input type="number" id="newDiscountVal" placeholder="ဥပမာ - 2000 သို့မဟုတ် 10">
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:6px;">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
             <div class="form-group" style="margin:0;">
               <label style="color:#38bdf8; font-size:0.72rem;">အများဆုံး အသုံးပြုနိုင်မည့် အကြိမ်ရေ (Usage Limit)</label>
               <input type="number" id="newDiscountLimit" placeholder="ဥပမာ- 20 (ကန့်သတ်ချက်မရှိပါက အလွတ်ထားပါ)">
@@ -3563,7 +3577,8 @@ function scrollCategories(amount) {
               <input type="date" id="newDiscountExpiry">
             </div>
           </div>
-          <button type="button" class="btn-gold" onclick="addDiscountCode()" style="margin-top:4px;">
+
+          <button type="button" class="btn-gold" onclick="addDiscountCode()" style="margin-top:8px;">
             <i class="fas fa-plus"></i> ကူပွန်အသစ် ထည့်သွင်းမည်
           </button>
         </div>
@@ -9901,17 +9916,30 @@ function renderAdminColorInputs() {
     }
 
     function addDiscountCode() {
-      const code = (document.getElementById('newDiscountCode').value || '').trim().toUpperCase();
-      const type = document.getElementById('newDiscountType').value;
-      const val = Number(document.getElementById('newDiscountVal').value) || 0;
-      if (!code || val <= 0) return alert('ကူပွန်အချက်အလက် ပြည့်စုံစွာ ဖြည့်ပါ');
+      const code = (document.getElementById('newDiscountCode')?.value || '').trim().toUpperCase();
+      const type = document.getElementById('newDiscountType')?.value || 'fixed';
+      const category = document.getElementById('newDiscountCategory')?.value || 'discount';
+      const val = Number(document.getElementById('newDiscountVal')?.value || 0);
+      const limit = Number(document.getElementById('newDiscountLimit')?.value || 0);
+      const expiry = document.getElementById('newDiscountExpiry')?.value || '';
 
-      discounts.push({ code, type, val });
+      if (!code || val <= 0) {
+        alert('ကျေးဇူးပြု၍ ကူပွန်ကုဒ်နှင့် လျှော့ပေးမည့် တန်ဖိုးကို မှန်ကန်စွာ ဖြည့်သွင်းပါ။');
+        return;
+      }
+      if (discounts.some(d => (d.code || '').toUpperCase() === code)) {
+        alert('ဤကူပွန်ကုဒ် ရှိနှင့်ပြီးသား ဖြစ်ပါသည်။');
+        return;
+      }
+
+      discounts.push({ code, type, category, val, limit, used: 0, expiry });
       saveDiscounts();
       renderDiscountsList();
-      alert(`ကူပွန်ကုဒ် [ ${code} ] အသစ် ထည့်သွင်းပြီးပါပြီခင်ဗျာ!`);
+      alert(`ကူပွန်ကုဒ် [ ${code} ] အသစ် ထည့်သွင်းပြီးပါပြီဗျာ!`);
       document.getElementById('newDiscountCode').value = '';
       document.getElementById('newDiscountVal').value = '';
+      if (document.getElementById('newDiscountLimit')) document.getElementById('newDiscountLimit').value = '';
+      if (document.getElementById('newDiscountExpiry')) document.getElementById('newDiscountExpiry').value = '';
     }
 
     var currentCouponFilterTab = 'all';
@@ -9933,6 +9961,14 @@ function renderAdminColorInputs() {
       renderDiscountsList();
     }
 
+    function getCouponCategory(d) {
+      if (d.category) return d.category;
+      const codeUp = (d.code || '').toUpperCase();
+      if (codeUp.startsWith('DE') || codeUp.includes('DELI') || codeUp.includes('FREE')) return 'deli';
+      if (codeUp.startsWith('VIP') || codeUp.startsWith('WELCOME') || d.type === 'percent') return 'vip';
+      return 'discount';
+    }
+
     function renderDiscountsList() {
       const box = document.getElementById('adminDiscountsList');
       if (!box) return;
@@ -9943,15 +9979,11 @@ function renderAdminColorInputs() {
       const searchVal = (document.getElementById('couponSearchInput')?.value || '').trim().toUpperCase();
 
       const mapped = discounts.map((d, idx) => {
-        const codeUp = (d.code || '').toUpperCase();
-        let cat = 'discount';
-        let badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.4);">🏷️ Discount</span>';
-
-        if (codeUp.startsWith('DE') || codeUp.includes('DELI') || codeUp.includes('FREE')) {
-          cat = 'deli';
+        const cat = getCouponCategory(d);
+        let badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.4);">🏷️ ပစ္စည်း</span>';
+        if (cat === 'deli') {
           badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(56,189,248,0.18); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">🚚 Deli</span>';
-        } else if (codeUp.startsWith('VIP') || codeUp.startsWith('WELCOME') || d.type === 'percent') {
-          cat = 'vip';
+        } else if (cat === 'vip') {
           badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(250,204,21,0.18); color:#fde047; border:1px solid rgba(250,204,21,0.4);">👑 VIP/အထူး</span>';
         }
         return { d, idx, cat, badgeHtml };
@@ -9966,6 +9998,7 @@ function renderAdminColorInputs() {
       } else {
         box.innerHTML = mapped.map(({ d, idx, badgeHtml }) => {
           const valText = d.type === 'percent' ? `${d.val}% Off` : `${Number(d.val || 0).toLocaleString()} Ks`;
+          const limitText = d.limit > 0 ? ` • သုံးပြီး: ${d.used || 0}/${d.limit}` : '';
           const expText = d.expiry ? ` • Exp: ${d.expiry}` : '';
           return `
             <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); border:1px solid #334155; padding:7px 9px; border-radius:7px; gap:6px;">
@@ -9974,7 +10007,7 @@ function renderAdminColorInputs() {
                   <b style="color:var(--gold); font-size:0.82rem;">${d.code}</b>
                   ${badgeHtml}
                 </div>
-                <div style="color:#cbd5e1; font-size:0.73rem; margin-top:2px;">${valText}${expText}</div>
+                <div style="color:#cbd5e1; font-size:0.72rem; margin-top:2px;">${valText}${limitText}${expText}</div>
               </div>
               <button type="button" onclick="discounts.splice(${idx},1); saveDiscounts(); renderDiscountsList();" title="ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:5px; padding:4px 7px; font-size:0.72rem; cursor:pointer; flex-shrink:0;">🗑️</button>
             </div>
