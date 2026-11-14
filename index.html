@@ -10383,40 +10383,204 @@ function closeModal(id) {
   if (floatContainer) floatContainer.style.removeProperty('display');
 }
 
-    function switchAdminTab(tId, btn) {
-  // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
-  document.querySelectorAll('.admin-tab').forEach(t => {
-    t.classList.remove('active');
-    t.style.display = 'none';
-  });
-  document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
+   function switchAdminTab(tId, btn) {
+      // အရင် Tab အဟောင်းအားလုံးကို ဖျောက်ပြီး active ဖြုတ်မည်
+      document.querySelectorAll('.admin-tab').forEach(t => {
+        t.classList.remove('active');
+        t.style.display = 'none';
+      });
+      document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
 
-  // ရွေးချယ်လိုက်သော Tab ကို active ပေးပြီး ပြသမည်
-  const targetTab = document.getElementById(tId);
-  if (targetTab) {
-    targetTab.classList.add('active');
-    targetTab.style.display = 'block';
-  }
-  if (btn) btn.classList.add('active');
+      // ရွေးချယ်လိုက်သော Tab ကို active ပေးပြီး ပြသမည်
+      const targetTab = document.getElementById(tId);
+      if (targetTab) {
+        targetTab.classList.add('active');
+        targetTab.style.display = 'block';
+      }
+      if (btn) btn.classList.add('active');
 
-  // သက်ဆိုင်ရာ Tab အလိုက် Function များ ခေါ်ယူခြင်း
-  if (tId === 'liveChatAdminTab' && typeof renderAdminChatSessionsList === 'function') {
-    renderAdminChatSessionsList();
-  }
-  if (tId === 'discountTab' && typeof loadComboDealsFromRTDB === 'function') {
-    loadComboDealsFromRTDB();
-  }
-  if (tId === 'settingsTab') {
-    if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
-    if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
-  }
-  if (tId === 'productsTab' && typeof syncSearchCategoryDropdown === 'function') {
-    syncSearchCategoryDropdown();
-  }
-  if (tId === 'articleTab' && typeof renderAdminArticleList === 'function') {
-    renderAdminArticleList();
-  }
-}
+      // သက်ဆိုင်ရာ Tab အလိုက် Function များ ခေါ်ယူခြင်း
+      if (tId === 'ordersTab' && typeof renderAdminOrders === 'function') {
+        renderAdminOrders();
+      }
+      if (tId === 'customersTab' && typeof renderAdminCustomers === 'function') {
+        renderAdminCustomers();
+      }
+      if (tId === 'analyticsTab' && typeof renderAnalytics === 'function') {
+        renderAnalytics();
+      }
+      if (tId === 'stockTab' && typeof renderStockTable === 'function') {
+        renderStockTable();
+      }
+      if (tId === 'liveChatAdminTab' && typeof renderAdminChatSessionsList === 'function') {
+        renderAdminChatSessionsList();
+      }
+      if ((tId === 'discountsTab' || tId === 'discountTab') && typeof loadComboDealsFromRTDB === 'function') {
+        loadComboDealsFromRTDB();
+      }
+      if (tId === 'logisticsTab' || tId === 'settingsTab') {
+        if (typeof updateFocAdminUI === 'function') updateFocAdminUI();
+        if (typeof initAbandonedCartVoucherAdminUI === 'function') initAbandonedCartVoucherAdminUI();
+      }
+      if (tId === 'productsTab' && typeof syncSearchCategoryDropdown === 'function') {
+        syncSearchCategoryDropdown();
+      }
+      if (tId === 'articleTab' && typeof renderAdminArticleList === 'function') {
+        renderAdminArticleList();
+      }
+    }
+
+    // ========================================================
+    // 👥 CUSTOMER DIRECTORY RENDERER (ဝယ်ယူသူများ မှတ်တမ်း)
+    // ========================================================
+    function renderAdminCustomers() {
+      const container = document.getElementById('adminCustomerContainer');
+      if (!container) return;
+
+      const searchVal = (document.getElementById('adminCustomerSearchInput')?.value || '').toLowerCase().trim();
+      const custMap = {};
+
+      (orders || []).forEach(o => {
+        if (!o) return;
+        const phoneKey = String(o.phone || '').replace(/[^0-9]/g, '') || (o.customer || 'Unknown');
+        if (!custMap[phoneKey]) {
+          custMap[phoneKey] = {
+            name: o.customer || 'အမည်မသိ',
+            phone: o.phone || '-',
+            address: o.address || '-',
+            township: o.township || '',
+            orderCount: 0,
+            totalSpent: 0,
+            lastDate: o.date || '',
+            ordersList: []
+          };
+        }
+        const statusStr = String(o.status || '');
+        const isCancelled = statusStr.includes('Cancel') || statusStr.includes('Returned') || statusStr.includes('ငြင်းပယ်');
+        custMap[phoneKey].orderCount += 1;
+        if (!isCancelled) {
+          custMap[phoneKey].totalSpent += (Number(o.total) || 0);
+        }
+        if (o.date) custMap[phoneKey].lastDate = o.date;
+        custMap[phoneKey].ordersList.push(o);
+      });
+
+      let custList = Object.values(custMap).sort((a, b) => b.totalSpent - a.totalSpent);
+
+      if (searchVal) {
+        custList = custList.filter(c =>
+          (c.name || '').toLowerCase().includes(searchVal) ||
+          (c.phone || '').toLowerCase().includes(searchVal) ||
+          (c.address || '').toLowerCase().includes(searchVal)
+        );
+      }
+
+      if (custList.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:25px; color:var(--text-muted); font-size:0.82rem;">ဝယ်ယူသူ မှတ်တမ်း မရှိသေးပါ</div>';
+        return;
+      }
+
+      container.innerHTML = custList.map(c => {
+        const isVip = c.orderCount >= (vipConfig?.vipThreshold || 5);
+        return `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid ${isVip ? 'var(--gold)' : '#334155'}; border-radius:8px; padding:10px 12px; margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+              <div>
+                <div style="font-weight:700; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+                  👤 ${c.name}
+                  ${isVip ? '<span style="background:var(--gold); color:#000; font-size:9px; padding:1px 6px; border-radius:4px; font-weight:800;">👑 VIP</span>' : ''}
+                </div>
+                <div style="font-size:0.75rem; color:#38bdf8; margin-top:2px;">📞 ${c.phone}</div>
+                <div style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">📍 ${c.address} ${c.township ? '(' + c.township + ')' : ''}</div>
+              </div>
+              <div style="text-align:right; flex-shrink:0;">
+                <div style="font-size:0.88rem; font-weight:700; color:#00ff88;">${c.totalSpent.toLocaleString()} Ks</div>
+                <div style="font-size:0.7rem; color:var(--gold); margin-top:2px;">အော်ဒါ: <b>${c.orderCount}</b> ကြိမ်</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ========================================================
+    // 📊 SALES ANALYTICS RENDERER (ရောင်းအားနှင့် အမြတ်ငွေ အစီရင်ခံစာ)
+    // ========================================================
+    function renderAnalytics() {
+      const searchVal = (document.getElementById('adminAnalyticsSearchInput')?.value || '').toLowerCase().trim();
+      let grossSales = 0;
+      let refunds = 0;
+      let totalDiscounts = 0;
+      let totalCost = 0;
+      let totalDeliveryFees = 0;
+
+      const validOrders = (orders || []).filter(o => {
+        if (!o) return false;
+        if (!searchVal) return true;
+        return (o.id || '').toLowerCase().includes(searchVal) ||
+               (o.customer || '').toLowerCase().includes(searchVal) ||
+               (o.phone || '').toLowerCase().includes(searchVal);
+      });
+
+      validOrders.forEach(o => {
+        const statusStr = String(o.status || '');
+        const isCancelled = statusStr.includes('Cancel') || statusStr.includes('Returned') || statusStr.includes('ငြင်းပယ်');
+        const orderTotal = Number(o.total) || 0;
+        const orderDisc = Number(o.discountAmount || o.discount || 0) || 0;
+        const orderDeli = Number(o.deliveryFee || o.deliFee || 0) || 0;
+
+        grossSales += (orderTotal + orderDisc);
+
+        if (isCancelled) {
+          refunds += orderTotal;
+        } else {
+          totalDiscounts += orderDisc;
+          totalDeliveryFees += orderDeli;
+
+          if (Array.isArray(o.items)) {
+            o.items.forEach(item => {
+              const qty = Number(item.qty) || 1;
+              let itemCost = Number(item.cost) || 0;
+              if (!itemCost && Array.isArray(products)) {
+                const foundP = products.find(p => p.id === item.id || p.sku === item.sku);
+                if (foundP) itemCost = Number(foundP.cost) || 0;
+              }
+              totalCost += (itemCost * qty);
+            });
+          }
+        }
+      });
+
+      const netSales = Math.max(0, grossSales - refunds - totalDiscounts);
+      const netProfit = Math.max(0, netSales - totalDeliveryFees - totalCost);
+
+      const elGross = document.getElementById('statGrossSales');
+      const elRef = document.getElementById('statRefunds');
+      const elDisc = document.getElementById('statDiscounts');
+      const elNet = document.getElementById('statNetSales');
+      const elProf = document.getElementById('statNetProfit');
+
+      if (elGross) elGross.textContent = 'Ks ' + grossSales.toLocaleString();
+      if (elRef) elRef.textContent = 'Ks ' + refunds.toLocaleString();
+      if (elDisc) elDisc.textContent = 'Ks ' + totalDiscounts.toLocaleString();
+      if (elNet) elNet.textContent = 'Ks ' + netSales.toLocaleString();
+      if (elProf) elProf.textContent = 'Ks ' + netProfit.toLocaleString();
+
+      const breakdownBox = document.getElementById('analyticsOrdersBreakdown');
+      if (breakdownBox) {
+        breakdownBox.innerHTML = `
+          <div style="font-size:0.78rem; color:var(--gold); font-weight:bold; margin-bottom:6px;">
+            📦 စုစုပေါင်း အော်ဒါအရေအတွက်: ${validOrders.length} ခု (ပို့ဆောင်ခ စုစုပေါင်း: ${totalDeliveryFees.toLocaleString()} Ks | အရင်းစုစုပေါင်း: ${totalCost.toLocaleString()} Ks)
+          </div>
+          ${validOrders.slice(0, 15).map(o => `
+            <div style="display:flex; justify-content:space-between; font-size:0.74rem; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); color:#cbd5e1;">
+              <span><b>${o.id}</b> - ${o.customer || '-'}</span>
+              <span style="color:#00ff88; font-weight:600;">${Number(o.total || 0).toLocaleString()} Ks</span>
+            </div>
+          `).join('')}
+        `;
+      }
+    }
 
     function loadCentralSettings() {
       document.getElementById('cfgTgBotToken').value = botConfig.tgToken || '';
