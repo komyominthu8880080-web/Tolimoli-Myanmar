@@ -3567,6 +3567,24 @@ function scrollCategories(amount) {
             <i class="fas fa-plus"></i> ကူပွန်အသစ် ထည့်သွင်းမည်
           </button>
         </div>
+        <!-- Compact & Categorized Coupon List Section -->
+        <div style="background:rgba(15, 23, 42, 0.75); border:1px solid #334155; padding:12px; border-radius:10px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            <h5 style="color:var(--gold); font-size:0.85rem; margin:0;">🎟️ လက်ရှိ အသုံးပြုနိုင်သော ကူပွန်များ စာရင်း <span id="couponTotalBadge" style="font-size:0.72rem; color:#94a3b8; font-weight:normal;"></span></h5>
+            <input type="text" id="couponSearchInput" oninput="renderDiscountsList()" placeholder="🔍 ကူပွန်ကုဒ် ရှာရန်..." style="width:150px; padding:4px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.75rem;">
+          </div>
+
+          <!-- Filter Tabs (All, Deli, Discount, VIP) -->
+          <div id="couponFilterTabs" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px;">
+            <button type="button" onclick="setCouponFilterTab('all', this)" class="coupon-tab-btn active" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #10b981; background:rgba(16,185,129,0.2); color:#6ee7b7; font-weight:700; cursor:pointer;">အားလုံး</button>
+            <button type="button" onclick="setCouponFilterTab('deli', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">🚚 Deli လျှော့ဈေး</button>
+            <button type="button" onclick="setCouponFilterTab('discount', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">🏷️ ပစ္စည်း လျှော့ဈေး</button>
+            <button type="button" onclick="setCouponFilterTab('vip', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">👑 VIP / အထူး</button>
+          </div>
+
+          <!-- 2-Column Compact Scrollable Grid -->
+          <div id="adminDiscountsList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:6px; max-height:250px; overflow-y:auto; padding-right:3px;"></div>
+        </div>
 
         <!-- ==================== Combo Deals Management Section ==================== -->
 <div class="admin-card-section" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
@@ -3659,9 +3677,6 @@ function scrollCategories(amount) {
             <i class="fas fa-save"></i> VIP စည်းမျဉ်းများ သိမ်းဆည်းမည်
           </button>
         </div>
-
-        <h5 style="color:var(--gold); font-size:0.85rem; margin-bottom:8px;">လက်ရှိ အသုံးပြုနိုင်သော ကူပွန်များ စာရင်း</h5>
-        <div id="adminDiscountsList"></div>
 
       <!-- ========================================== -->
     <!-- ⚡ FLASH SALE WITH TOGGLE SWITCH -->
@@ -9899,26 +9914,77 @@ function renderAdminColorInputs() {
       document.getElementById('newDiscountVal').value = '';
     }
 
+    var currentCouponFilterTab = 'all';
+
+    function setCouponFilterTab(tab, btnEl) {
+      currentCouponFilterTab = tab;
+      document.querySelectorAll('.coupon-tab-btn').forEach(b => {
+        b.style.borderColor = '#334155';
+        b.style.background = '#1e293b';
+        b.style.color = '#cbd5e1';
+        b.style.fontWeight = '400';
+      });
+      if (btnEl) {
+        btnEl.style.borderColor = '#10b981';
+        btnEl.style.background = 'rgba(16,185,129,0.2)';
+        btnEl.style.color = '#6ee7b7';
+        btnEl.style.fontWeight = '700';
+      }
+      renderDiscountsList();
+    }
+
     function renderDiscountsList() {
       const box = document.getElementById('adminDiscountsList');
       if (!box) return;
-      if (discounts.length === 0) {
-        box.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center;">လက်ရှိ ကူပွန် မရှိသေးပါ</p>';
-        return;
-      }
-      box.innerHTML = discounts.map((d, i) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:8px 12px; border-radius:6px; margin-bottom:6px; font-size:0.82rem; border:1px solid rgba(255,255,255,0.06);">
-          <div>
-            <b style="color:var(--gold); display:block;">${d.code}</b>
-            <span style="color:#38bdf8; font-size:0.75rem;">${d.type === 'percent' ? d.val + ' % Off' : d.val.toLocaleString() + ' Ks Off'}</span>
-          </div>
-          <button class="action-badge" style="background:#ef4444; color:#fff;" onclick="discounts.splice(${i},1); saveDiscounts(); renderDiscountsList();"><i class="fas fa-trash"></i> ဖျက်မည်</button>
-        </div>
-      `).join('');
 
-      document.getElementById('cfgFreeDeliveryThreshold').value = vipConfig.freeDeliveryThreshold || 3;
-      document.getElementById('cfgVipThreshold').value = vipConfig.vipThreshold || 5;
-      document.getElementById('cfgVipDiscountPercent').value = vipConfig.vipDiscountPercent || 5;
+      const totalBadge = document.getElementById('couponTotalBadge');
+      if (totalBadge) totalBadge.textContent = `(စုစုပေါင်း ${discounts.length} ခု)`;
+
+      const searchVal = (document.getElementById('couponSearchInput')?.value || '').trim().toUpperCase();
+
+      const mapped = discounts.map((d, idx) => {
+        const codeUp = (d.code || '').toUpperCase();
+        let cat = 'discount';
+        let badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.4);">🏷️ Discount</span>';
+
+        if (codeUp.startsWith('DE') || codeUp.includes('DELI') || codeUp.includes('FREE')) {
+          cat = 'deli';
+          badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(56,189,248,0.18); color:#38bdf8; border:1px solid rgba(56,189,248,0.4);">🚚 Deli</span>';
+        } else if (codeUp.startsWith('VIP') || codeUp.startsWith('WELCOME') || d.type === 'percent') {
+          cat = 'vip';
+          badgeHtml = '<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:rgba(250,204,21,0.18); color:#fde047; border:1px solid rgba(250,204,21,0.4);">👑 VIP/အထူး</span>';
+        }
+        return { d, idx, cat, badgeHtml };
+      }).filter(item => {
+        const matchTab = (currentCouponFilterTab === 'all') || (item.cat === currentCouponFilterTab);
+        const matchSearch = !searchVal || (item.d.code || '').toUpperCase().includes(searchVal);
+        return matchTab && matchSearch;
+      });
+
+      if (mapped.length === 0) {
+        box.innerHTML = '<p style="grid-column:1/-1; color:var(--text-muted); font-size:0.8rem; text-align:center; padding:12px;">ကိုက်ညီသော ကူပွန် မရှိသေးပါ</p>';
+      } else {
+        box.innerHTML = mapped.map(({ d, idx, badgeHtml }) => {
+          const valText = d.type === 'percent' ? `${d.val}% Off` : `${Number(d.val || 0).toLocaleString()} Ks`;
+          const expText = d.expiry ? ` • Exp: ${d.expiry}` : '';
+          return `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); border:1px solid #334155; padding:7px 9px; border-radius:7px; gap:6px;">
+              <div style="min-width:0; flex:1;">
+                <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                  <b style="color:var(--gold); font-size:0.82rem;">${d.code}</b>
+                  ${badgeHtml}
+                </div>
+                <div style="color:#cbd5e1; font-size:0.73rem; margin-top:2px;">${valText}${expText}</div>
+              </div>
+              <button type="button" onclick="discounts.splice(${idx},1); saveDiscounts(); renderDiscountsList();" title="ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:5px; padding:4px 7px; font-size:0.72rem; cursor:pointer; flex-shrink:0;">🗑️</button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      if (document.getElementById('cfgFreeDeliveryThreshold')) document.getElementById('cfgFreeDeliveryThreshold').value = vipConfig.freeDeliveryThreshold || 3;
+      if (document.getElementById('cfgVipThreshold')) document.getElementById('cfgVipThreshold').value = vipConfig.vipThreshold || 5;
+      if (document.getElementById('cfgVipDiscountPercent')) document.getElementById('cfgVipDiscountPercent').value = vipConfig.vipDiscountPercent || 5;
     }
 
     // မြို့ဒေတာပုံစံဟောင်းမှ ပုံစံသစ်သို့ အလိုအလျောက် ပြောင်းလဲပေးခြင်း
