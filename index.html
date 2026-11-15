@@ -15454,13 +15454,27 @@ function filterPublicDeliveryList(query) {
 // SECRET ADMIN ACCESS SHORTCUTS (WineLay1542)
 // ==========================================
 
-// (၁) Keyboard Shortcut (Mac တွင် Cmd+Shift+A / Windows တွင် Ctrl+Shift+A)
+// Admin PIN Modal ကို ခေါ်ဖွင့်ပေးမည့် Helper
+function triggerAdminPinAccess() {
+  if (typeof openCustomPinModal === 'function') {
+    openCustomPinModal();
+  } else if (typeof openAdminPinModal === 'function') {
+    openAdminPinModal();
+  } else if (typeof openModal === 'function') {
+    openModal('customAdminPinModal');
+  } else {
+    const m = document.getElementById('customAdminPinModal');
+    if (m) { m.classList.add('active'); m.style.display = 'flex'; }
+  }
+}
+
+// (၁) Keyboard Shortcut (Mac တွင် Option+A သို့မဟုတ် Cmd+Shift+L / Windows တွင် Alt+A)
 document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+  const isOptA = e.altKey && (e.code === 'KeyA' || e.key === 'a' || e.key === 'A' || e.key === 'å');
+  const isCmdShiftL = (e.ctrlKey || e.metaKey) && e.shiftKey && (e.code === 'KeyL' || e.key === 'L' || e.key === 'l');
+  if (isOptA || isCmdShiftL) {
     e.preventDefault();
-    if (typeof openCustomPinModal === 'function') {
-      openCustomPinModal();
-    }
+    triggerAdminPinAccess();
   }
 });
 
@@ -15468,11 +15482,7 @@ document.addEventListener('keydown', function(e) {
 window.addEventListener('DOMContentLoaded', function() {
   const currentUrl = window.location.href;
   if (currentUrl.includes('WineLay1542')) {
-    setTimeout(function() {
-      if (typeof openCustomPinModal === 'function') {
-        openCustomPinModal();
-      }
-    }, 400);
+    setTimeout(triggerAdminPinAccess, 400);
   }
 });
 
@@ -15484,9 +15494,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (this.value.trim() === 'WineLay1542') {
         this.value = '';
         this.blur();
-        if (typeof openCustomPinModal === 'function') {
-          openCustomPinModal();
-        }
+        triggerAdminPinAccess();
       }
     });
     input.addEventListener('keydown', function(e) {
@@ -15494,9 +15502,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         this.value = '';
         this.blur();
-        if (typeof openCustomPinModal === 'function') {
-          openCustomPinModal();
-        }
+        triggerAdminPinAccess();
       }
     });
   });
