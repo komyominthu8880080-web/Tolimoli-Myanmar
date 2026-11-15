@@ -3613,7 +3613,7 @@ function scrollCategories(amount) {
             </div>
             <div class="form-group" style="margin:0;">
               <label style="color:#f59e0b; font-size:0.72rem;">သက်တမ်းကုန်မည့်ရက် (Expiry Date)</label>
-              <input type="date" id="newDiscountExpiry">
+              <input type="text" id="newDiscountExpiry" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY (ဥပမာ- 31/12/2026)" oninput="formatDMYDateInput(this)">
             </div>
           </div>
 
@@ -9953,6 +9953,25 @@ function renderAdminColorInputs() {
         renderStockTable();
       }
     }
+    // Day/Month/Year (DD/MM/YYYY) ရိုက်ထည့်မှုကို Auto-Slash နှင့် ISO Date ပြောင်းပေးသည့်စနစ်
+function formatDMYDateInput(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 8);
+  if (v.length >= 5) {
+    el.value = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4);
+  } else if (v.length >= 3) {
+    el.value = v.slice(0, 2) + '/' + v.slice(2);
+  } else {
+    el.value = v;
+  }
+}
+
+function parseDMYToISO(str) {
+  const s = (str || '').trim();
+  if (!s) return '';
+  const m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/);
+  if (!m) return s;
+  return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+}
 
     function addDiscountCode() {
       const code = (document.getElementById('newDiscountCode')?.value || '').trim().toUpperCase();
@@ -9960,7 +9979,7 @@ function renderAdminColorInputs() {
       const category = document.getElementById('newDiscountCategory')?.value || 'discount';
       const val = Number(document.getElementById('newDiscountVal')?.value || 0);
       const limit = Number(document.getElementById('newDiscountLimit')?.value || 0);
-      const expiry = document.getElementById('newDiscountExpiry')?.value || '';
+      const expiry = parseDMYToISO(document.getElementById('newDiscountExpiry')?.value || '');
 
       if (!code || val <= 0) {
         alert('ကျေးဇူးပြု၍ ကူပွန်ကုဒ်နှင့် လျှော့ပေးမည့် တန်ဖိုးကို မှန်ကန်စွာ ဖြည့်သွင်းပါ။');
