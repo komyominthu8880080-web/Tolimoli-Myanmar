@@ -3543,7 +3543,8 @@ function scrollCategories(amount) {
               <label>ကူပွန် အမျိုးအစား (Category)</label>
               <div style="display:flex; gap:5px; align-items:center;">
                 <select id="newDiscountCategory" style="flex:1;"></select>
-                <button type="button" onclick="addCustomCouponCategory()" title="အမျိုးအစားအသစ် ထပ်တိုးမည်" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:8px 11px; font-weight:700; cursor:pointer; flex-shrink:0;">+</button>
+                <button type="button" onclick="addCustomCouponCategory()" title="အမျိုးအစားအသစ် ထပ်တိုးမည်" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:8px 10px; font-weight:700; cursor:pointer; flex-shrink:0;">+</button>
+                <button type="button" onclick="deleteCustomCouponCategory()" title="ရွေးထားသော အမျိုးအစားကို ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:6px; padding:7px 9px; font-size:0.75rem; cursor:pointer; flex-shrink:0;">🗑️</button>
               </div>
             </div>
             <div class="form-group" style="margin:0;">
@@ -9954,6 +9955,24 @@ function renderAdminColorInputs() {
       return [...defaultCouponCategories, ...customCouponCategories];
     }
 
+    function saveCustomCouponCategoriesCloud() {
+      localStorage.setItem('tm_coupon_categories', JSON.stringify(customCouponCategories));
+      if (typeof fbDb !== 'undefined') {
+        fbDb.ref('shop_coupon_categories').set(customCouponCategories);
+      }
+    }
+
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_coupon_categories').on('value', snap => {
+        const val = snap.val();
+        if (Array.isArray(val)) {
+          customCouponCategories = val;
+          localStorage.setItem('tm_coupon_categories', JSON.stringify(customCouponCategories));
+          renderDiscountsList();
+        }
+      });
+    }
+
     function addCustomCouponCategory() {
       const name = prompt('ထပ်တိုးလိုသော ကူပွန် အမျိုးအစား အမည်ကို ရိုက်ထည့်ပါ (ဥပမာ - 🔥 Flash Sale သို့မဟုတ် 🎁 Gift):');
       if (!name || !name.trim()) return;
@@ -9967,10 +9986,25 @@ function renderAdminColorInputs() {
         bg: 'rgba(192,132,252,0.18)',
         border: 'rgba(192,132,252,0.4)'
       });
-      localStorage.setItem('tm_coupon_categories', JSON.stringify(customCouponCategories));
+      saveCustomCouponCategoriesCloud();
       renderCouponCategoryControls();
       const sel = document.getElementById('newDiscountCategory');
       if (sel) sel.value = catId;
+    }
+
+    function deleteCustomCouponCategory() {
+      const sel = document.getElementById('newDiscountCategory');
+      if (!sel) return;
+      const val = sel.value;
+      if (['discount', 'deli', 'vip'].includes(val)) {
+        alert('မူလ အမျိုးအစား (၃) ခုကို ဖျက်၍မရပါ။ ကိုယ်တိုင်ထပ်တိုးထားသော အမျိုးအစားများကိုသာ ဖျက်နိုင်ပါသည်။');
+        return;
+      }
+      if (!confirm('ရွေးချယ်ထားသော ကူပွန် အမျိုးအစားကို ဖျက်ရန် သေချာပါသလား?')) return;
+      customCouponCategories = customCouponCategories.filter(c => c.id !== val);
+      if (currentCouponFilterTab === val) currentCouponFilterTab = 'all';
+      saveCustomCouponCategoriesCloud();
+      renderDiscountsList();
     }
 
     function renderCouponCategoryControls() {
@@ -9984,10 +10018,11 @@ function renderAdminColorInputs() {
 
       const tabsBox = document.getElementById('couponFilterTabs');
       if (tabsBox) {
-        const allBtn = `<button type="button" onclick="setCouponFilterTab('all')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${currentCouponFilterTab === 'all' ? '#10b981' : '#334155'}; background:${currentCouponFilterTab === 'all' ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${currentCouponFilterTab === 'all' ? '#6ee7b7' : '#cbd5e1'}; font-weight:${currentCouponFilterTab === 'all' ? '700' : '400'}; cursor:pointer;">အားလုံး</button>`;
+        const allBtn = `<button type="button" onclick="setCouponFilterTab('all')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${currentCouponFilterTab === 'all' ? '#10b981' : '#334155'}; background:${currentCouponFilterTab === 'all' ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${currentCouponFilterTab === 'all' ? '#6ee7b7' : '#cbd5e1'}; font-weight:${currentCouponFilterTab === 'all' ? '700' : '400'}; cursor:pointer;">အားလုံး (${discounts.length})</button>`;
         const catBtns = allCats.map(c => {
           const isAct = currentCouponFilterTab === c.id;
-          return `<button type="button" onclick="setCouponFilterTab('${c.id}')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${isAct ? '#10b981' : '#334155'}; background:${isAct ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${isAct ? '#6ee7b7' : '#cbd5e1'}; font-weight:${isAct ? '700' : '400'}; cursor:pointer;">${c.badge}</button>`;
+          const cnt = discounts.filter(d => getCouponCategory(d) === c.id).length;
+          return `<button type="button" onclick="setCouponFilterTab('${c.id}')" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid ${isAct ? '#10b981' : '#334155'}; background:${isAct ? 'rgba(16,185,129,0.2)' : '#1e293b'}; color:${isAct ? '#6ee7b7' : '#cbd5e1'}; font-weight:${isAct ? '700' : '400'}; cursor:pointer;">${c.badge} (${cnt})</button>`;
         }).join('');
         tabsBox.innerHTML = allBtn + catBtns;
       }
@@ -9995,7 +10030,6 @@ function renderAdminColorInputs() {
 
     function setCouponFilterTab(tab) {
       currentCouponFilterTab = tab;
-      renderCouponCategoryControls();
       renderDiscountsList();
     }
 
@@ -10005,6 +10039,22 @@ function renderAdminColorInputs() {
       if (codeUp.startsWith('DE') || codeUp.includes('DELI') || codeUp.includes('FREE')) return 'deli';
       if (codeUp.startsWith('VIP') || codeUp.startsWith('WELCOME') || d.type === 'percent') return 'vip';
       return 'discount';
+    }
+
+    function toggleCouponActiveState(idx) {
+      if (!discounts[idx]) return;
+      discounts[idx].paused = !discounts[idx].paused;
+      saveDiscounts();
+      renderDiscountsList();
+    }
+
+    function copyCouponCodeAdmin(code, btnEl) {
+      navigator.clipboard?.writeText(code);
+      if (btnEl) {
+        const orig = btnEl.innerHTML;
+        btnEl.innerHTML = '✅';
+        setTimeout(() => { btnEl.innerHTML = orig; }, 1200);
+      }
     }
 
     function renderDiscountsList() {
@@ -10017,11 +10067,12 @@ function renderAdminColorInputs() {
 
       const searchVal = (document.getElementById('couponSearchInput')?.value || '').trim().toUpperCase();
       const allCats = getAllCouponCategories();
+      const todayStr = new Date().toISOString().split('T')[0];
 
       const mapped = discounts.map((d, idx) => {
         const cat = getCouponCategory(d);
         const catObj = allCats.find(c => c.id === cat) || allCats[0];
-        const badgeHtml = `<span style="font-size:0.65rem; padding:1px 5px; border-radius:4px; background:${catObj.bg}; color:${catObj.color}; border:1px solid ${catObj.border};">${catObj.badge}</span>`;
+        const badgeHtml = `<span style="font-size:0.64rem; padding:1px 5px; border-radius:4px; background:${catObj.bg}; color:${catObj.color}; border:1px solid ${catObj.border};">${catObj.badge}</span>`;
         return { d, idx, cat, badgeHtml };
       }).filter(item => {
         const matchTab = (currentCouponFilterTab === 'all') || (item.cat === currentCouponFilterTab);
@@ -10030,22 +10081,36 @@ function renderAdminColorInputs() {
       });
 
       if (mapped.length === 0) {
-        box.innerHTML = '<p style="grid-column:1/-1; color:var(--text-muted); font-size:0.8rem; text-align:center; padding:12px;">ကိုက်ညီသော ကူပွန် မရှိသေးပါ</p>';
+        box.innerHTML = '<p style="grid-column:1/-1; color:var(--text-muted); font-size:0.8rem; text-align:center; padding:14px;">ကိုက်ညီသော ကူပွန် မရှိသေးပါ</p>';
       } else {
         box.innerHTML = mapped.map(({ d, idx, badgeHtml }) => {
           const valText = d.type === 'percent' ? `${d.val}% Off` : `${Number(d.val || 0).toLocaleString()} Ks`;
           const limitText = d.limit > 0 ? ` • သုံးပြီး: ${d.used || 0}/${d.limit}` : '';
+          const isExpired = d.expiry && d.expiry < todayStr;
+          const isLimitFull = d.limit > 0 && (d.used || 0) >= d.limit;
+          const isPaused = !!d.paused;
+
+          let statusTag = '';
+          if (isPaused) statusTag = '<span style="font-size:0.62rem; color:#f59e0b; background:rgba(245,158,11,0.15); padding:1px 4px; border-radius:3px;">⏸️ ပိတ်ထား</span>';
+          else if (isExpired) statusTag = '<span style="font-size:0.62rem; color:#f87171; background:rgba(239,68,68,0.15); padding:1px 4px; border-radius:3px;">⏰ ကုန်ပြီ</span>';
+          else if (isLimitFull) statusTag = '<span style="font-size:0.62rem; color:#f87171; background:rgba(239,68,68,0.15); padding:1px 4px; border-radius:3px;">🚫 ပြည့်ပြီ</span>';
+
           const expText = d.expiry ? ` • Exp: ${d.expiry}` : '';
           return `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); border:1px solid #334155; padding:7px 9px; border-radius:7px; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:${isPaused ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.04)'}; opacity:${isPaused ? '0.65' : '1'}; border:1px solid #334155; padding:7px 9px; border-radius:7px; gap:6px;">
               <div style="min-width:0; flex:1;">
-                <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                   <b style="color:var(--gold); font-size:0.82rem;">${d.code}</b>
                   ${badgeHtml}
+                  ${statusTag}
                 </div>
-                <div style="color:#cbd5e1; font-size:0.72rem; margin-top:2px;">${valText}${limitText}${expText}</div>
+                <div style="color:#cbd5e1; font-size:0.71rem; margin-top:2px;">${valText}${limitText}${expText}</div>
               </div>
-              <button type="button" onclick="discounts.splice(${idx},1); saveDiscounts(); renderDiscountsList();" title="ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:5px; padding:4px 7px; font-size:0.72rem; cursor:pointer; flex-shrink:0;">🗑️</button>
+              <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                <button type="button" onclick="copyCouponCodeAdmin('${d.code}', this)" title="ကုဒ်ကူးယူမည်" style="background:rgba(56,189,248,0.15); border:1px solid #38bdf8; color:#7dd3fc; border-radius:5px; padding:4px 6px; font-size:0.7rem; cursor:pointer;">📋</button>
+                <button type="button" onclick="toggleCouponActiveState(${idx})" title="${isPaused ? 'ပြန်ဖွင့်မည်' : 'ခဏပိတ်ထားမည်'}" style="background:${isPaused ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; border:1px solid ${isPaused ? '#10b981' : '#f59e0b'}; color:${isPaused ? '#6ee7b7' : '#fcd34d'}; border-radius:5px; padding:4px 6px; font-size:0.7rem; cursor:pointer;">${isPaused ? '▶️' : '⏸️'}</button>
+                <button type="button" onclick="discounts.splice(${idx},1); saveDiscounts(); renderDiscountsList();" title="ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:5px; padding:4px 6px; font-size:0.7rem; cursor:pointer;">🗑️</button>
+              </div>
             </div>
           `;
         }).join('');
@@ -10055,6 +10120,8 @@ function renderAdminColorInputs() {
       if (document.getElementById('cfgVipThreshold')) document.getElementById('cfgVipThreshold').value = vipConfig.vipThreshold || 5;
       if (document.getElementById('cfgVipDiscountPercent')) document.getElementById('cfgVipDiscountPercent').value = vipConfig.vipDiscountPercent || 5;
     }
+
+    setTimeout(() => { if (typeof renderDiscountsList === 'function') renderDiscountsList(); }, 600);
 
     // မြို့ဒေတာပုံစံဟောင်းမှ ပုံစံသစ်သို့ အလိုအလျောက် ပြောင်းလဲပေးခြင်း
 function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 ရက်အတွင်း") {
