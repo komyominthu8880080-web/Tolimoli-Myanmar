@@ -16819,6 +16819,27 @@ function updatePinDotsUI() {
     }
   }
 }
+// Admin PIN Modal ပွင့်နေစဉ် Keyboard မှ တိုက်ရိုက်ရိုက်ထည့်နိုင်ရန်
+document.addEventListener('keydown', function(e) {
+  const pinModal = document.getElementById('customAdminPinModal');
+  if (!pinModal) return;
+  const isOpen = pinModal.classList.contains('active') || getComputedStyle(pinModal).display !== 'none';
+  if (!isOpen) return;
+
+  if (e.key >= '0' && e.key <= '9') {
+    e.preventDefault();
+    if (typeof pressPinDigit === 'function') pressPinDigit(e.key);
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (typeof deleteLastPinDigit === 'function') deleteLastPinDigit();
+  } else if (e.key === 'Delete' || e.key === 'c' || e.key === 'C') {
+    e.preventDefault();
+    if (typeof clearPinDigits === 'function') clearPinDigits();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (typeof closeModal === 'function') closeModal('customAdminPinModal');
+  }
+});
 
 // 🛡️ PIN ကို Browser တွင် မစစ်တော့ဘဲ Backend API သို့ ပို့၍ စစ်ဆေးခြင်း
 async function verifyAdminPinNow() {
