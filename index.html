@@ -13752,6 +13752,10 @@ applySoundToggleUI(isAudioMuted);
     function renderAdminCommunityPosts() {
       const box = document.getElementById('adminCommunityPostsList');
       if (!box) return;
+      if (!communityPosts || communityPosts.length === 0) {
+        box.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center; padding:14px;">လက်ရှိ ဆွေးနွေးမှု ပို့စ်များ မရှိသေးပါ</p>';
+        return;
+      }
       box.innerHTML = communityPosts.map((p, i) => {
         const replies = p.replies || [];
         return `
@@ -13779,7 +13783,18 @@ applySoundToggleUI(isAudioMuted);
         `;
       }).join('');
     }
-
+      // Community Posts Cloud Sync
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_community_threads').on('value', snap => {
+        const val = snap.val();
+        if (val) {
+          communityPosts = Array.isArray(val) ? val : Object.values(val);
+          localStorage.setItem('tm_community_posts', JSON.stringify(communityPosts));
+          if (typeof renderCommunityPostsUI === 'function') renderCommunityPostsUI();
+          if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts();
+        }
+      });
+    }
 
     // =========================================================================
     // MASTER DELIVERY STATIONS & GATES DIRECTORY (ကားဂိတ်နှင့် ROYAL ရုံးခွဲများ)
