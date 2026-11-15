@@ -2059,7 +2059,46 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   cursor: pointer;
   z-index: 5;
 }
+  /* Mobile Admin Panel Alignment & Overflow Fix */
+@media (max-width: 600px) {
+  #adminModal .admin-modal-content,
+  #adminModal .admin-tab,
+  #adminModal .admin-tab > div,
+  #adminModal input,
+  #adminModal select,
+  #adminModal textarea,
+  #adminModal button {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
 
+  /* Stock Inventory & FOC Gift Flex/Grid Rows Stack Cleanly */
+  #stockTab > div > div,
+  #stockTab div[style*="display: flex"],
+  #stockTab div[style*="display:flex"],
+  #stockTab div[style*="grid-template-columns"],
+  #discountsTab div[style*="display: flex"],
+  #discountsTab div[style*="display:flex"] {
+    flex-wrap: wrap !important;
+  }
+
+  /* Minimum Order Input + Ks + Add Button */
+  #stockTab input[type="number"],
+  #stockTab input[type="text"] {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Custom Gift Choose File & Image URL Row */
+  #discountsTab input[type="file"] {
+    width: 100% !important;
+    margin-bottom: 6px !important;
+  }
+  #discountsTab input[type="file"] + input {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+}
   </style>
 </head>
 <body>
