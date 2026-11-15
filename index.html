@@ -14288,59 +14288,48 @@ function handleStationSelectAutoFill(typedText) {
       }
     });
 
-    // ၂။ ကူပွန်ထည့်ခြင်း (Limit & Expiry အသစ်ပါဝင်သည်)
-    addDiscountCode = function() {
-      const code = (document.getElementById('newDiscountCode').value || '').trim().toUpperCase();
-      const type = document.getElementById('newDiscountType').value;
-      const val = Number(document.getElementById('newDiscountVal').value) || 0;
-      const limit = Number(document.getElementById('newDiscountLimit')?.value) || 0;
-      const expiry = document.getElementById('newDiscountExpiry')?.value || '';
+    // ၃။ ကူပွန်အသုံးပြုမှု စစ်ဆေးခြင်း (Paused, Limit & Expiry Check)
+applyDiscountCoupon = function() {
+  const code = (document.getElementById('couponCodeInput')?.value || '').trim().toUpperCase();
+  const notice = document.getElementById('couponNotice');
+  if (!code) { currentAppliedDiscount = 0; renderCartUI(); return; }
 
-      if (!code || val <= 0) return alert('ကူပွန်အချက်အလက် ပြည့်စုံစွာ ဖြည့်ပါ');
-      if (discounts.some(d => d.code === code)) return alert('ဤကူပွန်ကုဒ် ရှိပြီးသား ဖြစ်ပါသည်');
+  const dObj = discounts.find(d => (d.code || '').toUpperCase() === code);
+  if (!dObj) {
+    currentAppliedDiscount = 0;
+    notice.innerHTML = '<span style="color:#ef4444;">ကူပွန်ကုဒ် မှားယွင်းနေပါသည်</span>';
+    renderCartUI();
+    return;
+  }
 
-      discounts.push({ code, type, val, limit, usedCount: 0, expiry });
-      localStorage.setItem('tm_discounts', JSON.stringify(discounts));
-      if (typeof fbDb !== 'undefined') fbDb.ref('shop_discounts').set(discounts);
-      renderDiscountsList();
-      alert(`ကူပွန်ကုဒ် [ ${code} ] ကို Cloud သို့ ထည့်သွင်းသိမ်းဆည်းပြီးပါပြီ!`);
-      document.getElementById('newDiscountCode').value = '';
-      document.getElementById('newDiscountVal').value = '';
-      if (document.getElementById('newDiscountLimit')) document.getElementById('newDiscountLimit').value = '';
-      if (document.getElementById('newDiscountExpiry')) document.getElementById('newDiscountExpiry').value = '';
-    };
+  if (dObj.paused) {
+    currentAppliedDiscount = 0;
+    notice.innerHTML = '<span style="color:#f59e0b;">⏸️ ဤကူပွန်ကို လက်ရှိတွင် ခေတ္တပိတ်ထားပါသည်</span>';
+    renderCartUI();
+    return;
+  }
 
-    // ၃။ ကူပွန်အသုံးပြုမှု စစ်ဆေးခြင်း (Limit & Expiry Check)
-    applyDiscountCoupon = function() {
-      const code = (document.getElementById('couponCodeInput')?.value || '').trim().toUpperCase();
-      const notice = document.getElementById('couponNotice');
-      if (!code) { currentAppliedDiscount = 0; renderCartUI(); return; }
+  const todayStr = new Date().toISOString().split('T')[0];
+  if (dObj.expiry && dObj.expiry < todayStr) {
+    notice.innerHTML = '<span style="color:#ef4444;">⚠️ ဤကူပွန်သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ</span>';
+    currentAppliedDiscount = 0;
+    renderCartUI();
+    return;
+  }
 
-      const dObj = discounts.find(d => d.code === code);
-      if (!dObj) {
-        currentAppliedDiscount = 0;
-        notice.innerHTML = '<span style="color:#ef4444;">ကူပွန်ကုဒ် မှားယွင်းနေပါသည်</span>';
-        renderCartUI();
-        return;
-      }
+  const usedCnt = dObj.used || dObj.usedCount || 0;
+  if (dObj.limit > 0 && usedCnt >= dObj.limit) {
+    notice.innerHTML = '<span style="color:#ef4444;">⚠️ ဤကူပွန်သည် အသုံးပြုနိုင်သည့် အကြိမ်ရေ ပြည့်သွားပါပြီ</span>';
+    currentAppliedDiscount = 0;
+    renderCartUI();
+    return;
+  }
 
-      if (dObj.expiry && new Date(dObj.expiry) < new Date()) {
-        notice.innerHTML = '<span style="color:#ef4444;">⚠️ ဤကူပွန်သည် သက်တမ်းကုန်ဆုံးသွားပါပြီ</span>';
-        currentAppliedDiscount = 0;
-        return;
-      }
-
-      if (dObj.limit && dObj.usedCount >= dObj.limit) {
-        notice.innerHTML = '<span style="color:#ef4444;">⚠️ ဤကူပွန်သည် အသုံးပြုနိုင်သည့် အကြိမ်ရေ ပြည့်သွားပါပြီ</span>';
-        currentAppliedDiscount = 0;
-        return;
-      }
-
-      let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-      currentAppliedDiscount = (dObj.type === 'percent') ? Math.round((subTotal * dObj.val) / 100) : (Number(dObj.val) || 0);
-      notice.innerHTML = `<span style="color:#00ff88;">Promo Code "${code}" အောင်မြင်ပါသည် (- ${currentAppliedDiscount.toLocaleString()} Ks)</span>`;
-      renderCartUI();
-    };
+  let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
+  currentAppliedDiscount = (dObj.type === 'percent') ? Math.round((subTotal * dObj.val) / 100) : (Number(dObj.val) || 0);
+  notice.innerHTML = `<span style="color:#00ff88;">Promo Code "${code}" အောင်မြင်ပါသည် (- ${currentAppliedDiscount.toLocaleString()} Ks)</span>`;
+  renderCartUI();
+};
 
     // ၄။ Live In-Stock Reservation Timer (၁၀ မိနစ်)
     var cartReservationTimer = null;
