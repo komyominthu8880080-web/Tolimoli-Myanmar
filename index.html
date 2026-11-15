@@ -14630,30 +14630,7 @@ applyDiscountCoupon = function() {
       }
     };
 
-    renderDiscountsList = function() {
-      const box = document.getElementById('adminDiscountsList');
-      if (!box) return;
-      if (!discounts || discounts.length === 0) {
-        box.innerHTML = '<p style="color:var(--text-muted); font-size:0.8rem; text-align:center;">လက်ရှိ ကူပွန် မရှိသေးပါ</p>';
-        return;
-      }
-      box.innerHTML = discounts.map((d, i) => `
-        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:8px 12px; border-radius:6px; margin-bottom:6px; font-size:0.82rem; border:1px solid rgba(255,255,255,0.06);">
-          <div>
-            <b style="color:var(--gold); display:block;">${d.code}</b>
-            <span style="color:#38bdf8; font-size:0.75rem;">${d.type === 'percent' ? d.val + ' % Off' : Number(d.val).toLocaleString() + ' Ks Off'}</span>
-            ${d.limit ? `<span style="color:#94a3b8; font-size:0.7rem; margin-left:6px;">(အများဆုံး: ${d.limit} ကြိမ်)</span>` : ''}
-            ${d.expiry ? `<span style="color:#f59e0b; font-size:0.7rem; margin-left:6px;">(သက်တမ်း: ${d.expiry})</span>` : ''}
-          </div>
-          <button class="action-badge" style="background:#ef4444; color:#fff;" onclick="window.deleteDiscountCode(${i})"><i class="fas fa-trash"></i> ဖျက်မည်</button>
-        </div>
-      `).join('');
-
-      if (document.getElementById('cfgFreeDeliveryThreshold')) document.getElementById('cfgFreeDeliveryThreshold').value = vipConfig.freeDeliveryThreshold || 3;
-      if (document.getElementById('cfgVipThreshold')) document.getElementById('cfgVipThreshold').value = vipConfig.vipThreshold || 5;
-      if (document.getElementById('cfgVipDiscountPercent')) document.getElementById('cfgVipDiscountPercent').value = vipConfig.vipDiscountPercent || 5;
-    };
-
+    
     updateFocAdminUI = function() {
       const chk = document.getElementById('cfgFocEnabled');
       const statusLabel = document.getElementById('cfgFocStatusLabel');
