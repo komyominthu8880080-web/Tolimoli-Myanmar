@@ -13795,7 +13795,7 @@ applySoundToggleUI(isAudioMuted);
         }
       });
     }
-
+    setTimeout(() => { if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts(); }, 700);
     // =========================================================================
     // MASTER DELIVERY STATIONS & GATES DIRECTORY (ကားဂိတ်နှင့် ROYAL ရုံးခွဲများ)
     // =========================================================================
