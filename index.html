@@ -14568,21 +14568,6 @@ applyDiscountCoupon = function() {
 
     // ၆။ Account-Free Auto OTP & Tracking
     var currentTrackPhone = '';
-    function trackOrderAccountFree() {
-      const val = document.getElementById('trackOrderIdInput')?.value.trim();
-      const resBox = document.getElementById('trackResultArea');
-      const otpBox = document.getElementById('trackOtpVerificationBox');
-      if (!val) return alert('ဖုန်းနံပါတ် သို့မဟုတ် အော်ဒါနံပါတ် ရိုက်ထည့်ပါ');
-
-      const isPhone = /^[0-9]{8,12}$/.test(val.replace(/[^0-9]/g, ''));
-      if (isPhone) {
-        currentTrackPhone = val.replace(/[^0-9]/g, '');
-        otpBox.style.display = 'block';
-        resBox.innerHTML = '<div style="color:#fde047; font-size:0.75rem; text-align:center;">ဖုန်းနံပါတ် စစ်ဆေးရန် ကုဒ် [1234] ဖြင့် အတည်ပြုနိုင်ပါသည်ခင်ဗျာ။</div>';
-      } else {
-        renderTrackedOrdersList(orders.filter(o => o.id && o.id.toLowerCase().includes(val.toLowerCase())));
-      }
-    }
 
     function confirmTrackOtp() {
       const otp = document.getElementById('trackOtpInput')?.value.trim();
