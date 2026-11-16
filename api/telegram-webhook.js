@@ -269,9 +269,13 @@ export default async function handler(req, res) {
   let replyToText = '';
 
   // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
-  if (msg.reply_to_message) {
+  if (msg.reply_to_message && !msg.reply_to_message.forum_topic_created) {
     const rep = msg.reply_to_message;
-    replyToText = rep.text || rep.caption || (rep.photo ? '📷 Photo Message' : (rep.document ? '📁 File' : 'Message'));
+    let rawRepText = rep.text || rep.caption || (rep.photo ? '📷 Photo' : (rep.voice ? '🎤 Voice Note' : ''));
+    if (rawRepText.includes('စာသား:')) {
+      rawRepText = rawRepText.split('စာသား:')[1].trim();
+    }
+    replyToText = rawRepText;
   }
 
   let mediaUrl = '';
