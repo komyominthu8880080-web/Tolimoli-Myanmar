@@ -191,7 +191,8 @@ export default async function handler(req, res) {
         '👤 <b>ဝယ်သူ:</b> ' + (orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
         '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
         '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
-        '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli') + '\n' +
+        (orderData.busGate || orderData.busGateDetails ? '🚌 <b>ကားဂိတ်:</b> ' + (orderData.busGate || orderData.busGateDetails) + '\n' : '') +
+      '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryService || orderData.deliveryType || orderData.busLineName || 'Standard Delivery') + '\n' +
         '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
         '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
         '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
