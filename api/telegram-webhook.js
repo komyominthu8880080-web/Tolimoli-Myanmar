@@ -215,8 +215,30 @@ export default async function handler(req, res) {
   // ==========================================
   if (body.action === 'sendLiveChat') {
     try {
+      const targetChat = CHAT_GROUP_ID || ADMIN_CHAT_ID;
+
+      // ၁။ Cloudinary/Storage မှ ရလာသော Audio URL ပါလာပါက Telegram သို့ sendAudio ဖြင့် တိုက်ရိုက်ပို့ခြင်း
+      if (body.audioUrl && String(body.audioUrl).startsWith('http')) {
+        const audioPayload = {
+          chat_id: targetChat,
+          audio: body.audioUrl,
+          caption: body.messageText || '🎤 ဝယ်သူထံမှ အသံဖိုင် (Voice Note)',
+          parse_mode: 'HTML'
+        };
+        if (body.topicId) audioPayload.message_thread_id = Number(body.topicId);
+
+        const audioRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendAudio`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(audioPayload)
+        });
+        const audioData = await audioRes.json();
+        return res.status(200).json(audioData);
+      }
+
+      // ၂။ ရိုးရိုး စာသား ပို့ခြင်း
       const payload = {
-        chat_id: CHAT_GROUP_ID || ADMIN_CHAT_ID,
+        chat_id: targetChat,
         text: body.messageText,
         parse_mode: 'HTML'
       };

@@ -17192,24 +17192,71 @@ function forceOpenAdminDashboard() {
         mediaRecorder = new MediaRecorder(stream);
         audioChunks = [];
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.onstop = () => {
+        mediaRecorder.onstop = async () => {
           const blob = new Blob(audioChunks, { type: 'audio/webm' });
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            const base64Audio = reader.result;
-            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            fbDb.ref(`support_chats/${sessionId}/messages`).push({
-              sender: senderRole,
-              text: '🎤 အသံဖိုင် (Voice Note)',
-              mediaUrl: base64Audio,
-              mediaType: 'audio',
-              timeStr: timeStr,
-              timestamp: Date.now(),
-              isRead: false
-            });
-          };
-          reader.readAsDataURL(blob);
-          stream.getTracks().forEach(t => t.stop());
+          if (btn) { btn.innerHTML = '⏳'; btn.disabled = true; }
+
+          try {
+            // ငွေလွှဲစလစ်ပုံ Upload တင်သည့် စနစ်အတိုင်း /api/upload သို့ အရင်တင်ခြင်း
+            let uploadedAudioUrl = '';
+            const formData = new FormData();
+            formData.append('file', blob, `voice_${Date.now()}.webm`);
+
+            const upRes = await fetch('/api/upload', { method: 'POST', body: formData });
+            const upData = await upRes.json();
+            if (upData && upData.url) {
+              uploadedAudioUrl = upData.url;
+            }
+
+            if (uploadedAudioUrl) {
+              const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+              // ၁။ Database ထဲသို့ URL Link လေးကိုပဲ ပေါ့ပေါ့ပါးပါး သိမ်းဆည်းခြင်း
+              fbDb.ref(`support_chats/${sessionId}/messages`).push({
+                sender: senderRole,
+                text: '🎤 အသံဖိုင် (Voice Note)',
+                mediaUrl: uploadedAudioUrl,
+                mediaType: 'audio',
+                timeStr: timeStr,
+                timestamp: Date.now(),
+                isRead: false
+              });
+
+              fbDb.ref(`support_chats/${sessionId}`).update({
+                lastMessage: '🎤 အသံဖိုင် (Voice Note)',
+                lastSender: senderRole,
+                lastUpdate: Date.now()
+              });
+
+              // ၂။ ဝယ်သူ ပို့ခြင်းဖြစ်ပါက Telegram Group သို့ပါ တစ်ခါတည်း ပို့ပေးခြင်း
+              if (senderRole === 'user') {
+                const gNum = sessionId ? sessionId.replace('guest_', '').replace('cust_', '') : '';
+                let threadId = localStorage.getItem('tm_tg_topic_' + sessionId);
+                if (!threadId) {
+                  const snap = await fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).once('value');
+                  threadId = snap.val();
+                }
+                fetch('/api/telegram-webhook', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    action: 'sendLiveChat',
+                    topicId: threadId || null,
+                    audioUrl: uploadedAudioUrl,
+                    messageText: `🎤 <b>ဝယ်သူ Guest #${gNum} ထံမှ အသံဖိုင် (Voice Note)</b>`
+                  })
+                }).catch(e => console.error('Telegram Audio Error:', e));
+              }
+            } else {
+              alert('အသံဖိုင် Upload တင်ရာတွင် အဆင်မပြေပါခင်ဗျာ။');
+            }
+          } catch (uploadErr) {
+            console.error('Voice upload error:', uploadErr);
+            alert('အသံဖိုင် ပို့ဆောင်မှု မအောင်မြင်ပါ။');
+          } finally {
+            if (btn) { btn.innerHTML = '🎤'; btn.style.background = ''; btn.disabled = false; }
+            stream.getTracks().forEach(t => t.stop());
+          }
         };
         mediaRecorder.start();
         isRecordingVoice = true;
@@ -17220,7 +17267,6 @@ function forceOpenAdminDashboard() {
     } else {
       if (mediaRecorder) mediaRecorder.stop();
       isRecordingVoice = false;
-      if (btn) { btn.innerHTML = '🎤'; btn.style.background = ''; }
     }
   };
 
