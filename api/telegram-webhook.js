@@ -268,9 +268,9 @@ export default async function handler(req, res) {
   let text = msg.text || msg.caption || '';
   let replyToText = '';
 
-  // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏စာသားကို ဖမ်းယူခြင်း
   if (msg.reply_to_message) {
-    replyToText = msg.reply_to_message.text || msg.reply_to_message.caption || 'Media Message';
+    const rep = msg.reply_to_message;
+    replyToText = rep.text || rep.caption || (rep.photo ? '📷 Photo Message' : 'Message');
   }
 
   let mediaUrl = '';
@@ -323,7 +323,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             sender: 'admin',
             text: text,
-            replyTo: replyToText, // Reply Quote ထည့်သွင်းခြင်း
+            replyTo: replyToText, // Reply Quote အပြည့်အစုံ
             mediaUrl: mediaUrl,
             mediaType: mediaType,
             timeStr: timeFormatted,
