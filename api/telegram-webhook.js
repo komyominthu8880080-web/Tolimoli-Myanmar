@@ -256,7 +256,7 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote ပါဝင်သည်)
+  // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote အမှန်တကယ် ပါဝင်သည်)
   // -------------------------------------------------------------
   const update = body;
   if (!update || !update.message) return res.status(200).send('OK');
@@ -268,9 +268,10 @@ export default async function handler(req, res) {
   let text = msg.text || msg.caption || '';
   let replyToText = '';
 
+  // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
   if (msg.reply_to_message) {
     const rep = msg.reply_to_message;
-    replyToText = rep.text || rep.caption || (rep.photo ? '📷 Photo Message' : 'Message');
+    replyToText = rep.text || rep.caption || (rep.photo ? '📷 Photo Message' : (rep.document ? '📁 File' : 'Message'));
   }
 
   let mediaUrl = '';
@@ -323,7 +324,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             sender: 'admin',
             text: text,
-            replyTo: replyToText, // Reply Quote အပြည့်အစုံ
+            replyTo: replyToText, // Reply Quote မူရင်းစာသား အမှန်တကယ် ပါဝင်သည်
             mediaUrl: mediaUrl,
             mediaType: mediaType,
             timeStr: timeFormatted,
