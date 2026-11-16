@@ -13356,21 +13356,21 @@ applySoundToggleUI(isAudioMuted);
   }
 
   // Admin ဘက်မှ Chat ဖွင့်ကြည့်လိုက်လျှင် Read ဖြစ်ကြောင်း Update လုပ်ရန်
-  updateMessageReadStatus(currentGuestSessionId);
+  updateMessageReadStatus(currentGuestSessionId, 'admin');
 
   fbDb.ref(`support_chats/${currentGuestSessionId}/messages`).on('value', snap => {
     const val = snap.val();
     area.innerHTML = '<div class="chat-bubble-msg bot">မင်္ဂလာပါခင်ဗျာ! Tolimoli Myanmar မှ ကြိုဆိုပါတယ်။ Auto Bot မှ ချက်ချင်း ကူညီဖြေကြားပေးမည့်အပြင် ဆိုင်ရှင် (Admin) မှလည်း စာသား၊ ဓာတ်ပုံ၊ ဗီဒီယိုများဖြင့် တိုက်ရိုက် ဖြေကြားပေးပါမည်ခင်ဗျာ။</div>';
     if (val) {
-      const list = Object.values(val);
-      list.forEach(m => {
-        // Upgraded Chat Bubble Renderer ကို အသုံးပြုခြင်း (✓✓ Read နှင့် Reply Quote ပါဝင်သည်)
+      Object.entries(val).forEach(([mKey, m]) => {
         if (typeof renderUpgradedChatMessageBubble === 'function') {
-          renderUpgradedChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr, m.isRead, m.replyTo);
-        } else {
-          renderChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr);
+          renderUpgradedChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr, m.isRead, m.replyTo, mKey, m);
         }
       });
+      // ဝယ်သူဘက်မှ Admin စာများကို ဖတ်ပြီးကြောင်း Update လုပ်ရန်
+      if (typeof updateMessageReadStatus === 'function') {
+        updateMessageReadStatus(currentGuestSessionId, 'user');
+      }
       playNotificationSound('chat');
     }
   });
@@ -17058,136 +17058,351 @@ function forceOpenAdminDashboard() {
   });
 })();
 // =========================================================================
-// ULTIMATE VIBER-STYLE LIVE CHAT SUITE (Read Receipts, Reply, Typing, Cards)
+// TOLIMOLI ULTIMATE VIBER/TELEGRAM LIVE CHAT SUITE (ALL-IN-ONE)
 // =========================================================================
+(function initUltimateLiveChatSuite() {
+  // ၁။ CSS Styles များ ထည့်သွင်းခြင်း
+  const style = document.createElement('style');
+  style.innerHTML = `
+    .chat-msg-wrapper { display: flex; flex-direction: column; margin-bottom: 10px; position: relative; max-width: 85%; }
+    .chat-msg-wrapper.user { align-self: flex-end; align-items: flex-end; }
+    .chat-msg-wrapper.bot, .chat-msg-wrapper.admin { align-self: flex-start; align-items: flex-start; }
+    .chat-bubble-msg { position: relative; padding: 8px 12px; border-radius: 14px; font-size: 13px; line-height: 1.45; word-break: break-word; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .chat-msg-wrapper.user .chat-bubble-msg { background: linear-gradient(135deg, #7c3aed, #6d28d9); color: #fff; border-bottom-right-radius: 4px; }
+    .chat-msg-wrapper.bot .chat-bubble-msg, .chat-msg-wrapper.admin .chat-bubble-msg { background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.08); border-bottom-left-radius: 4px; }
+    
+    /* Hover/Tap Action Bar (Reply, React, Edit, Unsend) */
+    .msg-action-bar { display: none; gap: 6px; background: #0f172a; border: 1px solid rgba(253,224,71,0.3); padding: 3px 8px; border-radius: 20px; margin-top: 3px; font-size: 11px; z-index: 10; }
+    .chat-msg-wrapper:hover .msg-action-bar, .chat-msg-wrapper.active-actions .msg-action-bar { display: flex; }
+    .msg-action-btn { cursor: pointer; opacity: 0.85; transition: 0.15s; background: none; border: none; color: #e2e8f0; padding: 2px 4px; }
+    .msg-action-btn:hover { opacity: 1; transform: scale(1.15); color: #fde047; }
+    
+    /* Reactions Pill */
+    .msg-reactions-row { display: flex; flex-wrap: wrap; gap: 3px; margin-top: -6px; z-index: 5; }
+    .msg-reaction-badge { background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1px 6px; font-size: 11px; cursor: pointer; }
+    
+    /* Reply Preview Bar */
+    #chatReplyPreviewBar { display: none; align-items: center; justify-content: space-between; background: #1e293b; border-left: 3px solid #fde047; padding: 6px 10px; font-size: 11.5px; color: #e2e8f0; border-radius: 6px; margin-bottom: 6px; }
+    
+    /* Typing Indicator */
+    #chatTypingIndicator { display: none; font-size: 11px; color: #38bdf8; padding: 4px 12px; font-style: italic; }
+    
+    /* Admin Smart Toolbar */
+    #adminChatSmartToolbar { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 8px; background: rgba(15,23,42,0.9); border-top: 1px solid rgba(255,255,255,0.1); }
+    .smart-tool-chip { background: #1e293b; color: #fde047; border: 1px solid rgba(253,224,71,0.3); border-radius: 14px; padding: 4px 9px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .smart-tool-chip:hover { background: #fde047; color: #0f172a; }
+    
+    /* Customer Radar Box in Admin */
+    #adminCustomerRadarBox { background: linear-gradient(90deg, #0f172a, #1e1b4b); border-bottom: 1px solid rgba(253,224,71,0.25); padding: 6px 10px; font-size: 11px; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+  `;
+  document.head.appendChild(style);
 
-// ၁။ Read Receipts & Status Updater (`✓`, `✓✓`, `✓✓ Read`)
-function updateMessageReadStatus(sessionId) {
-  if (typeof fbDb === 'undefined' || !sessionId) return;
-  fbDb.ref(`support_chats/${sessionId}/messages`).once('value', snap => {
-    const val = snap.val();
-    if (val) {
+  // State Variables
+  window.activeChatReplyQuote = null;
+  window.editingChatMessageKey = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecordingVoice = false;
+
+  // ၂။ Read Receipts (`✓`, `✓✓`, `✓✓ Read`)
+  window.updateMessageReadStatus = function(sessionId, readerRole = 'admin') {
+    if (typeof fbDb === 'undefined' || !sessionId) return;
+    fbDb.ref(`support_chats/${sessionId}/messages`).once('value', snap => {
+      const val = snap.val();
+      if (!val) return;
       Object.keys(val).forEach(mKey => {
-        if (val[mKey].sender === 'user' && !val[mKey].isRead) {
-          fbDb.ref(`support_chats/${sessionId}/messages/${mKey}/isRead`).set(true);
+        const m = val[mKey];
+        if (readerRole === 'admin' && m.sender === 'user' && !m.isRead) {
+          fbDb.ref(`support_chats/${sessionId}/messages/${mKey}`).update({ isRead: true, readAt: Date.now() });
+        } else if (readerRole === 'user' && m.sender !== 'user' && !m.isRead) {
+          fbDb.ref(`support_chats/${sessionId}/messages/${mKey}`).update({ isRead: true, readAt: Date.now() });
         }
       });
+    });
+  };
+
+  // ၃။ Live Typing Indicator Sync
+  window.broadcastTypingStatus = function(sessionId, role, isTyping) {
+    if (typeof fbDb === 'undefined' || !sessionId) return;
+    fbDb.ref(`support_chats/${sessionId}/typing/${role}`).set(isTyping ? Date.now() : null);
+  };
+
+  // ၄။ Reply Quote ရွေးချယ်ခြင်း & ပယ်ဖျက်ခြင်း
+  window.setChatReplyQuote = function(msgKey, senderName, snippet) {
+    window.activeChatReplyQuote = { key: msgKey, sender: senderName, text: snippet.slice(0, 80) };
+    let bar = document.getElementById('chatReplyPreviewBar');
+    const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+    if (!bar && input && input.parentElement) {
+      bar = document.createElement('div');
+      bar.id = 'chatReplyPreviewBar';
+      input.parentElement.parentElement.insertBefore(bar, input.parentElement);
+    }
+    if (bar) {
+      bar.style.display = 'flex';
+      bar.innerHTML = `
+        <div><strong style="color:#fde047;">↩ Replying to ${senderName}:</strong> <span>${window.activeChatReplyQuote.text}</span></div>
+        <button type="button" onclick="clearChatReplyQuote()" style="background:none;border:none;color:#f87171;cursor:pointer;font-weight:bold;">✕</button>
+      `;
+    }
+    if (input) input.focus();
+  };
+
+  window.clearChatReplyQuote = function() {
+    window.activeChatReplyQuote = null;
+    const bar = document.getElementById('chatReplyPreviewBar');
+    if (bar) bar.style.display = 'none';
+  };
+
+  // ၅။ Emoji Reaction ထည့်ခြင်း
+  window.toggleMessageReaction = function(sessionId, msgKey, emoji) {
+    if (typeof fbDb === 'undefined' || !sessionId || !msgKey) return;
+    const ref = fbDb.ref(`support_chats/${sessionId}/messages/${msgKey}/reactions/${emoji}`);
+    ref.once('value', snap => {
+      const cur = snap.val() || 0;
+      ref.set(cur > 0 ? null : 1);
+    });
+  };
+
+  // ၆။ Message Edit & Unsend
+  window.unsendChatMessage = function(sessionId, msgKey) {
+    if (!confirm('ဤစာတိုကို နှစ်ဖက်လုံးမှ ဖျက်ပစ်မှာ သေချာပါသလား?')) return;
+    fbDb.ref(`support_chats/${sessionId}/messages/${msgKey}`).update({
+      text: '🚫 ဤစာတိုကို ဖျက်လိုက်ပါပြီ (Unsent)',
+      mediaUrl: '',
+      isUnsent: true
+    });
+  };
+
+  window.editChatMessage = function(sessionId, msgKey, oldText) {
+    const newText = prompt('စာသားအသစ် ပြင်ဆင်ရန်:', oldText);
+    if (newText !== null && newText.trim() !== '' && newText !== oldText) {
+      fbDb.ref(`support_chats/${sessionId}/messages/${msgKey}`).update({
+        text: newText.trim(),
+        isEdited: true
+      });
+    }
+  };
+
+  // ၇။ Voice Note အသံဖမ်း ပို့ဆောင်ခြင်း
+  window.toggleVoiceNoteRecording = async function(sessionId, senderRole = 'user') {
+    const btn = document.getElementById('chatVoiceRecordBtn');
+    if (!isRecordingVoice) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Audio = reader.result;
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            fbDb.ref(`support_chats/${sessionId}/messages`).push({
+              sender: senderRole,
+              text: '🎤 အသံဖိုင် (Voice Note)',
+              mediaUrl: base64Audio,
+              mediaType: 'audio',
+              timeStr: timeStr,
+              timestamp: Date.now(),
+              isRead: false
+            });
+          };
+          reader.readAsDataURL(blob);
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        isRecordingVoice = true;
+        if (btn) { btn.innerHTML = '⏹️'; btn.style.background = '#ef4444'; }
+      } catch (err) {
+        alert('မိုက်ခရိုဖုန်း (Microphone) အသုံးပြုခွင့် ဖွင့်ပေးပါခင်ဗျာ။');
+      }
+    } else {
+      if (mediaRecorder) mediaRecorder.stop();
+      isRecordingVoice = false;
+      if (btn) { btn.innerHTML = '🎤'; btn.style.background = ''; }
+    }
+  };
+
+  // ၈။ Smart Cards (Product, Payment QR, Order Tracker, Exclusive Coupon)
+  window.sendSmartProductCard = function(sessionId, product) {
+    if (!product || typeof fbDb === 'undefined') return;
+    const imgUrl = (Array.isArray(product.images) && product.images[0]) || product.image || 'logo.png';
+    fbDb.ref(`support_chats/${sessionId}/messages`).push({
+      sender: 'admin',
+      text: product.name,
+      mediaUrl: imgUrl,
+      mediaType: 'product_card',
+      cardData: { id: product.id || '', sku: product.sku || '-', price: Number(product.price || 0), name: product.name, image: imgUrl },
+      timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    });
+  };
+
+  window.sendSmartQrCard = function(sessionId, bank = 'kpay') {
+    const info = bank === 'wave'
+      ? { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' }
+      : { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' };
+    fbDb.ref(`support_chats/${sessionId}/messages`).push({
+      sender: 'admin',
+      text: `${info.bank} ငွေလွှဲအကောင့်`,
+      mediaUrl: info.qr,
+      mediaType: 'qr_card',
+      cardData: info,
+      timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    });
+  };
+
+  window.sendSmartCouponCard = function(sessionId, amount = 2000) {
+    const code = 'VIP' + Math.floor(1000 + Math.random() * 9000);
+    fbDb.ref(`support_chats/${sessionId}/messages`).push({
+      sender: 'admin',
+      text: `သီးသန့် လျှော့ဈေးကူပွန် (${Number(amount).toLocaleString()} Ks)`,
+      mediaType: 'coupon_card',
+      cardData: { code: code, discount: Number(amount) },
+      timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    });
+  };
+
+  window.applyChatCouponToCart = function(code, discountAmt) {
+    window.currentAppliedDiscount = Number(discountAmt) || 0;
+    localStorage.setItem('tm_active_coupon', JSON.stringify({ code, discount: window.currentAppliedDiscount }));
+    if (typeof renderCartUI === 'function') renderCartUI();
+    alert(`🎉 ကူပွန်ကုဒ် (${code}) အသုံးပြုပြီး ${Number(discountAmt).toLocaleString()} Ks လျှော့ဈေး ရရှိပါပြီ!`);
+  };
+
+  // ၉။ Upgraded Bubble Renderer (Viber / Telegram Full Features)
+  window.renderUpgradedChatMessageBubble = function(sender, text, mediaUrl = '', mediaType = '', timeStr = '', isRead = false, replyTo = '', msgKey = '', extraData = {}) {
+    const area = document.getElementById('liveChatMessagesArea');
+    if (!area) return;
+
+    const isUser = sender === 'user';
+    const sessionId = window.currentGuestSessionId || '';
+    const wrapper = document.createElement('div');
+    wrapper.className = `chat-msg-wrapper ${isUser ? 'user' : 'bot'}`;
+    wrapper.onclick = () => {
+      document.querySelectorAll('.chat-msg-wrapper.active-actions').forEach(el => { if (el !== wrapper) el.classList.remove('active-actions'); });
+      wrapper.classList.toggle('active-actions');
+    };
+
+    // Quote Box (တကယ် Reply ရှိမှသာ ပြမည်)
+    let quoteHtml = '';
+    if (replyTo && String(replyTo).trim() !== '' && replyTo !== 'Message') {
+      quoteHtml = `<div style="background:rgba(0,0,0,0.28); border-left:3px solid #fde047; padding:4px 8px; border-radius:6px; font-size:11px; margin-bottom:5px; color:#e2e8f0;">
+        <span style="color:#fde047;font-weight:bold;">↩ Reply:</span> ${replyTo}
+      </div>`;
+    }
+
+    // Smart Cards & Media Rendering
+    let bodyContentHtml = '';
+    const cd = extraData.cardData || {};
+
+    if (mediaType === 'product_card' && cd.name) {
+      bodyContentHtml = `
+        <div style="background:#0f172a; border:1px solid #fde047; border-radius:10px; padding:8px; width:210px; text-align:center;">
+          <img src="${cd.image || mediaUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:6px; margin-bottom:6px;">
+          <div style="font-weight:bold; font-size:12px; color:#fff;">${cd.name}</div>
+          <div style="font-size:10.5px; color:#94a3b8;">SKU: ${cd.sku}</div>
+          <div style="font-weight:bold; color:#fde047; font-size:13px; margin:4px 0;">${Number(cd.price).toLocaleString()} MMK</div>
+          <button type="button" onclick="event.stopPropagation(); if(typeof addToCartById==='function'){addToCartById('${cd.id}');} alert('ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!');" style="width:100%; background:#fde047; color:#0f172a; border:none; border-radius:6px; padding:6px; font-weight:bold; font-size:11.5px; cursor:pointer;">🛒 ခြင်းထဲထည့်မည်</button>
+        </div>`;
+    } else if (mediaType === 'qr_card' && cd.phone) {
+      bodyContentHtml = `
+        <div style="background:#0f172a; border:1px solid #38bdf8; border-radius:10px; padding:8px; width:210px; text-align:center;">
+          <div style="font-weight:bold; color:#38bdf8; font-size:12.5px; margin-bottom:4px;">💳 ${cd.bank}</div>
+          <img src="${cd.qr || mediaUrl}" style="width:130px; height:130px; object-fit:contain; border-radius:6px; background:#fff; padding:4px; margin:0 auto 6px;">
+          <div style="font-size:11.5px; color:#fff;">${cd.name}</div>
+          <div style="font-size:12px; font-weight:bold; color:#fde047; margin:3px 0;">${cd.phone}</div>
+          <button type="button" onclick="event.stopPropagation(); navigator.clipboard.writeText('${cd.phone}'); alert('ဖုန်းနံပါတ် ${cd.phone} ကို Copy ကူးပြီးပါပြီ!');" style="width:100%; background:#38bdf8; color:#0f172a; border:none; border-radius:6px; padding:5px; font-weight:bold; font-size:11px; cursor:pointer;">📋 နံပါတ် Copy ကူးမည်</button>
+        </div>`;
+    } else if (mediaType === 'coupon_card' && cd.code) {
+      bodyContentHtml = `
+        <div style="background:linear-gradient(135deg,#1e1b4b,#312e81); border:1.5px dashed #fde047; border-radius:10px; padding:10px; width:210px; text-align:center;">
+          <div style="font-size:11px; color:#fde047; font-weight:bold;">🎟️ VIP EXCLUSIVE COUPON</div>
+          <div style="font-size:16px; font-weight:900; color:#fff; margin:4px 0;">${Number(cd.discount).toLocaleString()} Ks OFF</div>
+          <div style="font-size:11px; color:#cbd5e1; margin-bottom:6px;">Code: <b>${cd.code}</b></div>
+          <button type="button" onclick="event.stopPropagation(); applyChatCouponToCart('${cd.code}', ${cd.discount});" style="width:100%; background:#fde047; color:#0f172a; border:none; border-radius:6px; padding:6px; font-weight:bold; font-size:11.5px; cursor:pointer;">✨ ကူပွန်အသုံးပြုမည်</button>
+        </div>`;
+    } else if (mediaType === 'audio' && mediaUrl) {
+      bodyContentHtml = `<audio controls src="${mediaUrl}" style="height:34px; max-width:210px; margin-top:4px;"></audio>`;
+    } else {
+      bodyContentHtml = `${text ? `<span>${text}</span>` : ''}${extraData.isEdited ? ' <span style="font-size:9px;opacity:0.65;">(Edited)</span>' : ''}`;
+      if (mediaUrl) {
+        bodyContentHtml += `<br><img src="${mediaUrl}" style="max-width:100%; max-height:160px; border-radius:8px; margin-top:5px; cursor:pointer;" onclick="event.stopPropagation(); if(typeof openInAppMediaViewer==='function') openInAppMediaViewer('image','${mediaUrl}')">`;
+      }
+    }
+
+    // Read Receipts (`✓`, `✓✓`, `✓✓ Read` အပြာရောင်)
+    let ticksHtml = '';
+    if (isUser) {
+      ticksHtml = isRead
+        ? `<span style="font-size:10px; color:#38bdf8; font-weight:bold; margin-left:4px;">✓✓ Read</span>`
+        : `<span style="font-size:10px; color:#cbd5e1; margin-left:4px;">✓✓</span>`;
+    }
+
+    // Reactions Display
+    let reactionsHtml = '';
+    if (extraData.reactions && typeof extraData.reactions === 'object') {
+      const badges = Object.keys(extraData.reactions).map(em =>
+        `<span class="msg-reaction-badge" onclick="event.stopPropagation(); toggleMessageReaction('${sessionId}', '${msgKey}', '${em}')">${em}</span>`
+      ).join('');
+      if (badges) reactionsHtml = `<div class="msg-reactions-row">${badges}</div>`;
+    }
+
+    // Interactive Action Bar (Reply, Reactions, Edit, Unsend)
+    const safeSnippet = (text || 'Media').replace(/'/g, "\\'").replace(/\n/g, ' ');
+    const actionBarHtml = (!extraData.isUnsent && msgKey) ? `
+      <div class="msg-action-bar" onclick="event.stopPropagation()">
+        <button type="button" class="msg-action-btn" title="Reply" onclick="setChatReplyQuote('${msgKey}', '${isUser ? 'You' : 'Admin'}', '${safeSnippet}')">↩</button>
+        <button type="button" class="msg-action-btn" onclick="toggleMessageReaction('${sessionId}', '${msgKey}', '❤️')">❤️</button>
+        <button type="button" class="msg-action-btn" onclick="toggleMessageReaction('${sessionId}', '${msgKey}', '👍')">👍</button>
+        <button type="button" class="msg-action-btn" onclick="toggleMessageReaction('${sessionId}', '${msgKey}', '😍')">😍</button>
+        ${isUser ? `<button type="button" class="msg-action-btn" title="Edit" onclick="editChatMessage('${sessionId}', '${msgKey}', '${safeSnippet}')">✏️</button>` : ''}
+        ${isUser ? `<button type="button" class="msg-action-btn" title="Unsend" onclick="unsendChatMessage('${sessionId}', '${msgKey}')">🗑️</button>` : ''}
+      </div>` : '';
+
+    wrapper.innerHTML = `
+      <div class="chat-bubble-msg">
+        ${quoteHtml}
+        ${bodyContentHtml}
+        <div style="font-size:9.5px; opacity:0.75; display:flex; justify-content:flex-end; align-items:center; gap:3px; margin-top:4px;">
+          <span>${timeStr || ''}</span>
+          ${ticksHtml}
+        </div>
+      </div>
+      ${reactionsHtml}
+      ${actionBarHtml}
+    `;
+
+    area.appendChild(wrapper);
+    area.scrollTop = area.scrollHeight;
+  };
+
+  // ၁၀။ Chat UI ထဲသို့ Voice Mic ခလုတ်နှင့် Typing Indicator အလိုအလျောက် တပ်ဆင်ခြင်း
+  window.addEventListener('DOMContentLoaded', () => {
+    const area = document.getElementById('liveChatMessagesArea');
+    if (area && !document.getElementById('chatTypingIndicator')) {
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'chatTypingIndicator';
+      typingDiv.innerText = '✍️ Admin စာရိုက်နေပါသည်...';
+      area.parentElement.insertBefore(typingDiv, area.nextSibling);
+    }
+
+    const sendBtn = document.querySelector('#liveChatModal button[onclick*="send"], #liveChatSendBtn');
+    if (sendBtn && !document.getElementById('chatVoiceRecordBtn')) {
+      const micBtn = document.createElement('button');
+      micBtn.type = 'button';
+      micBtn.id = 'chatVoiceRecordBtn';
+      micBtn.innerHTML = '🎤';
+      micBtn.title = 'အသံဖိုင် ပို့ရန် (Voice Note)';
+      micBtn.style.cssText = 'background:#1e293b; color:#fde047; border:1px solid rgba(253,224,71,0.3); border-radius:50%; width:36px; height:36px; cursor:pointer; margin-right:5px; flex-shrink:0;';
+      micBtn.onclick = () => toggleVoiceNoteRecording(window.currentGuestSessionId, 'user');
+      sendBtn.parentElement.insertBefore(micBtn, sendBtn);
     }
   });
-}
-
-function renderUpgradedChatMessageBubble(sender, text, mediaUrl = '', mediaType = '', timeStr = '', isRead = false, replyTo = '') {
-  const area = document.getElementById('liveChatMessagesArea');
-  if (!area) return;
-
-  const bubble = document.createElement('div');
-  const isUser = sender === 'user';
-  bubble.className = `chat-bubble-msg ${isUser ? 'user' : 'bot'}`;
-  
-  let replyQuoteHtml = '';
-  if (replyTo) {
-    replyQuoteHtml = `<div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--gold); padding:4px 8px; border-radius:4px; font-size:10.5px; margin-bottom:5px; opacity:0.9;">
-      <i class="fas fa-reply"></i> ${replyTo}
-    </div>`;
-  }
-
-  let mediaHtml = '';
-  if (mediaUrl) {
-    mediaHtml = `<img src="${mediaUrl}" style="max-width:100%; max-height:160px; border-radius:6px; margin-top:4px; cursor:pointer;" onclick="openInAppMediaViewer('image', '${mediaUrl}')">`;
-  }
-
-  // Read status ticks (✓✓ အပြာရောင် Read)
-  const ticks = isUser ? `<span style="font-size:10px; color:${isRead ? '#38bdf8' : '#cbd5e1'}; margin-left:4px; font-weight:bold;">${isRead ? '✓✓' : '✓'}</span>` : '';
-
-  bubble.innerHTML = `
-    ${replyQuoteHtml}
-    ${text ? `<span>${text}</span>` : ''}
-    ${mediaHtml}
-    <div style="font-size:9.5px; opacity:0.7; display:flex; justify-content:flex-end; align-items:center; gap:3px; margin-top:3px;">
-      <span>${timeStr || ''}</span>
-      ${ticks}
-    </div>
-  `;
-
-  area.appendChild(bubble);
-  area.scrollTop = area.scrollHeight;
-}
-
-// ၂. In-Chat Product Quick Card ပို့သည့် စနစ်
-function sendProductCardToChat(product) {
-  if (!product) return;
-  const imgUrl = (Array.isArray(product.images) && product.images[0]) || product.image || 'logo.png';
-  const priceStr = Number(product.price || 0).toLocaleString() + ' MMK';
-
-  const cardText = `📦 [ပစ္စည်းကတ်ပြား]\n` +
-    `• အမည်: ${product.name}\n` +
-    `• SKU: ${product.sku || '-'}\n` +
-    `• ဈေးနှုန်း: ${priceStr}\n\n` +
-    `🛒 ဤပစ္စည်းကို ခြင်းတောင်းထဲထည့်ရန် ဝဘ်ဆိုဒ်တွင် နှိပ်ပါခင်ဗျာ။`;
-
-  if (typeof sendChatMessageItem === 'function') {
-    sendChatMessageItem('admin', cardText, imgUrl, 'product_card');
-  }
-}
-
-// ၃. 1-Click Payment & QR Card ပို့သည့် စနစ်
-function sendPaymentQrCardToChat(bankKey) {
-  const accounts = {
-    kpay: { title: 'KBZPay', phone: '09768124433', name: 'Ma Win Win Myint' },
-    wave: { title: 'WavePay', phone: '09768124433', name: 'Nu Nu Htwe' }
-  };
-  const acc = accounts[bankKey] || accounts.kpay;
-  const text = `💳 [ငွေလွှဲအကောင့် အချက်အလက်]\n` +
-    `• ဘဏ်: ${acc.title}\n` +
-    `• အကောင့်အမည်: ${acc.name}\n` +
-    `• ဖုန်းနံပါတ်: ${acc.account || acc.phone}\n` +
-    `ကျေးဇူးပြု၍ ငွေလွှဲပြီးပါက စလစ် (Screenshot) ပို့ပေးပါရန် မေတ္တာရပ်ခံအပ်ပါသည်။`;
-
-  if (typeof sendChatMessageItem === 'function') {
-    sendChatMessageItem('admin', text);
-  }
-}
-
-// ၄. Chat Bubble Renderer (✓✓ Read နှင့် Reply Quote ပါဝင်သော Upgraded UI)
-function renderUpgradedChatMessageBubble(sender, text, mediaUrl = '', mediaType = '', timeStr = '', isRead = false, replyTo = '') {
-  const area = document.getElementById('liveChatMessagesArea');
-  if (!area) return;
-
-  const bubble = document.createElement('div');
-  const isUser = sender === 'user';
-  const isAdmin = sender === 'admin';
-  
-  // ဝယ်သူ (user) ဆိုရင် ညာဘက်၊ Admin ဆိုရင် ဘယ်ဘက်ကျစေရန် Class သတ်မှတ်ခြင်း
-  bubble.className = `chat-bubble-msg ${isUser ? 'user' : 'bot'}`;
-  
-  let replyQuoteHtml = '';
-  if (replyTo) {
-    replyQuoteHtml = `<div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--gold); padding:4px 8px; border-radius:4px; font-size:10.5px; margin-bottom:5px; opacity:0.9;">
-      <i class="fas fa-reply"></i> ${replyTo}
-    </div>`;
-  }
-
-  let mediaHtml = '';
-  if (mediaUrl) {
-    mediaHtml = `<img src="${mediaUrl}" style="max-width:100%; max-height:160px; border-radius:6px; margin-top:4px; cursor:pointer;" onclick="openInAppMediaViewer('image', '${mediaUrl}')">`;
-  }
-
-  // Read status ticks (✓ / ✓✓ အပြာရောင်)
-  const ticks = isUser ? `<span style="font-size:10px; color:${isRead ? '#38bdf8' : '#cbd5e1'}; margin-left:4px; font-weight:bold;" title="${isRead ? 'Read' : 'Sent'}">${isRead ? '✓✓' : '✓'}</span>` : '';
-
-  bubble.innerHTML = `
-    ${replyQuoteHtml}
-    ${text ? `<span>${text}</span>` : ''}
-    ${mediaHtml}
-    <div style="font-size:9.5px; opacity:0.7; display:flex; justify-content:flex-end; align-items:center; gap:3px; margin-top:3px;">
-      <span>${timeStr || ''}</span>
-      ${ticks}
-    </div>
-  `;
-
-  area.appendChild(bubble);
-  area.scrollTop = area.scrollHeight;
-}
+})();
 </script>
 </body>
 </html>
