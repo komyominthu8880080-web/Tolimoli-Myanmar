@@ -47,7 +47,6 @@ export default async function handler(req, res) {
     const hasSlip = slipUrl && typeof slipUrl === 'string' && slipUrl.trim() !== '';
     const isLongMessage = textMsg.length > 1000;
 
-    // ၁,၀၂၄ လုံးထက် ကျော်လွန်ပါက ပုံသီးသန့် + စာသားအပြည့်အစုံ သီးသန့် ခွဲပို့ခြင်း (HTML Tag များ မပြတ်စေရန်)
     let photoCaption = textMsg;
     let followUpText = '';
 
@@ -66,7 +65,6 @@ export default async function handler(req, res) {
       let photoSentOk = false;
       let photoResultData = null;
 
-      // ၁။ Base64 ပုံဖိုင် ဖြစ်နေပါက FormData (Blob) ဖြင့် sendPhoto ပို့ခြင်း
       if (slipUrl.startsWith('data:image')) {
         const matches = slipUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
         if (matches) {
@@ -90,7 +88,6 @@ export default async function handler(req, res) {
           if (photoResultData.ok) photoSentOk = true;
         }
       } else if (slipUrl.startsWith('http')) {
-        // ၂။ HTTP Image URL ဖြစ်နေပါက URL ဖြင့် တိုက်ရိုက် sendPhoto ပို့ခြင်း
         const photoPayload = {
           chat_id: targetChat,
           photo: slipUrl,
@@ -109,7 +106,6 @@ export default async function handler(req, res) {
       }
 
       if (photoSentOk) {
-        // စာရှည်နေ၍ ခွဲထုတ်ထားသော ပစ္စည်းစာရင်း အပိုင်း (၂) ရှိပါက ဆက်တိုက် ထပ်ပို့ပေးခြင်း
         if (followUpText) {
           const followPayload = {
             chat_id: targetChat,
@@ -128,7 +124,6 @@ export default async function handler(req, res) {
       }
     }
 
-    // စလစ်ပုံ မပါလျှင် (သို့မဟုတ် sendPhoto မအောင်မြင်လျှင်) စာသားအပြည့်အစုံ ပို့ပေးခြင်း (4096 chars limit)
     const textPayload = {
       chat_id: targetChat,
       text: textMsg.slice(0, 4096),
@@ -192,7 +187,7 @@ export default async function handler(req, res) {
         '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
         '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
         (orderData.busGate || orderData.busGateDetails ? '🚌 <b>ကားဂိတ်:</b> ' + (orderData.busGate || orderData.busGateDetails) + '\n' : '') +
-      '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryService || orderData.deliveryType || orderData.busLineName || 'Standard Delivery') + '\n' +
+        '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryService || orderData.deliveryType || orderData.busLineName || 'Standard Delivery') + '\n' +
         '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
         '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
         '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
@@ -261,7 +256,7 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK
+  // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote ပါဝင်သည်)
   // -------------------------------------------------------------
   const update = body;
   if (!update || !update.message) return res.status(200).send('OK');
@@ -271,6 +266,13 @@ export default async function handler(req, res) {
 
   const threadId = msg.message_thread_id;
   let text = msg.text || msg.caption || '';
+  let replyToText = '';
+
+  // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏စာသားကို ဖမ်းယူခြင်း
+  if (msg.reply_to_message) {
+    replyToText = msg.reply_to_message.text || msg.reply_to_message.caption || 'Media Message';
+  }
+
   let mediaUrl = '';
   let mediaType = '';
   let fileId = null;
@@ -321,6 +323,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             sender: 'admin',
             text: text,
+            replyTo: replyToText, // Reply Quote ထည့်သွင်းခြင်း
             mediaUrl: mediaUrl,
             mediaType: mediaType,
             timeStr: timeFormatted,
