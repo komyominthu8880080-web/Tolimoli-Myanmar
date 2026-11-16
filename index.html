@@ -12096,7 +12096,7 @@ function copyProductLink(productId) {
       const tInput = document.getElementById('custTownshipInput');
       const val = tInput ? tInput.value.trim() : '';
       const comps = (deliveryConfig && Array.isArray(deliveryConfig.companies)) ? deliveryConfig.companies : [];
-      renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships || []).some(t => val.includes(t))), val);
+      renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships || []).some(t => { const tn = (typeof t === 'string' ? t : t.name || '').replace(/(မြို့နယ်|မြို့)/g, '').trim(); const vn = val.replace(/(မြို့နယ်|မြို့)/g, '').trim(); return tn && (vn.includes(tn) || tn.includes(vn)); })), val);
     }
 
     function selectDeliOptionCard(compId) {
@@ -12106,7 +12106,8 @@ function copyProductLink(productId) {
         currentChosenDeliCompany = chosen;
         const tInput = document.getElementById('custTownshipInput');
         const tName = tInput ? tInput.value.trim() : '';
-        renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships||[]).some(t => tName.includes(t))), tName);
+        renderDynamicDeliCardsForTownship(comps.filter(c => (c.townships || []).some(t => { const tn = (typeof t === 'string' ? t : t.name || '').replace(/(မြို့နယ်|မြို့)/g, '').trim(); const vn = tName.replace(/(မြို့နယ်|မြို့)/g, '').trim(); return tn && (vn.includes(tn) || tn.includes(vn)); })), tName);
+    applyChosenDeliSettings(chosen, tName);
       }
     }
 
