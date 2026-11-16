@@ -4883,6 +4883,7 @@ function selectDeliSmartCard(idx) {
 
   currentDeliveryFee = (typeof currentVipStatus !== 'undefined' && currentVipStatus.isFreeDelivery) ? 0 : chosen.fee;
   currentDeliveryService = chosen.name;
+  window.currentDeliveryService = chosen.name;
   currentEstimatedDays = chosen.duration;
 
   // ကားဂိတ်ချ ရွေးထားလျှင် ဂိတ်စာရင်းများကို ချက်ချင်း အလိုအလျောက် ဆွဲတင်ပေးခြင်း
@@ -7752,7 +7753,8 @@ cart.forEach(it => {
       discountAmount: activeDiscount,
       deliveryFee: activeDeliFee,
       deliFee: activeDeliFee,
-      deliveryService: (typeof currentDeliveryService !== 'undefined' && currentDeliveryService) ? currentDeliveryService : (badgeType || 'Standard Delivery'),
+      deliveryService: window.currentDeliveryService || currentDeliveryService || document.querySelector('.deli-option-card-smart.active-selected span')?.innerText?.trim() || localStorage.getItem('tm_saved_deliservice') || 'Standard Delivery',
+    deliveryType: window.currentDeliveryService || currentDeliveryService || document.querySelector('.deli-option-card-smart.active-selected span')?.innerText?.trim() || localStorage.getItem('tm_saved_deliservice') || 'Standard Delivery',
     busGate: busGateDetails || '',
     busGateDetails: busGateDetails || '',
     specialNote: specialNote || '',
