@@ -14594,7 +14594,22 @@ applyDiscountCoupon = function() {
 
     // ၆။ Account-Free Auto OTP & Tracking
     var currentTrackPhone = '';
+    function trackOrderAccountFree() {
+  const val = document.getElementById('trackOrderIdInput')?.value.trim();
+  const otpBox = document.getElementById('trackOtpVerificationBox');
+  if (otpBox) otpBox.style.display = 'none';
+  if (!val) return alert('ဖုန်းနံပါတ် သို့မဟုတ် အော်ဒါနံပါတ် ရိုက်ထည့်ပါ');
 
+  const cleanDigits = val.replace(/[^0-9]/g, '');
+  const isPhone = /^[0-9]{8,12}$/.test(cleanDigits);
+  if (isPhone) {
+    const matched = orders.filter(o => o && o.phone && String(o.phone).replace(/[^0-9]/g, '') === cleanDigits);
+    renderTrackedOrdersList(matched);
+  } else {
+    const matched = orders.filter(o => o && o.id && String(o.id).toLowerCase().includes(val.toLowerCase()));
+    renderTrackedOrdersList(matched);
+  }
+}
     function confirmTrackOtp() {
       const otp = document.getElementById('trackOtpInput')?.value.trim();
       if (otp === '1234') {
