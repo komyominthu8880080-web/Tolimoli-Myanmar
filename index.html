@@ -13349,12 +13349,14 @@ applySoundToggleUI(isAudioMuted);
   const area = document.getElementById('liveChatMessagesArea');
   if (!area) return;
 
-  // Header တွင် Guest နံပါတ် အလိုအလျောက် ပြသခြင်း
   const chatHeader = document.getElementById('liveChatHeaderTitle');
   if (chatHeader && currentGuestSessionId) {
     const gNum = currentGuestSessionId.replace('guest_', '').replace('cust_', '');
     chatHeader.innerHTML = `Discreet Live Support <span style="font-size:0.7rem; color:#fde047; font-weight:bold;">(Guest #${gNum})</span>`;
   }
+
+  // Admin ဘက်မှ Chat ဖွင့်ကြည့်လိုက်လျှင် Read ဖြစ်ကြောင်း Update လုပ်ရန်
+  updateMessageReadStatus(currentGuestSessionId);
 
   fbDb.ref(`support_chats/${currentGuestSessionId}/messages`).on('value', snap => {
     const val = snap.val();
@@ -13362,7 +13364,12 @@ applySoundToggleUI(isAudioMuted);
     if (val) {
       const list = Object.values(val);
       list.forEach(m => {
-        renderChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr);
+        // Upgraded Chat Bubble Renderer ကို အသုံးပြုခြင်း (✓✓ Read နှင့် Reply Quote ပါဝင်သည်)
+        if (typeof renderUpgradedChatMessageBubble === 'function') {
+          renderUpgradedChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr, m.isRead, m.replyTo);
+        } else {
+          renderChatMessageBubble(m.sender, m.text, m.mediaUrl, m.mediaType, m.timeStr);
+        }
       });
       playNotificationSound('chat');
     }
