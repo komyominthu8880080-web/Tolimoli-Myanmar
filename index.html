@@ -17076,6 +17076,43 @@ function updateMessageReadStatus(sessionId) {
   });
 }
 
+function renderUpgradedChatMessageBubble(sender, text, mediaUrl = '', mediaType = '', timeStr = '', isRead = false, replyTo = '') {
+  const area = document.getElementById('liveChatMessagesArea');
+  if (!area) return;
+
+  const bubble = document.createElement('div');
+  const isUser = sender === 'user';
+  bubble.className = `chat-bubble-msg ${isUser ? 'user' : 'bot'}`;
+  
+  let replyQuoteHtml = '';
+  if (replyTo) {
+    replyQuoteHtml = `<div style="background:rgba(0,0,0,0.3); border-left:3px solid var(--gold); padding:4px 8px; border-radius:4px; font-size:10.5px; margin-bottom:5px; opacity:0.9;">
+      <i class="fas fa-reply"></i> ${replyTo}
+    </div>`;
+  }
+
+  let mediaHtml = '';
+  if (mediaUrl) {
+    mediaHtml = `<img src="${mediaUrl}" style="max-width:100%; max-height:160px; border-radius:6px; margin-top:4px; cursor:pointer;" onclick="openInAppMediaViewer('image', '${mediaUrl}')">`;
+  }
+
+  // Read status ticks (✓✓ အပြာရောင် Read)
+  const ticks = isUser ? `<span style="font-size:10px; color:${isRead ? '#38bdf8' : '#cbd5e1'}; margin-left:4px; font-weight:bold;">${isRead ? '✓✓' : '✓'}</span>` : '';
+
+  bubble.innerHTML = `
+    ${replyQuoteHtml}
+    ${text ? `<span>${text}</span>` : ''}
+    ${mediaHtml}
+    <div style="font-size:9.5px; opacity:0.7; display:flex; justify-content:flex-end; align-items:center; gap:3px; margin-top:3px;">
+      <span>${timeStr || ''}</span>
+      ${ticks}
+    </div>
+  `;
+
+  area.appendChild(bubble);
+  area.scrollTop = area.scrollHeight;
+}
+
 // ၂. In-Chat Product Quick Card ပို့သည့် စနစ်
 function sendProductCardToChat(product) {
   if (!product) return;
