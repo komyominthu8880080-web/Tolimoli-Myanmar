@@ -1,8 +1,7 @@
-const STATIC_CACHE = 'tolimoli-static-v5';
-const DYNAMIC_CACHE = 'tolimoli-dynamic-v5';
+const STATIC_CACHE = 'tolimoli-static-v6';
+const DYNAMIC_CACHE = 'tolimoli-dynamic-v6';
 
 const STATIC_ASSETS = [
-  '/',
   '/manifest.json',
   '/logo.png'
 ];
@@ -32,6 +31,25 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const requestUrl = new URL(e.request.url);
 
+  // API requests များကို Cache မလုပ်ဘဲ တိုက်ရိုက်သွားစေရန်
+  if (requestUrl.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // HTML စာမျက်နှာ (index.html / root) ကို အမြဲ နောက်ဆုံးဗားရှင်း (Network-First) ယူရန်
+  if (e.request.mode === 'navigate' || requestUrl.pathname === '/' || requestUrl.pathname.endsWith('.html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then((networkResponse) => {
+          const copy = networkResponse.clone();
+          caches.open(STATIC_CACHE).then((cache) => cache.put(e.request, copy));
+          return networkResponse;
+        })
+        .catch(() => caches.match(e.request).then((res) => res || caches.match('/')))
+    );
+    return;
+  }
+
   // Cache Fonts and Font Awesome CDN dynamically
   if (
     requestUrl.origin.includes('fonts.googleapis.com') ||
@@ -54,7 +72,7 @@ self.addEventListener('fetch', (e) => {
 
   e.respondWith(
     caches.match(e.request).then((res) => {
-      return res || fetch(e.request).catch(() => caches.match('./index.html'));
+      return res || fetch(e.request).catch(() => caches.match('/'));
     })
   );
 });
