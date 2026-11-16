@@ -7428,6 +7428,10 @@ setTimeout(() => {
     }
     // မြို့နယ်ရွေးချယ်ချိန်တွင် စနစ်ဟောင်း Deli / ဂိတ်များနှင့် စနစ်သစ်ကို ပေါင်းစပ်ပေးသည့် Function
 function handleTownshipSelectionIntegration(townshipInputVal) {
+  if (typeof handleTownshipSelect === 'function') {
+    handleTownshipSelect();
+    return;
+  }
   const township = (townshipInputVal || '').trim();
   if (!township) return;
 
@@ -7753,8 +7757,26 @@ cart.forEach(it => {
       discountAmount: activeDiscount,
       deliveryFee: activeDeliFee,
       deliFee: activeDeliFee,
-      deliveryService: window.currentDeliveryService || (typeof currentDeliveryService !== 'undefined' && currentDeliveryService) || document.querySelector('#deliServiceCardsList .active-selected span')?.innerText?.replace(/^[^\u1000-\u109FA-Za-z0-9]+/, '').trim() || localStorage.getItem('tm_saved_deliservice') || 'Standard Delivery',
-    deliveryType: window.currentDeliveryService || (typeof currentDeliveryService !== 'undefined' && currentDeliveryService) || document.querySelector('#deliServiceCardsList .active-selected span')?.innerText?.replace(/^[^\u1000-\u109FA-Za-z0-9]+/, '').trim() || localStorage.getItem('tm_saved_deliservice') || 'Standard Delivery',
+      deliveryService: (function() {
+      if (window.currentDeliveryService) return window.currentDeliveryService;
+      if (typeof currentDeliveryService !== 'undefined' && currentDeliveryService) return currentDeliveryService;
+      const activeCard = document.querySelector('#deliServiceCardsList .active-selected, #deliServiceCardsList .active');
+      if (activeCard) {
+        const titleSpan = activeCard.querySelector('span');
+        if (titleSpan) return titleSpan.innerText.replace(/^[🚚🚌📦✈️\s]+/, '').trim();
+      }
+      return localStorage.getItem('tm_saved_deliservice') || 'ရန်ကုန်မြို့တွင်း Deli';
+    })(),
+    deliveryType: (function() {
+      if (window.currentDeliveryService) return window.currentDeliveryService;
+      if (typeof currentDeliveryService !== 'undefined' && currentDeliveryService) return currentDeliveryService;
+      const activeCard = document.querySelector('#deliServiceCardsList .active-selected, #deliServiceCardsList .active');
+      if (activeCard) {
+        const titleSpan = activeCard.querySelector('span');
+        if (titleSpan) return titleSpan.innerText.replace(/^[🚚🚌📦✈️\s]+/, '').trim();
+      }
+      return localStorage.getItem('tm_saved_deliservice') || 'ရန်ကုန်မြို့တွင်း Deli';
+    })(),
     busGate: busGateDetails || '',
     busGateDetails: busGateDetails || '',
     specialNote: specialNote || '',
