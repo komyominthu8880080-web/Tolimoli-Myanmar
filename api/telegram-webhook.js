@@ -474,7 +474,7 @@ export default async function handler(req, res) {
         // 4. /p [ပစ္စည်းအမည်] -> Product Card ပို့ခြင်း
         if (lowerCmd.startsWith('/p ')) {
           const kw = rawCmd.slice(3).trim().toLowerCase();
-          const ordRes = await fetch(`${FIREBASE_URL}/shop_orders.json`);
+          const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal) : [];
           const found = prodList.find(p => (p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw)));
@@ -497,7 +497,7 @@ export default async function handler(req, res) {
         // 5. /track [Order ID] -> Order Tracking Card ပို့ခြင်း
         if (lowerCmd.startsWith('/track ')) {
           const oid = rawCmd.slice(7).trim().toUpperCase();
-          const ordRes = await fetch(`${FIREBASE_URL}/orders.json`);
+          const ordRes = await fetch(`${FIREBASE_URL}/shop_orders.json`);
           const ordVal = await ordRes.json();
           const ordList = ordVal ? Object.values(ordVal) : [];
           const foundOrd = ordList.find(o => String(o.orderId || o.id || '').toUpperCase().includes(oid));
