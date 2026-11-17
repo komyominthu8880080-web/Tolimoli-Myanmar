@@ -577,13 +577,13 @@ export default async function handler(req, res) {
           }
 
           const finalVal = Number(targetCoupon.value ?? targetCoupon.val ?? targetCoupon.discount ?? targetCoupon.amount ?? 0);
-const valLabel = targetCoupon.type === 'percent' ? `${finalVal}% Off` : `${finalVal.toLocaleString()} Ks`;
+          const valLabel = targetCoupon.type === 'percent' ? `${finalVal}% Off` : `${finalVal.toLocaleString()} Ks`;
           await pushChat({
             text: `🎟 သီးသန့် လျှော့ဈေးကူပွန်: ${targetCoupon.code} (${valLabel})`,
             mediaType: 'coupon_card',
             cardData: {
               code: targetCoupon.code,
-              value: Number(targetCoupon.value),
+              value: finalVal,
               type: targetCoupon.type || 'fixed',
               category: targetCoupon.category || 'VIP/အထူး',
               label: valLabel
