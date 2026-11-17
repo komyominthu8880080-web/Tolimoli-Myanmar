@@ -474,7 +474,7 @@ export default async function handler(req, res) {
         // 4. /p [ပစ္စည်းအမည်] -> Product Card ပို့ခြင်း
         if (lowerCmd.startsWith('/p ')) {
           const kw = rawCmd.slice(3).trim().toLowerCase();
-          const prodRes = await fetch(`${FIREBASE_URL}/products.json`);
+          const ordRes = await fetch(`${FIREBASE_URL}/shop_orders.json`);
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal) : [];
           const found = prodList.find(p => (p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw)));
