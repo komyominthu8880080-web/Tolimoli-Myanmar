@@ -13501,7 +13501,7 @@ applySoundToggleUI(isAudioMuted);
           container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ</p>';
           return;
         }
-        
+
         // Live Chat Customer Inbox (support_chats) တစ်ခုတည်းကိုသာ ရက်ပေါင်း ၉၀ (၃ လ) ကျော်ပါက Auto ဖျက်ခြင်း
     const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
     const nowTs = Date.now();
@@ -17521,27 +17521,174 @@ function forceOpenAdminDashboard() {
     syncSmartCardToTelegram(sessionId, `👑 <b>[Admin မှ ${info.bank} ငွေလွှဲကတ် ပို့လိုက်ပါသည်]</b>\n🏦 <b>${info.bank}</b>\n👤 အမည်: <b>${info.name}</b>\n📞 ဖုန်း: <code>${info.phone}</code>`);
   };
 
-  window.sendSmartCouponCard = function(sessionId, amount = 2000) {
-    if (typeof fbDb === 'undefined') return;
-    const code = 'VIP' + Math.floor(1000 + Math.random() * 9000);
+  window.sendSmartCouponCard = function(sessionId, defaultAmt = 2000) {
+    if (!sessionId || typeof fbDb === 'undefined') return alert('ဝယ်သူ စကားဝိုင်းကို အရင်ရွေးချယ်ပါခင်ဗျာ');
+    const oldModal = document.getElementById('tmSmartCouponModal');
+    if (oldModal) oldModal.remove();
+
+    const list = (typeof discounts !== 'undefined' && Array.isArray(discounts)) ? discounts.filter(d => d && d.active !== false) : [];
+    const optionsHtml = list.length
+      ? list.map(d => `<option value="${d.code}">${d.code} — ${d.type === 'percent' ? d.value + '% Off' : Number(d.value).toLocaleString() + ' Ks'} (${d.category || 'VIP'})</option>`).join('')
+      : '<option value="">(လက်ရှိ Promo Code မရှိသေးပါ)</option>';
+    const suggestedCode = 'VIP' + Math.floor(1000 + Math.random() * 9000);
+
+    const modal = document.createElement('div');
+    modal.id = 'tmSmartCouponModal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(2,6,23,0.82);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    modal.innerHTML = `
+      <div style="background:#0f172a;border:1px solid rgba(250,204,21,0.4);border-radius:14px;max-width:410px;width:100%;padding:18px;color:#f8fafc;box-shadow:0 20px 50px rgba(0,0,0,0.6);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <strong style="color:#facc15;font-size:15px;">🎟 လျှော့ဈေးကူပွန် ပို့ရန် (${sessionId})</strong>
+          <button type="button" onclick="document.getElementById('tmSmartCouponModal').remove()" style="background:none;border:none;color:#94a3b8;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <div style="background:rgba(30,41,59,0.7);padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid rgba(148,163,184,0.2);">
+          <div style="font-size:12px;color:#38bdf8;font-weight:600;margin-bottom:6px;">၁။ ရှိပြီးသား Promo Code များထဲမှ ရွေးပို့ရန်</div>
+          <select id="tmExistingCouponSel" style="width:100%;padding:8px;border-radius:8px;background:#1e293b;color:#fff;border:1px solid #475569;margin-bottom:8px;">${optionsHtml}</select>
+          <button type="button" onclick="dispatchChatCoupon('${sessionId}', 'existing')" style="width:100%;padding:8px;border-radius:8px;background:#0284c7;color:#fff;border:none;font-weight:600;cursor:pointer;">ရွေးထားသော ကုဒ်ပို့မည်</button>
+        </div>
+        <div style="background:rgba(30,41,59,0.7);padding:12px;border-radius:10px;border:1px solid rgba(250,204,21,0.25);">
+          <div style="font-size:12px;color:#facc15;font-weight:600;margin-bottom:6px;">၂။ ၁ ကြိမ်သုံး ကူပွန်အသစ် ဖန်တီးပို့ရန် (Discounts & VIP ထဲ အလိုအလျောက် ဝင်မည်)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+            <input id="tmNewCouponCode" value="${suggestedCode}" placeholder="ကုဒ်နာမည်" style="padding:8px;border-radius:8px;background:#1e293b;color:#fff;border:1px solid #475569;">
+            <select id="tmNewCouponType" style="padding:8px;border-radius:8px;background:#1e293b;color:#fff;border:1px solid #475569;">
+              <option value="fixed">ငွေပမာဏ (Ks)</option>
+              <option value="percent">ရာခိုင်နှုန်း (%)</option>
+            </select>
+          </div>
+          <input id="tmNewCouponVal" type="number" value="${defaultAmt}" placeholder="တန်ဖိုး (ဥပမာ 2000 သို့ 10)" style="width:100%;padding:8px;border-radius:8px;background:#1e293b;color:#fff;border:1px solid #475569;margin-bottom:8px;box-sizing:border-box;">
+          <button type="button" onclick="dispatchChatCoupon('${sessionId}', 'new')" style="width:100%;padding:9px;border-radius:8px;background:linear-gradient(135deg,#eab308,#ca8a04);color:#0f172a;border:none;font-weight:700;cursor:pointer;">✨ ကူပွန်အသစ် ဖန်တီးပြီး ပို့မည်</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  };
+
+  window.dispatchChatCoupon = function(sessionId, mode) {
+    let couponObj = null;
+    if (mode === 'existing') {
+      const selCode = (document.getElementById('tmExistingCouponSel')?.value || '').trim();
+      if (!selCode) return alert('ရွေးချယ်စရာ Promo Code မရှိပါခင်ဗျာ');
+      const list = (typeof discounts !== 'undefined' && Array.isArray(discounts)) ? discounts : [];
+      couponObj = list.find(d => d && String(d.code).toUpperCase() === selCode.toUpperCase());
+      if (!couponObj) return alert('ကူပွန်ကုဒ် ရှာမတွေ့ပါ');
+    } else {
+      const code = (document.getElementById('tmNewCouponCode')?.value || '').trim().toUpperCase();
+      const type = document.getElementById('tmNewCouponType')?.value || 'fixed';
+      const val = Number(document.getElementById('tmNewCouponVal')?.value || 0);
+      if (!code || val <= 0) return alert('ကူပွန်ကုဒ်နှင့် တန်ဖိုး မှန်ကန်စွာ ဖြည့်ပါခင်ဗျာ');
+      couponObj = {
+        id: 'disc_' + Date.now(),
+        category: 'VIP/အထူး',
+        code: code,
+        type: type,
+        value: val,
+        limit: 1,
+        usedCount: 0,
+        expiry: '',
+        active: true
+      };
+      if (typeof discounts !== 'undefined' && Array.isArray(discounts)) {
+        discounts.unshift(couponObj);
+        localStorage.setItem('tm_discounts', JSON.stringify(discounts));
+        fbDb.ref('shop_discounts').set(discounts);
+        if (typeof renderDiscountsList === 'function') renderDiscountsList();
+      }
+    }
+
+    const valLabel = couponObj.type === 'percent' ? `${couponObj.value}% Off` : `${Number(couponObj.value).toLocaleString()} Ks`;
     fbDb.ref(`support_chats/${sessionId}/messages`).push({
       sender: 'admin',
-      text: `သီးသန့် လျှော့ဈေးကူပွန် (${Number(amount).toLocaleString()} Ks)`,
+      text: `🎟 သီးသန့် လျှော့ဈေးကူပွန်: ${couponObj.code} (${valLabel})`,
       mediaType: 'coupon_card',
-      cardData: { code: code, discount: Number(amount), amount: Number(amount) },
+      cardData: { code: couponObj.code, value: Number(couponObj.value), type: couponObj.type || 'fixed', discount: Number(couponObj.value), amount: Number(couponObj.value), label: valLabel },
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now()
     });
-    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `🎟️ ${Number(amount).toLocaleString()} Ks ကူပွန် ပို့လိုက်သည်`, lastSender: 'admin', lastUpdate: Date.now() });
-    syncSmartCardToTelegram(sessionId, `👑 <b>[Admin မှ အထူးလျှော့ဈေးကူပွန် ပို့လိုက်ပါသည်]</b>\n🎟️ ကူပွန်ကုဒ်: <code>${code}</code>\n💰 တန်ဖိုး: <b>${Number(amount).toLocaleString()} Ks</b>`);
+    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `🎟 ${couponObj.code} (${valLabel}) ကူပွန် ပို့လိုက်သည်`, lastSender: 'admin', lastUpdate: Date.now() });
+    if (typeof syncSmartCardToTelegram === 'function') {
+      syncSmartCardToTelegram(sessionId, `🎟 <b>[Admin မှ ကူပွန် ပို့လိုက်ပါသည်]</b>\n🔑 ကုဒ်: <code>${couponObj.code}</code> (${valLabel})`);
+    }
+    const m = document.getElementById('tmSmartCouponModal');
+    if (m) m.remove();
   };
 
   window.applyChatCouponToCart = function(code, discountAmt) {
-    window.currentAppliedDiscount = Number(discountAmt) || 0;
-    localStorage.setItem('tm_active_coupon', JSON.stringify({ code, discount: window.currentAppliedDiscount }));
-    if (typeof renderCartUI === 'function') renderCartUI();
-    alert(`🎉 ကူပွန်ကုဒ် (${code}) အသုံးပြုပြီး ${Number(discountAmt).toLocaleString()} Ks လျှော့ဈေး ရရှိပါပြီ!`);
+    const inp = document.getElementById('couponCodeInput') || document.querySelector('input[placeholder*="ကူပွန်"], input[placeholder*="Coupon"]');
+    if (inp) inp.value = code;
+    if (typeof applyCoupon === 'function') {
+      applyCoupon();
+    } else {
+      window.currentAppliedDiscount = Number(discountAmt) || 0;
+      localStorage.setItem('tm_active_coupon', JSON.stringify({ code: code, discount: window.currentAppliedDiscount }));
+      if (typeof renderCartUI === 'function') renderCartUI();
+      alert(`🎉 ကူပွန်ကုဒ် (${code}) ကို ခြင်းတောင်းထဲ အလိုအလျောက် ထည့်သွင်းပြီးပါပြီ!`);
+    }
+    if (typeof openCartModal === 'function') openCartModal();
   };
+
+  // Modern Live Chat Upgrades: Typing Indicator, Live Cart Sync, Auto Order Track & 60s Smart Away
+  (function initModernLiveChatUpgrades() {
+    if (window._tmModernChatInit || typeof fbDb === 'undefined') return;
+    window._tmModernChatInit = true;
+    setInterval(() => {
+      const sid = window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id');
+      if (!sid) return;
+      const rawCart = JSON.parse(localStorage.getItem('tm_cart') || '[]');
+      if (Array.isArray(rawCart)) {
+        fbDb.ref(`support_chats/${sid}/liveCart`).set(rawCart.map(i => ({ name: i.name || '', price: Number(i.price || 0), qty: Number(i.qty || 1) }))).catch(() => {});
+      }
+    }, 8000);
+
+    const userInp = document.getElementById('liveChatInput');
+    const adminInp = document.getElementById('adminActiveChatReplyInput');
+    let tTimer = null;
+    const bindTyping = (el, role) => {
+      if (!el) return;
+      el.addEventListener('input', () => {
+        const sid = role === 'admin' ? window.adminActiveSelectedSession : (window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id'));
+        if (!sid) return;
+        fbDb.ref(`support_chats/${sid}/typing_${role}`).set(true);
+        clearTimeout(tTimer);
+        tTimer = setTimeout(() => fbDb.ref(`support_chats/${sid}/typing_${role}`).set(false), 2500);
+      });
+    };
+    bindTyping(userInp, 'user');
+    bindTyping(adminInp, 'admin');
+
+    setInterval(() => {
+      const sid = window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id');
+      if (!sid) return;
+      fbDb.ref(`support_chats/${sid}`).once('value', snap => {
+        const d = snap.val() || {};
+        const header = document.getElementById('liveChatHeaderStatus') || document.querySelector('#liveChatModal .chat-status');
+        if (header) header.textContent = d.typing_admin ? '✍️ Admin စာရိုက်နေပါသည်...' : '🟢 Online — အမြန်ပြန်ဖြေပေးနေပါသည်';
+        if (d.lastSender === 'user' && d.lastUpdate && !d.awaySentForTs && (Date.now() - Number(d.lastUpdate) > 60000)) {
+          fbDb.ref(`support_chats/${sid}`).update({ awaySentForTs: d.lastUpdate });
+          fbDb.ref(`support_chats/${sid}/messages`).push({
+            sender: 'admin',
+            text: '⏳ လူကြီးမင်း၏ မေးမြန်းမှုကို Admin မှ မကြာမီ ပြန်လည်ဖြေကြားပေးပါမည်။ အရေးကြီးပါက ဖုန်း/Viber/Telegram (09768124433) သို့လည်း တိုက်ရိုက်ဆက်သွယ်နိုင်ပါသည်ခင်ဗျာ။',
+            timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now()
+          });
+        }
+        const lastTxt = String(d.lastMessage || '').trim().toUpperCase();
+        if (d.lastSender === 'user' && /^(TM-|09\d{7,9})/.test(lastTxt) && d.trackedForTs !== d.lastUpdate) {
+          fbDb.ref(`support_chats/${sid}`).update({ trackedForTs: d.lastUpdate });
+          fbDb.ref('shop_orders').once('value', oSnap => {
+            const orders = Object.values(oSnap.val() || {});
+            const found = orders.find(o => String(o.orderId || o.id || '').toUpperCase().includes(lastTxt) || String(o.phone || '').includes(lastTxt));
+            if (found) {
+              fbDb.ref(`support_chats/${sid}/messages`).push({
+                sender: 'admin',
+                text: `📦 အော်ဒါအမှတ် (${found.orderId || found.id}) ၏ လက်ရှိအခြေအနေ: ${found.status || 'Pending'} | စုစုပေါင်း: ${Number(found.total || 0).toLocaleString()} Ks`,
+                timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+              });
+            }
+          });
+        }
+      });
+    }, 4000);
+  })();
 
   // ၉။ Upgraded Bubble Renderer (Viber / Telegram Full Features)
   window.renderUpgradedChatMessageBubble = function(sender, text, mediaUrl = '', mediaType = '', timeStr = '', isRead = false, replyTo = '', msgKey = '', extraData = {}) {
