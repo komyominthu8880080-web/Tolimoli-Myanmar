@@ -657,9 +657,15 @@ export default async function handler(req, res) {
     fileId = msg.video.file_id;
     mediaType = 'video';
   } else if (msg.video_note) {
-    fileId = msg.video_note.file_id;
-    mediaType = 'video';
-  }
+      fileId = msg.video_note.file_id;
+      mediaType = 'video';
+    } else if (msg.voice) {
+      fileId = msg.voice.file_id;
+      mediaType = 'audio';
+    } else if (msg.audio) {
+      fileId = msg.audio.file_id;
+      mediaType = 'audio';
+    }
 
   if (fileId) {
     try {
@@ -708,7 +714,7 @@ export default async function handler(req, res) {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            lastMessage: `Admin: ${text || (mediaType === 'video' ? '📹 ဗီဒီယို' : '📷 ဓာတ်ပုံ')}`,
+            lastMessage: `Admin: ${text || (mediaType === 'video' ? '🎬 ဗီဒီယို' : (mediaType === 'audio' ? '🎤 အသံဖိုင်' : '📷 ဓာတ်ပုံ'))}`,
             lastSender: 'admin',
             lastUpdate: Date.now()
           })
