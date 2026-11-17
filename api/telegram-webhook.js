@@ -536,7 +536,6 @@ export default async function handler(req, res) {
           } else {
             await replyTg(`❌ "${kw}" နှင့် ကိုက်ညီသော ပစ္စည်း မတွေ့ပါ။`);
           }
-          return res.status(200).send('OK');
           // 5. /c [ကူပွန်ကုဒ် သို့မဟုတ် လျှော့ဈေးတန်ဖိုး] -> Promo Code ပို့ခြင်း & ၁ ကြိမ်သုံး ကူပွန်အသစ် ဖန်တီးပို့ခြင်း
         if (lowerCmd === '/c' || lowerCmd.startsWith('/c ')) {
           const arg = rawCmd.slice(2).trim();
@@ -577,7 +576,8 @@ export default async function handler(req, res) {
             });
           }
 
-          const valLabel = targetCoupon.type === 'percent' ? `${targetCoupon.value}% Off` : `${Number(targetCoupon.value).toLocaleString()} Ks`;
+          const finalVal = Number(targetCoupon.value ?? targetCoupon.val ?? targetCoupon.discount ?? targetCoupon.amount ?? 0);
+const valLabel = targetCoupon.type === 'percent' ? `${finalVal}% Off` : `${finalVal.toLocaleString()} Ks`;
           await pushChat({
             text: `🎟 သီးသန့် လျှော့ဈေးကူပွန်: ${targetCoupon.code} (${valLabel})`,
             mediaType: 'coupon_card',
