@@ -302,7 +302,24 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: err.message });
     }
   }
-
+  // ဝယ်သူ စကားဝိုင်း ဖျက်သည့်အခါ Telegram Forum Topic ကိုပါ တစ်ခါတည်း ဖျက်ပေးခြင်း
+  if (body.action === 'deleteForumTopic') {
+    try {
+      if (!body.topicId) return res.status(200).json({ ok: true, skipped: 'No topicId' });
+      const tgRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/deleteForumTopic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: CHAT_GROUP_ID,
+          message_thread_id: Number(body.topicId)
+        })
+      });
+      const tgData = await tgRes.json();
+      return res.status(200).json(tgData);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
   // -------------------------------------------------------------
   // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote အမှန်တကယ် ပါဝင်သည်)
   // -------------------------------------------------------------
@@ -315,6 +332,28 @@ export default async function handler(req, res) {
   const threadId = msg.message_thread_id;
   let text = msg.text || msg.caption || '';
   let replyToText = '';
+  // Telegram Topic ထဲတွင် /del ဟု ရိုက်ပို့ပါက Firebase Database နှင့် Telegram Topic နှစ်ခုလုံးကို အပြီးဖျက်ခြင်း
+  if (threadId && text.trim().toLowerCase() === '/del') {
+    try {
+      const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
+      const sessions = await sessionsRes.json();
+      if (sessions) {
+        for (const [sId, sVal] of Object.entries(sessions)) {
+          if (String(sVal.telegramThreadId) === String(threadId)) {
+            await fetch(`${FIREBASE_URL}/support_chats/${sId}.json`, { method: 'DELETE' });
+          }
+        }
+      }
+      await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/deleteForumTopic`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chat_id: CHAT_GROUP_ID, message_thread_id: Number(threadId) })
+      });
+      return res.status(200).send('Deleted');
+    } catch (e) {
+      return res.status(200).send('OK');
+    }
+  }
 
   // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
   if (msg.reply_to_message && !msg.reply_to_message.forum_topic_created) {
