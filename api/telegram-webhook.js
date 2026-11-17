@@ -320,6 +320,7 @@ export default async function handler(req, res) {
       console.error('Live Chat send error:', err);
       return res.status(500).json({ error: err.message });
     }
+  }
 
   // ဝယ်သူအသစ်အတွက် Forum Topic ခေါင်းစဉ် ဖန်တီးပေးခြင်း
   if (body.action === 'createForumTopic') {
@@ -338,6 +339,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: err.message });
     }
   }
+
   // ဝယ်သူ စကားဝိုင်း ဖျက်သည့်အခါ Telegram Forum Topic ကိုပါ တစ်ခါတည်း ဖျက်ပေးခြင်း
   if (body.action === 'deleteForumTopic') {
     try {
@@ -356,6 +358,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: err.message });
     }
   }
+
   // -------------------------------------------------------------
   // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote အမှန်တကယ် ပါဝင်သည်)
   // -------------------------------------------------------------
@@ -368,6 +371,7 @@ export default async function handler(req, res) {
   const threadId = msg.message_thread_id;
   let text = msg.text || msg.caption || '';
   let replyToText = '';
+
   // Telegram Topic ထဲတွင် /del ဟု ရိုက်ပို့ပါက Firebase Database နှင့် Telegram Topic နှစ်ခုလုံးကို အပြီးဖျက်ခြင်း
   if (threadId && text.trim().toLowerCase() === '/del') {
     try {
@@ -390,6 +394,7 @@ export default async function handler(req, res) {
       return res.status(200).send('OK');
     }
   }
+
   // ငွေလွှဲစလစ် အတည်ပြုခလုတ် (Inline Callback Button) နှိပ်သည့်အခါ ဝယ်သူ့ဆီ အတည်ပြုကတ် ပို့ပေးခြင်း
   if (body.callback_query) {
     const cb = body.callback_query;
@@ -471,7 +476,7 @@ export default async function handler(req, res) {
             : { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' };
           const info = { ...defaultInfo, ...(qrDb[bankKey] || {}) };
           await pushChat({ text: `${info.bank} ငွေလွှဲအကောင့်`, mediaUrl: info.qr, mediaType: 'qr_card', cardData: info });
-          await replyTg(`✅ ဝယ်သူထံသို့ <b>${info.bank} QR ကတ်</b> (${info.name} - <code>${info.phone}</code>) ပို့ပေးပြီးပါပြီ။`);
+          await replyTg(`✅ ဝယ်သူထံသို့ <b>${info.bank} QR ကတ်</b> (${info.name} <code>${info.phone}</code>) ပို့ပေးပြီးပါပြီ။`);
           return res.status(200).send('OK');
         }
 
@@ -540,7 +545,7 @@ export default async function handler(req, res) {
           if (foundOrd) {
             const st = foundOrd.status || 'Pending';
             await pushChat({
-              text: `📦 အော်ဒါအမှတ် (${foundOrd.orderId || oid}) ၏ လက်ရှိအခြေအနေ: ${st} • စုစုပေါင်း: ${Number(foundOrd.total || 0).toLocaleString()} Ks`
+              text: `📦 အော်ဒါအမှတ် (${foundOrd.orderId || oid}) ၏ လက်ရှိအခြေအနေ: ${st}\nစုစုပေါင်း: ${Number(foundOrd.total || 0).toLocaleString()} Ks`
             });
             await replyTg(`✅ အော်ဒါ <b>${foundOrd.orderId || oid}</b> (${st}) အခြေအနေကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
@@ -548,6 +553,7 @@ export default async function handler(req, res) {
           }
           return res.status(200).send('OK');
         }
+
         // 6. /cat [Category အမည်] -> Category အလိုက် ပစ္စည်းကတ်အစုံလိုက် ပို့ခြင်း
         if (lowerCmd === '/cat' || lowerCmd.startsWith('/cat ')) {
           const catKw = rawCmd.slice(4).trim().toLowerCase();
@@ -573,6 +579,7 @@ export default async function handler(req, res) {
 
           const matched = prodList.filter(p => getProdCats(p).some(c => c.toLowerCase().includes(catKw)));
           if (matched.length) {
+            const catTitle = matched[0].category || (Array.isArray(matched[0].categories) && matched[0].categories[0]) || catKw;
             const items = matched.map(p => ({
               id: p.id || '',
               sku: p.sku || '-',
@@ -581,11 +588,11 @@ export default async function handler(req, res) {
               image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png'
             }));
             await pushChat({
-              text: `📂 ${matched[0].category} အမျိုးအစား ပစ္စည်းများ (${items.length} မျိုး)`,
+              text: `📂 ${catTitle} အမျိုးအစား ပစ္စည်းများ (${items.length} မျိုး)`,
               mediaType: 'category_carousel',
-              cardData: { category: matched[0].category, items }
+              cardData: { category: catTitle, items }
             });
-            await replyTg(`✅ <b>${matched[0].category}</b> Category ထဲမှ ပစ္စည်း (${items.length}) မျိုးကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+            await replyTg(`✅ <b>${catTitle}</b> Category ထဲမှ ပစ္စည်း (${items.length}) မျိုးကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
             await replyTg(`❌ "${catKw}" Category မတွေ့ပါ။ <code>/cat</code> ဟု ရိုက်၍ စာရင်းစစ်ဆေးပါ။`);
           }
@@ -620,13 +627,15 @@ export default async function handler(req, res) {
           }
           return res.status(200).send('OK');
         }
-        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n• <code>/kpay</code> — KBZPay QR ပို့ရန်\n• <code>/wave</code> — WavePay QR ပို့ရန်\n• <code>/coupon</code> — 2,000 Ks ကူပွန် ပို့ရန်\n• <code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n• <code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n• <code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n• <code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
+
+        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n<code>/kpay</code> — KBZPay QR ပို့ရန်\n<code>/wave</code> — WavePay QR ပို့ရန်\n<code>/coupon</code> — 2,000 Ks ကူပွန် ပို့ရန်\n<code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n<code>/cat</code> — Category စာရင်းကြည့်ရန်\n<code>/news</code> — နောက်ဆုံး သတင်းလွှာ ပို့ရန်\n<code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n<code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n<code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
         return res.status(200).send('OK');
       }
     } catch (e) {
       return res.status(200).send('OK');
     }
   }
+
   // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
   if (msg.reply_to_message && !msg.reply_to_message.forum_topic_created) {
     const rep = msg.reply_to_message;
