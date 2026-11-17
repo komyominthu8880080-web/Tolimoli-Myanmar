@@ -543,6 +543,7 @@ export default async function handler(req, res) {
           } else {
             await replyTg(`❌ "${kw}" နှင့် ကိုက်ညီသော ပစ္စည်း မတွေ့ပါ။`);
           }
+          }
           // 5. /c [ကူပွန်ကုဒ် သို့မဟုတ် လျှော့ဈေးတန်ဖိုး] -> Promo Code ပို့ခြင်း & ၁ ကြိမ်သုံး ကူပွန်အသစ် ဖန်တီးပို့ခြင်း
         if (lowerCmd === '/c' || lowerCmd.startsWith('/c ')) {
           const arg = rawCmd.slice(2).trim();
@@ -619,7 +620,6 @@ export default async function handler(req, res) {
           }
           await replyTg(msgOut);
           return res.status(200).send('OK');
-        }
         }
 
         // 5. /track [Order ID] -> Order Tracking Card ပို့ခြင်း
