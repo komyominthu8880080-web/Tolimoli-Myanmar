@@ -13312,10 +13312,10 @@ applySoundToggleUI(isAudioMuted);
         if (title) title.innerHTML = '<i class="fas fa-image" style="color:#00ff88;"></i> Photo Preview';
         box.innerHTML = `<img src="${src}" style="max-width:100%; max-height:380px; object-fit:contain;">`;
       }
-      
-      modal.style.zIndex = '999999';
-      modal.classList.add('active');
-    }
+      modal.style.display = 'flex';
+  modal.style.zIndex = '999999';
+  modal.classList.add('active');
+}
 
     // Chat Bubble Renderer (Supports YouTube, Videos, Images and Links)
     function renderChatMessageBubble(sender, text, mediaUrl = '', mediaType = '', timeStr = '') {
