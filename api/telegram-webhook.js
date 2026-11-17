@@ -537,6 +537,82 @@ export default async function handler(req, res) {
             await replyTg(`❌ "${kw}" နှင့် ကိုက်ညီသော ပစ္စည်း မတွေ့ပါ။`);
           }
           return res.status(200).send('OK');
+          // 5. /c [ကူပွန်ကုဒ် သို့မဟုတ် လျှော့ဈေးတန်ဖိုး] -> Promo Code ပို့ခြင်း & ၁ ကြိမ်သုံး ကူပွန်အသစ် ဖန်တီးပို့ခြင်း
+        if (lowerCmd === '/c' || lowerCmd.startsWith('/c ')) {
+          const arg = rawCmd.slice(2).trim();
+          if (!arg) {
+            await replyTg('ℹ️ <b>ကူပွန်ပို့နည်း:</b>\n• ရှိပြီးသား ကုဒ်ပို့ရန်: <code>/c VIP2000</code>\n• ၁ ကြိမ်သုံး ကုဒ်အသစ်ဖန်တီးပို့ရန်: <code>/c 2000</code> (သို့) <code>/c 10%</code>');
+            return res.status(200).send('OK');
+          }
+          const discRes = await fetch(`${FIREBASE_URL}/shop_discounts.json`);
+          const discVal = await discRes.json();
+          const discList = Array.isArray(discVal) ? discVal.filter(Boolean) : (discVal ? Object.values(discVal) : []);
+          const upperArg = arg.toUpperCase();
+          let targetCoupon = discList.find(d => d && String(d.code || '').toUpperCase() === upperArg);
+
+          if (!targetCoupon) {
+            const isPercent = arg.endsWith('%');
+            const numVal = Number(arg.replace(/[^0-9.]/g, ''));
+            if (!numVal || numVal <= 0) {
+              await replyTg(`❌ "${arg}" နှင့် ကိုက်ညီသော ကူပွန်ကုဒ် မတွေ့ပါ (အသစ်ဖန်တီးလိုပါက <code>/c 2000</code> သို့မဟုတ် <code>/c 10%</code> ဟု ရိုက်ပါ)။`);
+              return res.status(200).send('OK');
+            }
+            const randCode = 'VIP' + Math.floor(1000 + Math.random() * 9000);
+            targetCoupon = {
+              id: 'disc_' + Date.now(),
+              category: 'VIP/အထူး',
+              code: randCode,
+              type: isPercent ? 'percent' : 'fixed',
+              value: numVal,
+              limit: 1,
+              usedCount: 0,
+              expiry: '',
+              active: true
+            };
+            discList.unshift(targetCoupon);
+            await fetch(`${FIREBASE_URL}/shop_discounts.json`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(discList)
+            });
+          }
+
+          const valLabel = targetCoupon.type === 'percent' ? `${targetCoupon.value}% Off` : `${Number(targetCoupon.value).toLocaleString()} Ks`;
+          await pushChat({
+            text: `🎟 သီးသန့် လျှော့ဈေးကူပွန်: ${targetCoupon.code} (${valLabel})`,
+            mediaType: 'coupon_card',
+            cardData: {
+              code: targetCoupon.code,
+              value: Number(targetCoupon.value),
+              type: targetCoupon.type || 'fixed',
+              category: targetCoupon.category || 'VIP/အထူး',
+              label: valLabel
+            }
+          });
+          await replyTg(`✅ ကူပွန်ကုဒ် <b>${targetCoupon.code}</b> (${valLabel}) ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ (Discounts & VIP စာရင်းထဲတွင်လည်း အလိုအလျောက် ချိတ်ဆက်ထားပါသည်)။`);
+          return res.status(200).send('OK');
+        }
+
+        // 6. /cart -> ဝယ်သူ့ လက်ရှိ ခြင်းတောင်းနှင့် အော်ဒါမှတ်တမ်း စစ်ကြည့်ခြင်း
+        if (lowerCmd === '/cart') {
+          const sSnap = await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`);
+          const sData = await sSnap.json() || {};
+          const cartItems = Array.isArray(sData.liveCart) ? sData.liveCart : [];
+          let msgOut = `🛒 <b>ဝယ်သူ (${targetSessionId}) ၏ လက်ရှိ ခြင်းတောင်း:</b>\n`;
+          if (cartItems.length === 0) {
+            msgOut += `• ခြင်းတောင်းထဲတွင် ပစ္စည်း မထည့်ရသေးပါ။\n`;
+          } else {
+            let total = 0;
+            cartItems.forEach((it, idx) => {
+              const sub = Number(it.price || 0) * Number(it.qty || 1);
+              total += sub;
+              msgOut += `${idx + 1}. ${it.name} (x${it.qty || 1}) — ${sub.toLocaleString()} Ks\n`;
+            });
+            msgOut += `💰 <b>စုစုပေါင်း:</b> ${total.toLocaleString()} Ks\n`;
+          }
+          await replyTg(msgOut);
+          return res.status(200).send('OK');
+        }
         }
 
         // 5. /track [Order ID] -> Order Tracking Card ပို့ခြင်း
