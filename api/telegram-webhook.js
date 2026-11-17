@@ -476,7 +476,20 @@ export default async function handler(req, res) {
             body: JSON.stringify({ ...msgObj, sender: 'admin', timeStr, timestamp: Date.now() })
           });
         };
-
+        
+        // 0. /done နှင့် /active -> Dashboard Inbox အခြေအနေ ပြောင်းလဲခြင်း
+        if (lowerCmd === '/done' || lowerCmd === '/active') {
+          const newSt = lowerCmd === '/done' ? 'done' : 'active';
+          await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/status.json`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newSt)
+          });
+          await replyTg(newSt === 'done'
+            ? `✅ <b>${targetSessionId}</b> စကားဝိုင်းကို Dashboard တွင် <b>Done</b> အဖြစ် မှတ်သားပြီးပါပြီ။`
+            : `🟢 <b>${targetSessionId}</b> စကားဝိုင်းကို Dashboard တွင် <b>Active</b> ပြန်လုပ်ပြီးပါပြီ။`);
+          return res.status(200).send('OK');
+        }
         // 1. /kpay or /wave (Database ထဲမှ ပြင်ထားသော အကောင့်အချက်အလက် အတိုင်း ပို့ပေးမည်)
         if (lowerCmd === '/kpay' || lowerCmd === '/wave') {
           const qrRes = await fetch(`${FIREBASE_URL}/chat_qr_accounts.json`);
