@@ -17528,7 +17528,11 @@ function forceOpenAdminDashboard() {
 
     const list = (typeof discounts !== 'undefined' && Array.isArray(discounts)) ? discounts.filter(d => d && d.active !== false) : [];
     const optionsHtml = list.length
-      ? list.map(d => `<option value="${d.code}">${d.code} — ${d.type === 'percent' ? d.value + '% Off' : Number(d.value).toLocaleString() + ' Ks'} (${d.category || 'VIP'})</option>`).join('')
+      ? list.map(d => {
+          const rawV = Number(d.value ?? d.val ?? d.discount ?? d.amount ?? 0);
+          const lbl = d.type === 'percent' ? `${rawV}% Off` : `${rawV.toLocaleString()} Ks`;
+          return `<option value="${d.code}">${d.code} — ${lbl} (${d.category || d.cat || 'VIP'})</option>`;
+        }).join('')
       : '<option value="">(လက်ရှိ Promo Code မရှိသေးပါ)</option>';
     const suggestedCode = 'VIP' + Math.floor(1000 + Math.random() * 9000);
 
@@ -17594,12 +17598,13 @@ function forceOpenAdminDashboard() {
       }
     }
 
-    const valLabel = couponObj.type === 'percent' ? `${couponObj.value}% Off` : `${Number(couponObj.value).toLocaleString()} Ks`;
+    const finalVal = Number(couponObj.value ?? couponObj.val ?? couponObj.discount ?? couponObj.amount ?? 0);
+    const valLabel = couponObj.type === 'percent' ? `${finalVal}% Off` : `${finalVal.toLocaleString()} Ks`;
     fbDb.ref(`support_chats/${sessionId}/messages`).push({
       sender: 'admin',
       text: `🎟 သီးသန့် လျှော့ဈေးကူပွန်: ${couponObj.code} (${valLabel})`,
       mediaType: 'coupon_card',
-      cardData: { code: couponObj.code, value: Number(couponObj.value), type: couponObj.type || 'fixed', discount: Number(couponObj.value), amount: Number(couponObj.value), label: valLabel },
+      cardData: { code: couponObj.code, value: finalVal, type: couponObj.type || 'fixed', discount: finalVal, amount: finalVal, label: valLabel },
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now()
     });
