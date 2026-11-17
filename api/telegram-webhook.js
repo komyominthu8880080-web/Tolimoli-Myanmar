@@ -446,13 +446,20 @@ export default async function handler(req, res) {
       const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
       const sessions = await sessionsRes.json();
       let targetSessionId = null;
-      if (sessions) {
-        for (const [sId, sVal] of Object.entries(sessions)) {
-          if (String(sVal.telegramThreadId) === String(threadId)) { targetSessionId = sId; break; }
+        if (sessions) {
+          for (const [sId, sVal] of Object.entries(sessions)) {
+            if (sVal && String(sVal.telegramThreadId || sVal.threadId || '') === String(threadId)) {
+              targetSessionId = sId;
+              break;
+            }
+          }
         }
-      }
-
-      if (targetSessionId) {
+        // အကယ်၍ Topic အဟောင်း သို့မဟုတ် Pinned Message ထဲမှ Guest ID ဖြင့် ပြန်ရှာရန်
+        if (!targetSessionId && msg.reply_to_message && msg.reply_to_message.text) {
+          const m = msg.reply_to_message.text.match(/Guest\s*#(\d+)/i);
+          if (m) targetSessionId = 'guest_' + m[1];
+        }
+        if (targetSessionId) {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
         const replyTg = async (tgMsg) => {
