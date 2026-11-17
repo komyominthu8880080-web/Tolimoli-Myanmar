@@ -17763,6 +17763,74 @@ function forceOpenAdminDashboard() {
     }
     alert(`✅ "${pName}" ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!`);
   };
+  // ဝယ်သူ Chat Box ပိတ်ထားစဉ် စာဝင်လာပါက အရေအတွက် (1, 2, 3...) Badge ပြပေးခြင်း
+  (function initCustomerUnreadChatBadge() {
+    let unreadCount = 0;
+    let isInitialized = false;
+    let attachedSessionId = null;
+
+    function renderUnreadBadge() {
+      const chatBtn = document.querySelector('#liveChatFloatingBtn, .live-chat-float-btn, [onclick*="openLiveChat"]');
+      if (!chatBtn) return;
+      if (getComputedStyle(chatBtn).position === 'static') chatBtn.style.position = 'relative';
+      chatBtn.style.overflow = 'visible';
+
+      let badge = document.getElementById('tmCustomerChatUnreadBadge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.id = 'tmCustomerChatUnreadBadge';
+        badge.style.cssText = 'position:absolute; top:-5px; right:-5px; min-width:20px; height:20px; padding:0 5px; background:#facc15; color:#000; border:2px solid #0f172a; border-radius:999px; font-size:11px; font-weight:900; display:none; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,0.5); z-index:9999; pointer-events:none;';
+        chatBtn.appendChild(badge);
+      }
+
+      if (unreadCount > 0) {
+        badge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    function isChatModalOpen() {
+      const modal = document.getElementById('liveChatModal');
+      return modal && modal.style.display !== 'none' && getComputedStyle(modal).display !== 'none';
+    }
+
+    function bindListener() {
+      const sId = window.currentGuestSessionId;
+      if (!sId || typeof fbDb === 'undefined') return setTimeout(bindListener, 1000);
+      if (attachedSessionId === sId) return;
+      attachedSessionId = sId;
+      isInitialized = false;
+
+      fbDb.ref(`support_chats/${sId}/messages`).limitToLast(1).on('child_added', snap => {
+        if (!isInitialized) { isInitialized = true; return; }
+        const msg = snap.val();
+        if (!msg || msg.sender === 'user') return;
+        if (isChatModalOpen()) {
+          unreadCount = 0;
+        } else {
+          unreadCount += 1;
+        }
+        renderUnreadBadge();
+      });
+    }
+
+    // Chat Box ကို နှိပ်ဖွင့်လိုက်သည်နှင့် အရေအတွက်ကို 0 ပြန်လုပ်ခြင်း
+    document.addEventListener('click', e => {
+      if (e.target && e.target.closest('#liveChatFloatingBtn, .live-chat-float-btn, [onclick*="openLiveChat"]')) {
+        unreadCount = 0;
+        renderUnreadBadge();
+      }
+    });
+    setInterval(() => {
+      if (isChatModalOpen() && unreadCount > 0) {
+        unreadCount = 0;
+        renderUnreadBadge();
+      }
+      bindListener();
+    }, 1000);
+  })();
   // ခေတ်မီ Modern Product Card Picker Modal (Browser prompt() အစားသုံးရန်)
   window.promptAdminSendProductCard = function() {
     if (!window.adminActiveSelectedSession) return alert('ဝယ်သူ စကားဝိုင်းကို အရင်ရွေးချယ်ပါခင်ဗျာ။');
