@@ -13349,8 +13349,8 @@ applySoundToggleUI(isAudioMuted);
             <button type="button" onclick="openInAppMediaViewer('video', '${mediaUrl}')" style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.7); border:1px solid #fff; color:#fff; font-size:10px; border-radius:4px; padding:2px 6px; cursor:pointer;"><i class="fas fa-expand"></i> ချဲ့ကြည့်မည်</button>
           </div>`;
         } else {
-          mediaHtml = `<img src="${mediaUrl}" style="max-width:100%; max-height:180px; border-radius:6px; margin-top:4px; cursor:pointer;" onclick="openInAppMediaViewer('image', '${mediaUrl}')" onerror="this.style.display='none'">`;
-        }
+      mediaHtml = `<img src="${mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:100%; max-height:180px; border-radius:6px; margin-top:4px; cursor:pointer; display:block;" title="ပုံအကြီးချဲ့ကြည့်ရန်">`;
+    }
       }
 
       let formattedText = text || '';
