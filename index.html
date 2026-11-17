@@ -13543,7 +13543,7 @@ applySoundToggleUI(isAudioMuted);
         } else if (m.mediaType === 'video') {
           media = `<video controls src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></video>`;
         } else {
-          media = `<a href="${m.mediaUrl}" target="_blank"><img src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></a>`;
+          media = `<img src="${m.mediaUrl}" onclick="openInAppMediaViewer('image', this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px; cursor:pointer; display:block;" title="ပုံအကြီးချဲ့ကြည့်ရန်">`;
         }
       }
       return `
