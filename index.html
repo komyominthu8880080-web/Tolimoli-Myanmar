@@ -13208,15 +13208,35 @@ applySoundToggleUI(isAudioMuted);
       if (btn) btn.disabled = true;
 
       let mediaUrl = '';
-      let mType = selectedChatMediaType;
+    let mType = selectedChatMediaType;
 
-      if (selectedChatMediaFile) {
-        if (mType === 'image') {
-          mediaUrl = await uploadToImgBB(selectedChatMediaFile);
-        } else {
-          mediaUrl = await readFileAsBase64(selectedChatMediaFile);
-        }
+    if (selectedChatMediaFile) {
+      if (mType === 'image') {
+        mediaUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const img = new Image();
+            img.onload = () => {
+              const maxDim = 960;
+              let w = img.width, h = img.height;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+                else { w = Math.round(w * maxDim / h); h = maxDim; }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              resolve(canvas.toDataURL('image/jpeg', 0.78));
+            };
+            img.onerror = () => resolve(ev.target.result);
+            img.src = ev.target.result;
+          };
+          reader.readAsDataURL(selectedChatMediaFile);
+        });
+      } else {
+        mediaUrl = await readFileAsBase64(selectedChatMediaFile);
       }
+    }
 
       const msgObj = {
         sender: 'user',
