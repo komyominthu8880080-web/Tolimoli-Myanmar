@@ -13297,23 +13297,36 @@ applySoundToggleUI(isAudioMuted);
 
     // In-App Media Viewer Controller
     function openInAppMediaViewer(type, src) {
-      const modal = document.getElementById('inAppMediaModal');
-      const box = document.getElementById('inAppMediaContainer');
-      const title = document.getElementById('inAppMediaTitle');
-      if (!modal || !box) return;
+  let modal = document.getElementById('inAppMediaModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'inAppMediaModal';
+    modal.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+    modal.innerHTML = `<div style="background:#0f172a; border:1px solid rgba(255,255,255,0.15); border-radius:12px; padding:14px; max-width:92vw; max-height:90vh; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 50px rgba(0,0,0,0.8);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:16px;">
+        <span id="inAppMediaTitle" style="color:#fff; font-weight:600; font-size:14px;"></span>
+        <button onclick="document.getElementById('inAppMediaModal').style.display='none'" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:4px 10px; cursor:pointer; font-weight:bold;">✕ ပိတ်မည်</button>
+      </div>
+      <div id="inAppMediaContainer" style="display:flex; justify-content:center; align-items:center; overflow:auto;"></div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+  const box = document.getElementById('inAppMediaContainer');
+  const title = document.getElementById('inAppMediaTitle');
+  if (!box) return;
 
-      if (type === 'youtube') {
-        if (title) title.innerHTML = '<i class="fab fa-youtube" style="color:#ff0000;"></i> YouTube Video Player';
-        box.innerHTML = `<iframe width="100%" height="280" src="https://www.youtube.com/embed/${src}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen style="border:none;"></iframe>`;
-      } else if (type === 'video') {
-        if (title) title.innerHTML = '<i class="fas fa-video" style="color:#38bdf8;"></i> Video Player';
-        box.innerHTML = `<video controls autoplay src="${src}" style="width:100%; max-height:360px; object-fit:contain;"></video>`;
-      } else if (type === 'image') {
-        if (title) title.innerHTML = '<i class="fas fa-image" style="color:#00ff88;"></i> Photo Preview';
-        box.innerHTML = `<img src="${src}" style="max-width:100%; max-height:380px; object-fit:contain;">`;
-      }
-      modal.style.display = 'flex';
-  modal.style.zIndex = '999999';
+  if (type === 'youtube') {
+    if (title) title.innerHTML = '▶️ YouTube Video Player';
+    box.innerHTML = `<iframe width="560" height="315" style="max-width:85vw;" src="https://www.youtube.com/embed/${src}?autoplay=1" frameborder="0" allowfullscreen></iframe>`;
+  } else if (type === 'video') {
+    if (title) title.innerHTML = '🎬 Video Player';
+    box.innerHTML = `<video controls autoplay src="${src}" style="max-width:85vw; max-height:75vh; border-radius:8px;"></video>`;
+  } else {
+    if (title) title.innerHTML = '🖼️ ဓာတ်ပုံ အကြီးချဲ့ကြည့်ရှုခြင်း';
+    box.innerHTML = `<img src="${src}" style="max-width:85vw; max-height:75vh; object-fit:contain; border-radius:8px;">`;
+  }
+
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); display:flex; justify-content:center; align-items:center; z-index:9999999; padding:16px;';
   modal.classList.add('active');
 }
 
