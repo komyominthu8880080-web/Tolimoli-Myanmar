@@ -708,7 +708,7 @@ export default async function handler(req, res) {
           return res.status(200).send('OK');
         }
 
-        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n<code>/kpay</code> — KBZPay QR ပို့ရန်\n<code>/wave</code> — WavePay QR ပို့ရန်\n<code>/coupon</code> — 2,000 Ks ကူပွန် ပို့ရန်\n<code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n<code>/cat</code> — Category စာရင်းကြည့်ရန်\n<code>/news</code> — နောက်ဆုံး သတင်းလွှာ ပို့ရန်\n<code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n<code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n<code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
+        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n<code>/c VIP2000</code> သို့ <code>/c 2000</code> — ကူပွန်ပို့ရန်\n<code>/cart</code> — ဝယ်သူ့ခြင်းတောင်းစစ်ရန်\n<code>/kpay</code> — KBZPay QR ပို့ရန်\n<code>/wave</code> — WavePay QR ပို့ရန်\n<code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n<code>/cat</code> — Category စာရင်းကြည့်ရန်\n<code>/news</code> — နောက်ဆုံး သတင်းလွှာ ပို့ရန်\n<code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n<code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n<code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
         return res.status(200).send('OK');
       }
     } catch (e) {
