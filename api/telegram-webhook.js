@@ -512,6 +512,71 @@ export default async function handler(req, res) {
           }
           return res.status(200).send('OK');
         }
+        // 6. /cat [Category အမည်] -> Category အလိုက် ပစ္စည်းကတ်အစုံလိုက် ပို့ခြင်း
+        if (lowerCmd === '/cat' || lowerCmd.startsWith('/cat ')) {
+          const catKw = rawCmd.slice(4).trim().toLowerCase();
+          const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
+          const prodVal = await prodRes.json();
+          const prodList = prodVal ? Object.values(prodVal) : [];
+
+          if (!catKw) {
+            const cats = [...new Set(prodList.map(p => p.category).filter(Boolean))];
+            const listTxt = cats.length
+              ? cats.map(c => `• <code>/cat ${c}</code>`).join('\n')
+              : 'Category စာရင်း မတွေ့သေးပါ။';
+            await replyTg(`📂 <b>ရွေးချယ်ပို့နိုင်သော Categories များ:</b>\n${listTxt}`);
+            return res.status(200).send('OK');
+          }
+
+          const matched = prodList.filter(p => p.category && p.category.toLowerCase().includes(catKw)).slice(0, 8);
+          if (matched.length) {
+            const items = matched.map(p => ({
+              id: p.id || '',
+              sku: p.sku || '-',
+              price: Number(p.price || 0),
+              name: p.name,
+              image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png'
+            }));
+            await pushChat({
+              text: `📂 ${matched[0].category} အမျိုးအစား ပစ္စည်းများ (${items.length} မျိုး)`,
+              mediaType: 'category_carousel',
+              cardData: { category: matched[0].category, items }
+            });
+            await replyTg(`✅ <b>${matched[0].category}</b> Category ထဲမှ ပစ္စည်း (${items.length}) မျိုးကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+          } else {
+            await replyTg(`❌ "${catKw}" Category မတွေ့ပါ။ <code>/cat</code> ဟု ရိုက်၍ စာရင်းစစ်ဆေးပါ။`);
+          }
+          return res.status(200).send('OK');
+        }
+
+        // 7. /news -> နောက်ဆုံး သတင်းလွှာ / ပရိုမိုးရှင်း ပို့ခြင်း
+        if (lowerCmd === '/news' || lowerCmd.startsWith('/news ')) {
+          const newsKw = rawCmd.slice(5).trim().toLowerCase();
+          const newsRes = await fetch(`${FIREBASE_URL}/shop_news.json`);
+          const newsVal = await newsRes.json();
+          const newsList = newsVal ? Object.values(newsVal).reverse() : [];
+          const foundNews = newsKw
+            ? newsList.find(n => (n.title && n.title.toLowerCase().includes(newsKw)) || (n.content && n.content.toLowerCase().includes(newsKw)))
+            : newsList[0];
+
+          if (foundNews) {
+            await pushChat({
+              text: foundNews.title || 'သတင်းလွှာ',
+              mediaUrl: foundNews.image || '',
+              mediaType: 'news_card',
+              cardData: {
+                title: foundNews.title || 'Tolimoli Myanmar News',
+                content: foundNews.content || foundNews.desc || '',
+                image: foundNews.image || '',
+                date: foundNews.date || ''
+              }
+            });
+            await replyTg(`✅ <b>${foundNews.title}</b> သတင်းကတ်ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+          } else {
+            await replyTg(`❌ ပို့ရန် သတင်းလွှာ မတွေ့သေးပါခင်ဗျာ။`);
+          }
+          return res.status(200).send('OK');
+        }
         await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n• <code>/kpay</code> — KBZPay QR ပို့ရန်\n• <code>/wave</code> — WavePay QR ပို့ရန်\n• <code>/coupon</code> — 2,000 Ks ကူပွန် ပို့ရန်\n• <code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n• <code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n• <code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n• <code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
         return res.status(200).send('OK');
       }
