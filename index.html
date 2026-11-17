@@ -17629,8 +17629,8 @@ function forceOpenAdminDashboard() {
     } else {
       bodyContentHtml = `${text ? `<span>${text}</span>` : ''}${extraData.isEdited ? ' <span style="font-size:9px;opacity:0.65;">(Edited)</span>' : ''}`;
       if (mediaUrl) {
-        bodyContentHtml += `<br><img src="${mediaUrl}" style="max-width:100%; max-height:160px; border-radius:8px; margin-top:5px; cursor:pointer;" onclick="event.stopPropagation(); if(typeof openInAppMediaViewer==='function') openInAppMediaViewer('image','${mediaUrl}')">`;
-      }
+    bodyContentHtml += `<br><img src="${mediaUrl}" onclick="event.stopPropagation(); openAdminChatPhotoZoom(this.src)" style="max-width:100%; max-height:160px; border-radius:8px; margin-top:4px; cursor:pointer; display:block;" title="ပုံအကြီးချဲ့ကြည့်ရန်">`;
+  }
     }
 
     // Read Receipts (`✓`, `✓✓`, `✓✓ Read` အပြာရောင်)
