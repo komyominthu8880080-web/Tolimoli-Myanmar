@@ -17769,22 +17769,17 @@ function forceOpenAdminDashboard() {
     let attachedSessionId = null;
     const seenMsgKeys = new Set();
 
-    function findFloatingChatButton() {
-      return document.querySelector('#liveChatFloatingBtn, #floatingLiveChatBtn, #chatFloatingBtn, .live-chat-float-btn, [onclick*="LiveChat"], [onclick*="liveChat"], [onclick*="SupportChat"], [onclick*="supportChat"]');
-    }
+    function applyBadgeToTarget(el, badgeId) {
+      if (!el) return;
+      if (getComputedStyle(el).position === 'static') el.style.position = 'relative';
+      el.style.overflow = 'visible';
 
-    function renderUnreadBadge() {
-      const chatBtn = findFloatingChatButton();
-      if (!chatBtn) return;
-      if (getComputedStyle(chatBtn).position === 'static') chatBtn.style.position = 'relative';
-      chatBtn.style.overflow = 'visible';
-
-      let badge = document.getElementById('tmCustomerChatUnreadBadge');
+      let badge = document.getElementById(badgeId);
       if (!badge) {
         badge = document.createElement('span');
-        badge.id = 'tmCustomerChatUnreadBadge';
-        badge.style.cssText = 'position:absolute; top:-6px; right:-6px; min-width:21px; height:21px; padding:0 5px; background:#facc15; color:#000; border:2px solid #0f172a; border-radius:999px; font-size:11.5px; font-weight:900; display:none; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.6); z-index:999999; pointer-events:none;';
-        chatBtn.appendChild(badge);
+        badge.id = badgeId;
+        badge.style.cssText = 'position:absolute; top:-5px; right:-5px; min-width:20px; height:20px; padding:0 5px; background:#facc15; color:#000; border:2px solid #0f172a; border-radius:999px; font-size:11px; font-weight:900; display:none; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.65); z-index:999999; pointer-events:none;';
+        el.appendChild(badge);
       }
 
       if (unreadCount > 0) {
@@ -17795,9 +17790,14 @@ function forceOpenAdminDashboard() {
       }
     }
 
+    function renderUnreadBadge() {
+      applyBadgeToTarget(document.getElementById('fabMainBtn'), 'tmFabMainUnreadBadge');
+      applyBadgeToTarget(document.querySelector('.fab-item.fab-admin'), 'tmFabAdminUnreadBadge');
+    }
+
     function isChatModalOpen() {
       const modal = document.getElementById('liveChatModal');
-      return modal && modal.style.display !== 'none' && getComputedStyle(modal).display !== 'none';
+      return modal && (modal.classList.contains('active') || (modal.style.display !== 'none' && modal.style.display !== ''));
     }
 
     function bindListener() {
@@ -17827,7 +17827,7 @@ function forceOpenAdminDashboard() {
     }
 
     document.addEventListener('click', e => {
-      if (e.target && e.target.closest('#liveChatFloatingBtn, #floatingLiveChatBtn, #chatFloatingBtn, .live-chat-float-btn, [onclick*="LiveChat"], [onclick*="liveChat"], [onclick*="SupportChat"], [onclick*="supportChat"]')) {
+      if (e.target && e.target.closest('.fab-item.fab-admin, [onclick*="liveChatModal"]')) {
         unreadCount = 0;
         renderUnreadBadge();
       }
