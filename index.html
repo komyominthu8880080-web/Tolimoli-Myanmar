@@ -17766,11 +17766,15 @@ function forceOpenAdminDashboard() {
   // ဝယ်သူ Chat Box ပိတ်ထားစဉ် စာဝင်လာပါက အရေအတွက် (1, 2, 3...) Badge ပြပေးခြင်း
   (function initCustomerUnreadChatBadge() {
     let unreadCount = 0;
-    let isInitialized = false;
     let attachedSessionId = null;
+    const seenMsgKeys = new Set();
+
+    function findFloatingChatButton() {
+      return document.querySelector('#liveChatFloatingBtn, #floatingLiveChatBtn, #chatFloatingBtn, .live-chat-float-btn, [onclick*="LiveChat"], [onclick*="liveChat"], [onclick*="SupportChat"], [onclick*="supportChat"]');
+    }
 
     function renderUnreadBadge() {
-      const chatBtn = document.querySelector('#liveChatFloatingBtn, .live-chat-float-btn, [onclick*="openLiveChat"]');
+      const chatBtn = findFloatingChatButton();
       if (!chatBtn) return;
       if (getComputedStyle(chatBtn).position === 'static') chatBtn.style.position = 'relative';
       chatBtn.style.overflow = 'visible';
@@ -17779,7 +17783,7 @@ function forceOpenAdminDashboard() {
       if (!badge) {
         badge = document.createElement('span');
         badge.id = 'tmCustomerChatUnreadBadge';
-        badge.style.cssText = 'position:absolute; top:-5px; right:-5px; min-width:20px; height:20px; padding:0 5px; background:#facc15; color:#000; border:2px solid #0f172a; border-radius:999px; font-size:11px; font-weight:900; display:none; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(0,0,0,0.5); z-index:9999; pointer-events:none;';
+        badge.style.cssText = 'position:absolute; top:-6px; right:-6px; min-width:21px; height:21px; padding:0 5px; background:#facc15; color:#000; border:2px solid #0f172a; border-radius:999px; font-size:11.5px; font-weight:900; display:none; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,0.6); z-index:999999; pointer-events:none;';
         chatBtn.appendChild(badge);
       }
 
@@ -17797,16 +17801,22 @@ function forceOpenAdminDashboard() {
     }
 
     function bindListener() {
-      const sId = window.currentGuestSessionId;
-      if (!sId || typeof fbDb === 'undefined') return setTimeout(bindListener, 1000);
+      const sId = window.currentGuestSessionId || localStorage.getItem('tolimoli_guest_session_id');
+      if (!sId || typeof fbDb === 'undefined') return;
       if (attachedSessionId === sId) return;
       attachedSessionId = sId;
-      isInitialized = false;
 
-      fbDb.ref(`support_chats/${sId}/messages`).limitToLast(1).on('child_added', snap => {
-        if (!isInitialized) { isInitialized = true; return; }
+      const mountTime = Date.now() - 3000;
+      fbDb.ref(`support_chats/${sId}/messages`).on('child_added', snap => {
+        const key = snap.key;
+        if (seenMsgKeys.has(key)) return;
+        seenMsgKeys.add(key);
+
         const msg = snap.val();
         if (!msg || msg.sender === 'user') return;
+        const msgTime = Number(msg.timestamp || 0);
+        if (msgTime && msgTime < mountTime) return;
+
         if (isChatModalOpen()) {
           unreadCount = 0;
         } else {
@@ -17816,20 +17826,20 @@ function forceOpenAdminDashboard() {
       });
     }
 
-    // Chat Box ကို နှိပ်ဖွင့်လိုက်သည်နှင့် အရေအတွက်ကို 0 ပြန်လုပ်ခြင်း
     document.addEventListener('click', e => {
-      if (e.target && e.target.closest('#liveChatFloatingBtn, .live-chat-float-btn, [onclick*="openLiveChat"]')) {
+      if (e.target && e.target.closest('#liveChatFloatingBtn, #floatingLiveChatBtn, #chatFloatingBtn, .live-chat-float-btn, [onclick*="LiveChat"], [onclick*="liveChat"], [onclick*="SupportChat"], [onclick*="supportChat"]')) {
         unreadCount = 0;
         renderUnreadBadge();
       }
     });
+
     setInterval(() => {
       if (isChatModalOpen() && unreadCount > 0) {
         unreadCount = 0;
         renderUnreadBadge();
       }
       bindListener();
-    }, 1000);
+    }, 800);
   })();
   // ခေတ်မီ Modern Product Card Picker Modal (Browser prompt() အစားသုံးရန်)
   window.promptAdminSendProductCard = function() {
