@@ -13434,20 +13434,23 @@ applySoundToggleUI(isAudioMuted);
       }
     }
 
-    const msg = `💬 <b>[မေးမြန်းစာတို အသစ်]</b>\n` +
-      `👤 <b>ဝယ်သူ:</b> <code>Guest #${gNum}</code>\n` +
-      `📝 <b>စာသား:</b> ${text || '(မီဒီယာဖိုင်)'}\n` +
-      (mediaUrl ? `📎 <b>ဖိုင်:</b> <a href="${mediaUrl}">မီဒီယာကြည့်ရန် နှိပ်ပါ</a>\n` : '');
+    const isBase64Img = mediaUrl && String(mediaUrl).startsWith('data:image');
+      const msg = `💬 <b>[မေးမြန်းစာတို အသစ်]</b>\n` +
+        `👤 <b>ဝယ်သူ:</b> <code>Guest #${gNum}</code>\n` +
+        `📝 <b>စာသား:</b> ${text || (mediaUrl ? '📷 ဓာတ်ပုံ / မီဒီယာ' : '(မီဒီယာဖိုင်)')}\n` +
+        (mediaUrl && !isBase64Img ? `📎 <b>ဖိုင်:</b> <a href="${mediaUrl}">မီဒီယာကြည့်ရန် နှိပ်ပါ</a>\n` : '');
 
-    fetch('/api/telegram-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sendLiveChat',
-        messageText: msg,
-        topicId: threadId || null
-      })
-    });
+      fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sendLiveChat',
+          messageText: msg,
+          mediaUrl: mediaUrl || '',
+          mediaType: mediaUrl ? 'image' : '',
+          topicId: threadId || null
+        })
+      });
   } catch (err) {
     console.warn('Telegram Chat alert error:', err);
   }
