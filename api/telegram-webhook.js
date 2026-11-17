@@ -9,6 +9,25 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // GET Request ဖြင့် Telegram Audio/Media ဖိုင်ကို တိုက်ရိုက် Stream လုပ်၍ နားထောင်ခြင်း
+  if (req.method === 'GET' && req.query && req.query.file_id) {
+    try {
+      const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
+      const fileInfoRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/getFile?file_id=${req.query.file_id}`);
+      const fileInfo = await fileInfoRes.json();
+      if (fileInfo.ok && fileInfo.result && fileInfo.result.file_path) {
+        const tgFileUrl = `https://api.telegram.org/file/bot${LIVECHAT_BOT_TOKEN}/${fileInfo.result.file_path}`;
+        const mediaRes = await fetch(tgFileUrl);
+        res.setHeader('Content-Type', mediaRes.headers.get('content-type') || 'audio/webm');
+        const arrayBuffer = await mediaRes.arrayBuffer();
+        return res.status(200).send(Buffer.from(arrayBuffer));
+      }
+      return res.status(404).send('File not found');
+    } catch (e) {
+      return res.status(500).send(e.message);
+    }
+  }
+
   if (req.method !== 'POST') {
     return res.status(200).send('Method Not Allowed');
   }
@@ -217,23 +236,30 @@ export default async function handler(req, res) {
     try {
       const targetChat = CHAT_GROUP_ID || ADMIN_CHAT_ID;
 
-      // ၁။ Cloudinary/Storage မှ ရလာသော Audio URL ပါလာပါက Telegram သို့ sendAudio ဖြင့် တိုက်ရိုက်ပို့ခြင်း
-      if (body.audioUrl && String(body.audioUrl).startsWith('http')) {
-        const audioPayload = {
-          chat_id: targetChat,
-          audio: body.audioUrl,
-          caption: body.messageText || '🎤 ဝယ်သူထံမှ အသံဖိုင် (Voice Note)',
-          parse_mode: 'HTML'
-        };
-        if (body.topicId) audioPayload.message_thread_id = Number(body.topicId);
+      // ၁။ အသံဖိုင် (Base64 Audio) ပါလာပါက Telegram သို့ တိုက်ရိုက်ပို့ပြီး file_id ပြန်ပေးခြင်း
+      if (body.audioBase64 && String(body.audioBase64).startsWith('data:audio')) {
+        const matches = body.audioBase64.match(/^data:(audio\/[a-zA-Z0-9.+_-]+);base64,(.+)$/);
+        if (matches) {
+          const mimeType = matches[1];
+          const buffer = Buffer.from(matches[2], 'base64');
+          const blob = new Blob([buffer], { type: mimeType });
 
-        const audioRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendAudio`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(audioPayload)
-        });
-        const audioData = await audioRes.json();
-        return res.status(200).json(audioData);
+          const formData = new FormData();
+          formData.append('chat_id', String(targetChat));
+          if (body.topicId) formData.append('message_thread_id', String(body.topicId));
+          formData.append('audio', blob, `voice_${Date.now()}.webm`);
+          formData.append('caption', body.messageText || '🎤 ဝယ်သူထံမှ အသံဖိုင် (Voice Note)');
+          formData.append('parse_mode', 'HTML');
+
+          const audioRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendAudio`, {
+            method: 'POST',
+            body: formData
+          });
+          const audioData = await audioRes.json();
+          const tgFileId = audioData.result?.audio?.file_id || audioData.result?.voice?.file_id || '';
+          const streamUrl = tgFileId ? `/api/telegram-webhook?file_id=${tgFileId}` : '';
+          return res.status(200).json({ ...audioData, streamUrl });
+        }
       }
 
       // ၂။ ရိုးရိုး စာသား ပို့ခြင်း
