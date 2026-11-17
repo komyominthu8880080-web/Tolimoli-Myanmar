@@ -354,7 +354,57 @@ export default async function handler(req, res) {
       return res.status(200).send('OK');
     }
   }
+  // Telegram Topic ထဲမှ /kpay, /wave, /coupon ရိုက်ပို့ပါက ဝယ်သူ့ဆီ Smart Card တိုက်ရိုက်ပို့ပေးခြင်း
+  const cmd = text.trim().toLowerCase();
+  if (threadId && (cmd === '/kpay' || cmd === '/wave' || cmd === '/coupon')) {
+    try {
+      const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
+      const sessions = await sessionsRes.json();
+      let targetSessionId = null;
+      if (sessions) {
+        for (const [sId, sVal] of Object.entries(sessions)) {
+          if (String(sVal.telegramThreadId) === String(threadId)) {
+            targetSessionId = sId;
+            break;
+          }
+        }
+      }
+      if (targetSessionId) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
+        let msgObj = null;
+        let confirmText = '';
 
+        if (cmd === '/kpay' || cmd === '/wave') {
+          const info = cmd === '/wave'
+            ? { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' }
+            : { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' };
+          msgObj = { sender: 'admin', text: `${info.bank} ငွေလွှဲအကောင့်`, mediaUrl: info.qr, mediaType: 'qr_card', cardData: info, timeStr, timestamp: Date.now() };
+          confirmText = `✅ ဝယ်သူထံသို့ <b>${info.bank} QR ကတ်</b> ပို့ပေးပြီးပါပြီ။`;
+        } else if (cmd === '/coupon') {
+          const code = 'VIP' + Math.floor(1000 + Math.random() * 9000);
+          msgObj = { sender: 'admin', text: 'အထူးလျှော့ဈေးကူပွန် (2,000 Ks)', mediaType: 'coupon_card', cardData: { code, amount: 2000 }, timeStr, timestamp: Date.now() };
+          confirmText = `✅ ဝယ်သူထံသို့ <b>2,000 Ks ကူပွန်ကတ်</b> (<code>${code}</code>) ပို့ပေးပြီးပါပြီ။`;
+        }
+
+        if (msgObj) {
+          await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(msgObj)
+          });
+          await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: CHAT_GROUP_ID, message_thread_id: Number(threadId), text: confirmText, parse_mode: 'HTML' })
+          });
+        }
+      }
+      return res.status(200).send('OK');
+    } catch (e) {
+      return res.status(200).send('OK');
+    }
+  }
   // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
   if (msg.reply_to_message && !msg.reply_to_message.forum_topic_created) {
     const rep = msg.reply_to_message;
