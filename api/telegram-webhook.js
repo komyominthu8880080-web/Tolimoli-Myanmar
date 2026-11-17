@@ -528,7 +528,7 @@ export default async function handler(req, res) {
             return res.status(200).send('OK');
           }
 
-          const matched = prodList.filter(p => p.category && p.category.toLowerCase().includes(catKw)).slice(0, 8);
+          const matched = prodList.filter(p => p.category && p.category.toLowerCase().includes(catKw));
           if (matched.length) {
             const items = matched.map(p => ({
               id: p.id || '',
