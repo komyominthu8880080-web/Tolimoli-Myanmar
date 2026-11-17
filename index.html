@@ -17881,19 +17881,23 @@ function forceOpenAdminDashboard() {
       chatHeader.appendChild(badge);
     }
 
-    // Admin Inbox တွင် Active / Done Tab ခလုတ်များ ထည့်သွင်းခြင်း
+    // Admin Inbox တွင် Active / Done Tab ခလုတ်များကို ဘယ်ဘက်စာရင်းအကွက် အပေါ်ထိပ်၌ သပ်ရပ်စွာ ထည့်သွင်းခြင်း
     const listContainer = document.getElementById('adminChatSessionsListContainer');
     if (listContainer && !document.getElementById('adminInboxStatusTabs')) {
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'display:flex; flex-direction:column; height:100%; min-width:0;';
+      listContainer.parentElement.insertBefore(wrapper, listContainer);
+
       const tabs = document.createElement('div');
       tabs.id = 'adminInboxStatusTabs';
-      tabs.style.cssText = 'display:flex; gap:4px; margin-bottom:6px;';
+      tabs.style.cssText = 'display:flex; gap:6px; margin-bottom:8px; flex-shrink:0;';
       tabs.innerHTML = `
-        <button type="button" id="tabInboxActive" onclick="switchAdminInboxTab('active')" style="flex:1; padding:4px; font-size:0.7rem; border-radius:5px; border:1px solid #22c55e; background:#16a34a; color:#fff; cursor:pointer; font-weight:bold;">🟢 Active</button>
-        <button type="button" id="tabInboxDone" onclick="switchAdminInboxTab('done')" style="flex:1; padding:4px; font-size:0.7rem; border-radius:5px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">✅ Done</button>
+        <button type="button" id="tabInboxActive" onclick="switchAdminInboxTab('active')" style="flex:1; padding:6px 8px; font-size:0.74rem; border-radius:6px; border:1px solid #22c55e; background:#16a34a; color:#fff; cursor:pointer; font-weight:bold;">🟢 Active</button>
+        <button type="button" id="tabInboxDone" onclick="switchAdminInboxTab('done')" style="flex:1; padding:6px 8px; font-size:0.74rem; border-radius:6px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">✅ Done</button>
       `;
-      listContainer.parentElement.insertBefore(tabs, listContainer);
+      wrapper.appendChild(tabs);
+      wrapper.appendChild(listContainer);
     }
-  });
 
   window.switchAdminInboxTab = function(mode) {
     window.adminInboxFilterMode = mode;
