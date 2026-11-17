@@ -262,7 +262,44 @@ export default async function handler(req, res) {
         }
       }
 
-      // ၂။ ရိုးရိုး စာသား ပို့ခြင်း
+      // ၂။ ဓာတ်ပုံ / ဗီဒီယို သို့မဟုတ် ရိုးရိုး စာသား ပို့ခြင်း (KPay စလစ်စနစ်အတိုင်း Base64 & URL ၂ မျိုးလုံး ပို့မည်)
+      const mediaUrl = body.mediaUrl || '';
+      const mediaType = body.mediaType || '';
+
+      if (mediaUrl && (mediaType === 'image' || mediaUrl.startsWith('data:image') || /\.(jpg|jpeg|png|webp|gif)/i.test(mediaUrl))) {
+        if (mediaUrl.startsWith('data:image')) {
+          const match = mediaUrl.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,(.+)$/);
+          if (match) {
+            const mimeType = match[1];
+            const ext = mimeType.split('/')[1] || 'jpg';
+            const buffer = Buffer.from(match[2], 'base64');
+            const blob = new Blob([buffer], { type: mimeType });
+            const formData = new FormData();
+            formData.append('chat_id', String(targetChat));
+            if (body.topicId) formData.append('message_thread_id', String(body.topicId));
+            formData.append('photo', blob, `chat_photo.${ext}`);
+            formData.append('caption', (body.messageText || '📷 ဝယ်သူထံမှ ဓာတ်ပုံ').slice(0, 1024));
+            formData.append('parse_mode', 'HTML');
+            const pRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
+            return res.status(200).json(await pRes.json());
+          }
+        } else {
+          const pPayload = {
+            chat_id: targetChat,
+            photo: mediaUrl,
+            caption: (body.messageText || '📷 ဝယ်သူထံမှ ဓာတ်ပုံ').slice(0, 1024),
+            parse_mode: 'HTML'
+          };
+          if (body.topicId) pPayload.message_thread_id = Number(body.topicId);
+          const pRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(pPayload)
+          });
+          return res.status(200).json(await pRes.json());
+        }
+      }
+
       const payload = {
         chat_id: targetChat,
         text: body.messageText,
@@ -283,7 +320,6 @@ export default async function handler(req, res) {
       console.error('Live Chat send error:', err);
       return res.status(500).json({ error: err.message });
     }
-  }
 
   // ဝယ်သူအသစ်အတွက် Forum Topic ခေါင်းစဉ် ဖန်တီးပေးခြင်း
   if (body.action === 'createForumTopic') {
