@@ -17441,11 +17441,22 @@ function forceOpenAdminDashboard() {
         };
         mediaRecorder.start();
         isRecordingVoice = true;
-        if (btn) { btn.innerHTML = '⏹️'; btn.style.background = '#ef4444'; }
+        if (btn) { btn.innerHTML = '⏹'; btn.style.background = '#ef4444'; }
+
+        // ၃ မိနစ် (180 စက္ကန့်) ပြည့်လျှင် Vercel 4.5MB Limit မကျော်စေရန် အလိုအလျောက် ရပ်၍ ပို့ပေးမည်
+        if (window.voiceAutoStopTimer) clearTimeout(window.voiceAutoStopTimer);
+        window.voiceAutoStopTimer = setTimeout(() => {
+          if (isRecordingVoice && mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+            isRecordingVoice = false;
+            alert('⏱ အသံဖိုင် အများဆုံး ၃ မိနစ် ပြည့်သွားပြီဖြစ်၍ အလိုအလျောက် ပေးပို့လိုက်ပါပြီခင်ဗျာ။');
+          }
+        }, 180000);
       } catch (err) {
-        alert('မိုက်ခရိုဖုန်း (Microphone) အသုံးပြုခွင့် ဖွင့်ပေးပါခင်ဗျာ။');
+        alert('မိုက်ခရိုဖုန်း (Microphone) အသုံးပြုခွင့် ဖွင့်ပေးပါခင်ဗျာ');
       }
     } else {
+      if (window.voiceAutoStopTimer) clearTimeout(window.voiceAutoStopTimer);
       if (mediaRecorder) mediaRecorder.stop();
       isRecordingVoice = false;
     }
