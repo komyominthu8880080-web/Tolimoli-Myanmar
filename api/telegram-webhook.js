@@ -512,6 +512,8 @@ export default async function handler(req, res) {
           }
           return res.status(200).send('OK');
         }
+        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n• <code>/kpay</code> — KBZPay QR ပို့ရန်\n• <code>/wave</code> — WavePay QR ပို့ရန်\n• <code>/coupon</code> — 2,000 Ks ကူပွန် ပို့ရန်\n• <code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n• <code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n• <code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n• <code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
+        return res.status(200).send('OK');
       }
     } catch (e) {
       return res.status(200).send('OK');
