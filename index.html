@@ -17363,21 +17363,42 @@ function forceOpenAdminDashboard() {
   };
 
   // ၈။ Smart Cards (Product, Payment QR, Order Tracker, Exclusive Coupon)
+  async function syncSmartCardToTelegram(sessionId, tgText) {
+    try {
+      if (typeof fbDb === 'undefined') return;
+      const snap = await fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).once('value');
+      const threadId = snap.val();
+      await fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sendLiveChat',
+          topicId: threadId || null,
+          messageText: tgText
+        })
+      });
+    } catch (e) { console.warn('Telegram Smart Card Sync Error:', e); }
+  }
+
   window.sendSmartProductCard = function(sessionId, product) {
     if (!product || typeof fbDb === 'undefined') return;
     const imgUrl = (Array.isArray(product.images) && product.images[0]) || product.image || 'logo.png';
+    const priceNum = Number(product.price || 0);
     fbDb.ref(`support_chats/${sessionId}/messages`).push({
       sender: 'admin',
       text: product.name,
       mediaUrl: imgUrl,
       mediaType: 'product_card',
-      cardData: { id: product.id || '', sku: product.sku || '-', price: Number(product.price || 0), name: product.name, image: imgUrl },
+      cardData: { id: product.id || '', sku: product.sku || '-', price: priceNum, name: product.name, image: imgUrl },
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now()
     });
+    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `🛍️ ပစ္စည်းကတ်: ${product.name}`, lastSender: 'admin', lastUpdate: Date.now() });
+    syncSmartCardToTelegram(sessionId, `👑 <b>[Admin မှ ပစ္စည်းကတ် ပို့လိုက်ပါသည်]</b>\n🛍️ <b>${product.name}</b>\n🏷️ SKU: <code>${product.sku || '-'}</code>\n💰 ဈေးနှုန်း: <b>${priceNum.toLocaleString()} Ks</b>`);
   };
 
   window.sendSmartQrCard = function(sessionId, bank = 'kpay') {
+    if (typeof fbDb === 'undefined') return;
     const info = bank === 'wave'
       ? { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' }
       : { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' };
@@ -17390,18 +17411,23 @@ function forceOpenAdminDashboard() {
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now()
     });
+    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `💳 ${info.bank} QR ကတ် ပို့လိုက်သည်`, lastSender: 'admin', lastUpdate: Date.now() });
+    syncSmartCardToTelegram(sessionId, `👑 <b>[Admin မှ ${info.bank} ငွေလွှဲကတ် ပို့လိုက်ပါသည်]</b>\n🏦 <b>${info.bank}</b>\n👤 အမည်: <b>${info.name}</b>\n📞 ဖုန်း: <code>${info.phone}</code>`);
   };
 
   window.sendSmartCouponCard = function(sessionId, amount = 2000) {
+    if (typeof fbDb === 'undefined') return;
     const code = 'VIP' + Math.floor(1000 + Math.random() * 9000);
     fbDb.ref(`support_chats/${sessionId}/messages`).push({
       sender: 'admin',
       text: `သီးသန့် လျှော့ဈေးကူပွန် (${Number(amount).toLocaleString()} Ks)`,
       mediaType: 'coupon_card',
-      cardData: { code: code, discount: Number(amount) },
+      cardData: { code: code, discount: Number(amount), amount: Number(amount) },
       timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       timestamp: Date.now()
     });
+    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `🎟️ ${Number(amount).toLocaleString()} Ks ကူပွန် ပို့လိုက်သည်`, lastSender: 'admin', lastUpdate: Date.now() });
+    syncSmartCardToTelegram(sessionId, `👑 <b>[Admin မှ အထူးလျှော့ဈေးကူပွန် ပို့လိုက်ပါသည်]</b>\n🎟️ ကူပွန်ကုဒ်: <code>${code}</code>\n💰 တန်ဖိုး: <b>${Number(amount).toLocaleString()} Ks</b>`);
   };
 
   window.applyChatCouponToCart = function(code, discountAmt) {
