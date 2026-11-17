@@ -281,7 +281,11 @@ export default async function handler(req, res) {
             formData.append('caption', (body.messageText || '📷 ဝယ်သူထံမှ ဓာတ်ပုံ').slice(0, 1024));
             formData.append('parse_mode', 'HTML');
             const pRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-            return res.status(200).json(await pRes.json());
+        const pData = await pRes.json();
+        const photos = pData.result?.photo || [];
+        const tgFileId = photos.length > 0 ? photos[photos.length - 1].file_id : '';
+        const streamUrl = tgFileId ? `/api/telegram-webhook?file_id=${tgFileId}` : '';
+        return res.status(200).json({ ...pData, streamUrl });
           }
         } else {
           const pPayload = {
