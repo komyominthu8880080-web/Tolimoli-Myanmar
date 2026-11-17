@@ -519,8 +519,15 @@ export default async function handler(req, res) {
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal) : [];
 
+          const getProdCats = (p) => {
+            const arr = [];
+            if (p.category) arr.push(String(p.category).trim());
+            if (Array.isArray(p.categories)) p.categories.forEach(c => c && arr.push(String(c).trim()));
+            return [...new Set(arr)];
+          };
+
           if (!catKw) {
-            const cats = [...new Set(prodList.map(p => p.category).filter(Boolean))];
+            const cats = [...new Set(prodList.flatMap(getProdCats).filter(Boolean))];
             const listTxt = cats.length
               ? cats.map(c => `• <code>/cat ${c}</code>`).join('\n')
               : 'Category စာရင်း မတွေ့သေးပါ။';
@@ -528,7 +535,7 @@ export default async function handler(req, res) {
             return res.status(200).send('OK');
           }
 
-          const matched = prodList.filter(p => p.category && p.category.toLowerCase().includes(catKw));
+          const matched = prodList.filter(p => getProdCats(p).some(c => c.toLowerCase().includes(catKw)));
           if (matched.length) {
             const items = matched.map(p => ({
               id: p.id || '',
