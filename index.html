@@ -17496,13 +17496,27 @@ function forceOpenAdminDashboard() {
     const cd = extraData.cardData || {};
 
     if (mediaType === 'product_card' && cd.name) {
+      const safeName = (cd.name || '').replace(/'/g, '');
+      const safeSku = (cd.sku || '').replace(/'/g, '');
+      const safeImg = (cd.image || mediaUrl || 'logo.png').replace(/'/g, '');
       bodyContentHtml = `
-        <div style="background:#0f172a; border:1px solid #fde047; border-radius:10px; padding:8px; width:210px; text-align:center;">
-          <img src="${cd.image || mediaUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:6px; margin-bottom:6px;">
-          <div style="font-weight:bold; font-size:12px; color:#fff;">${cd.name}</div>
-          <div style="font-size:10.5px; color:#94a3b8;">SKU: ${cd.sku}</div>
-          <div style="font-weight:bold; color:#fde047; font-size:13px; margin:4px 0;">${Number(cd.price).toLocaleString()} MMK</div>
-          <button type="button" onclick="event.stopPropagation(); addChatProductToRealCart('${cd.id || ''}', '${(cd.sku || '').replace(/'/g, '')}', '${(cd.name || '').replace(/'/g, '')}', ${Number(cd.price || 0)}, '${(cd.image || mediaUrl || 'logo.png').replace(/'/g, '')}')" style="background:linear-gradient(135deg,#eab308,#ca8a04); color:#000; border:none; border-radius:6px; padding:6px 10px; font-size:11.5px; font-weight:bold; cursor:pointer; width:100%; margin-top:6px;">🛒 ခြင်းထဲထည့်မည်</button>
+        <div style="background:linear-gradient(145deg,#0f172a,#1e293b); border:1px solid rgba(253,224,71,0.45); border-radius:14px; overflow:hidden; width:235px; box-shadow:0 8px 20px rgba(0,0,0,0.45); margin-top:4px;">
+          <div style="position:relative; width:100%; height:145px; background:#020617;">
+            <img src="${cd.image || mediaUrl}" style="width:100%; height:100%; object-fit:cover; display:block;">
+            <span style="position:absolute; top:8px; left:8px; background:rgba(15,23,42,0.85); color:#fde047; border:1px solid rgba(253,224,71,0.4); font-size:9.5px; font-weight:bold; padding:2px 7px; border-radius:20px; backdrop-filter:blur(4px);">✨ RECOMMENDED</span>
+            <span style="position:absolute; bottom:8px; right:8px; background:rgba(0,0,0,0.75); color:#cbd5e1; font-size:9px; padding:2px 6px; border-radius:4px;">${cd.sku || 'IN STOCK'}</span>
+          </div>
+          <div style="padding:10px 11px; text-align:left;">
+            <div style="font-weight:700; font-size:12.5px; color:#f8fafc; line-height:1.35; margin-bottom:5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${cd.name}</div>
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:9px;">
+              <span style="font-weight:800; font-size:14.5px; color:#fde047;">${Number(cd.price).toLocaleString()} <small style="font-size:10px; font-weight:600; color:#eab308;">MMK</small></span>
+              <span style="font-size:9.5px; color:#4ade80;">● အသင့်ရှိ</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button type="button" onclick="event.stopPropagation(); if(typeof openProductDetail==='function' && '${cd.id || ''}'){openProductDetail('${cd.id}');}" style="flex:1; background:rgba(255,255,255,0.08); color:#e2e8f0; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:7px 6px; font-size:11px; font-weight:600; cursor:pointer;">👁️ ကြည့်ရန်</button>
+              <button type="button" onclick="event.stopPropagation(); addChatProductToRealCart('${cd.id || ''}', '${safeSku}', '${safeName}', ${Number(cd.price || 0)}, '${safeImg}')" style="flex:1.4; background:linear-gradient(135deg,#facc15,#ca8a04); color:#000; border:none; border-radius:8px; padding:7px 8px; font-size:11.5px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(234,179,8,0.35);">🛒 ခြင်းထဲထည့်</button>
+            </div>
+          </div>
         </div>`;
     } else if (mediaType === 'qr_card' && cd.phone) {
       bodyContentHtml = `
@@ -17576,7 +17590,6 @@ function forceOpenAdminDashboard() {
     area.scrollTop = area.scrollHeight;
   };
 
-  // ၁၀။ Chat UI ထဲသို့ Voice Mic ခလုတ်နှင့် Typing Indicator အလိုအလျောက် တပ်ဆင်ခြင်း
   // ၁၀။ ဝယ်သူ Chat နှင့် Admin Dashboard Inbox နှစ်ခုလုံးတွင် Mic ခလုတ်နှင့် Smart Tools တပ်ဆင်ခြင်း
   window.addEventListener('DOMContentLoaded', () => {
     // (က) ဝယ်သူ Chat Box အတွက်
@@ -17749,6 +17762,76 @@ function forceOpenAdminDashboard() {
       if (typeof updateCartBadge === 'function') updateCartBadge();
     }
     alert(`✅ "${pName}" ကို ခြင်းတောင်းထဲ ထည့်ပြီးပါပြီ!`);
+  };
+  // ခေတ်မီ Modern Product Card Picker Modal (Browser prompt() အစားသုံးရန်)
+  window.promptAdminSendProductCard = function() {
+    if (!window.adminActiveSelectedSession) return alert('ဝယ်သူ စကားဝိုင်းကို အရင်ရွေးချယ်ပါခင်ဗျာ။');
+    let modal = document.getElementById('modernAdminProductPickerModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'modernAdminProductPickerModal';
+      modal.style.cssText = 'position:fixed; inset:0; background:rgba(2,6,23,0.82); backdrop-filter:blur(6px); z-index:999999; display:flex; align-items:center; justify-content:center; padding:14px;';
+      modal.innerHTML = `
+        <div style="background:linear-gradient(160deg,#0f172a,#1e293b); border:1.5px solid #eab308; border-radius:16px; width:100%; max-width:440px; max-height:82vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.75);">
+          <div style="padding:12px 16px; background:rgba(234,179,8,0.1); border-bottom:1px solid rgba(234,179,8,0.25); display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:#fde047; font-weight:800; font-size:0.9rem;">🛍️ ဝယ်သူထံ ပစ္စည်းကတ် ရွေးပို့ရန်</span>
+            <button type="button" onclick="document.getElementById('modernAdminProductPickerModal').style.display='none'" style="background:rgba(255,255,255,0.1); border:none; color:#fff; width:26px; height:26px; border-radius:50%; cursor:pointer; font-weight:bold;">✕</button>
+          </div>
+          <div style="padding:10px 14px; border-bottom:1px solid #334155;">
+            <input type="text" id="modernProductPickerSearch" oninput="filterModernAdminProductPicker(this.value)" placeholder="🔍 ပစ္စည်းအမည် (သို့) SKU ရိုက်ရှာပါ..." style="width:100%; padding:9px 12px; background:#020617; border:1px solid #475569; border-radius:10px; color:#fff; font-size:0.8rem; outline:none;">
+          </div>
+          <div id="modernProductPickerList" style="padding:10px 14px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; flex:1;"></div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    const searchInp = document.getElementById('modernProductPickerSearch');
+    if (searchInp) { searchInp.value = ''; setTimeout(() => searchInp.focus(), 80); }
+    filterModernAdminProductPicker('');
+  };
+
+  window.filterModernAdminProductPicker = function(query) {
+    const listEl = document.getElementById('modernProductPickerList');
+    if (!listEl) return;
+    const allProds = (typeof products !== 'undefined' && Array.isArray(products)) ? products : [];
+    const kw = (query || '').trim().toLowerCase();
+    const matched = kw
+      ? allProds.filter(p => (p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw)))
+      : allProds.slice(0, 30);
+
+    if (!matched.length) {
+      listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; font-size:0.78rem; padding:24px;">ကိုက်ညီသော ပစ္စည်း မတွေ့ပါခင်ဗျာ။</div>';
+      return;
+    }
+
+    listEl.innerHTML = matched.map(p => {
+      const img = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+      const price = Number(p.price || 0);
+      return `
+        <div style="display:flex; align-items:center; gap:10px; background:#020617; border:1px solid #334155; border-radius:10px; padding:7px 9px; transition:0.15s;">
+          <img src="${img}" style="width:46px; height:46px; border-radius:8px; object-fit:cover; background:#1e293b; flex-shrink:0;">
+          <div style="flex:1; min-width:0;">
+            <div style="color:#f8fafc; font-size:0.78rem; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</div>
+            <div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+              <span style="color:#fde047; font-size:0.75rem; font-weight:bold;">${price.toLocaleString()} Ks</span>
+              <span style="color:#64748b; font-size:0.68rem;">SKU: ${p.sku || '-'}</span>
+            </div>
+          </div>
+          <button type="button" onclick="selectAndSendModernProductCard('${p.id}')" style="background:linear-gradient(135deg,#facc15,#ca8a04); color:#000; border:none; border-radius:8px; padding:6px 11px; font-size:0.72rem; font-weight:800; cursor:pointer; flex-shrink:0;">📤 ပို့မည်</button>
+        </div>
+      `;
+    }).join('');
+  };
+
+  window.selectAndSendModernProductCard = function(prodId) {
+    const allProds = (typeof products !== 'undefined' && Array.isArray(products)) ? products : [];
+    const found = allProds.find(p => String(p.id) === String(prodId));
+    if (found && window.adminActiveSelectedSession) {
+      sendSmartProductCard(window.adminActiveSelectedSession, found);
+      const modal = document.getElementById('modernAdminProductPickerModal');
+      if (modal) modal.style.display = 'none';
+    }
   };
   // ၁။ Database မှ QR Accounts နှင့် Quick Replies များကို Real-time ဆွဲယူခြင်း
   function bindChatConfigFromDb() {
