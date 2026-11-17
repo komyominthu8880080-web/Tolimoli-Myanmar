@@ -13467,7 +13467,7 @@ applySoundToggleUI(isAudioMuted);
           return;
         }
 
-        const entries = Object.entries(val).sort((a,b) => (b[1].lastUpdate||0) - (a[1].lastUpdate||0));
+        const entries = Object.entries(val).filter(([k, d]) => d && (d.messages || d.lastMessage)).sort((a,b) => (b[1].lastUpdate||0) - (a[1].lastUpdate||0));
         container.innerHTML = entries.map(([sId, data]) => {
           const isAct = adminActiveSelectedSession === sId;
           const lastMsg = data.lastMessage || 'မေးမြန်းမှု';
