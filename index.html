@@ -13578,17 +13578,42 @@ applySoundToggleUI(isAudioMuted);
       if (btn) btn.disabled = false;
     }
 
-    function deleteAdminChatSession(sId) {
-      if (confirm(`စကားဝိုင်း [ ${sId} ] ကို ဖျက်ရန် သေချာပါသလား?`)) {
-        if (typeof fbDb !== 'undefined') fbDb.ref(`support_chats/${sId}`).remove();
-        if (adminActiveSelectedSession === sId) {
-          adminActiveSelectedSession = null;
-          document.getElementById('adminActiveChatHeader').innerText = 'စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ';
-          document.getElementById('adminActiveChatMessages').innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">Chat ရွေးချယ်ထားခြင်း မရှိသေးပါ</p>';
-          document.getElementById('adminChatReplyBar').style.display = 'none';
-        }
+    async function deleteAdminChatSession(sessionId, event) {
+  if (event) event.stopPropagation();
+  if (!confirm(`စကားဝိုင်း [ ${sessionId} ] ကို Database နှင့် Telegram Group နှစ်ခုလုံးမှ အပြီးတိုင် ဖျက်ပစ်မှာ သေချာပါသလား?`)) return;
+
+  try {
+    // ၁။ Telegram Topic ID ကို အရင်ယူပြီး Telegram Group မှ ဖျက်ခိုင်းခြင်း
+    if (typeof fbDb !== 'undefined') {
+      const snap = await fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).once('value');
+      const threadId = snap.val();
+      if (threadId) {
+        await fetch('/api/telegram-webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'deleteForumTopic', topicId: threadId })
+        }).catch(() => {});
       }
+
+      // ၂။ Firebase Database ထဲမှ Chat တစ်ခုလုံးကို ဖျက်ပစ်ခြင်း
+      await fbDb.ref(`support_chats/${sessionId}`).remove();
     }
+    localStorage.removeItem('tm_tg_topic_' + sessionId);
+
+    // ၃။ Admin Dashboard UI ကို ရှင်းလင်းခြင်း
+    if (adminActiveSelectedSession === sessionId) {
+      adminActiveSelectedSession = null;
+      const header = document.getElementById('adminActiveChatHeader');
+      const msgsBox = document.getElementById('adminActiveChatMessages');
+      const replyBar = document.getElementById('adminChatReplyBar');
+      if (header) header.innerText = 'စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ';
+      if (msgsBox) msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:30px;">Chat ရွေးချယ်ထားခြင်း မရှိသေးပါ</p>';
+      if (replyBar) replyBar.style.display = 'none';
+    }
+  } catch (err) {
+    alert('ဖျက်ရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ပါသည်: ' + err.message);
+  }
+}
 
     // =========================================================================
     // 4. DATABASE-DRIVEN AUTO REPLY BOT MANAGER
