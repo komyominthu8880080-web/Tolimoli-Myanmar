@@ -17494,7 +17494,9 @@ function forceOpenAdminDashboard() {
   };
 
   // ၁၀။ Chat UI ထဲသို့ Voice Mic ခလုတ်နှင့် Typing Indicator အလိုအလျောက် တပ်ဆင်ခြင်း
+  // ၁၀။ ဝယ်သူ Chat နှင့် Admin Dashboard Inbox နှစ်ခုလုံးတွင် Mic ခလုတ်နှင့် Smart Tools တပ်ဆင်ခြင်း
   window.addEventListener('DOMContentLoaded', () => {
+    // (က) ဝယ်သူ Chat Box အတွက်
     const area = document.getElementById('liveChatMessagesArea');
     if (area && !document.getElementById('chatTypingIndicator')) {
       const typingDiv = document.createElement('div');
@@ -17514,7 +17516,121 @@ function forceOpenAdminDashboard() {
       micBtn.onclick = () => toggleVoiceNoteRecording(window.currentGuestSessionId, 'user');
       sendBtn.parentElement.insertBefore(micBtn, sendBtn);
     }
+
+    // (ခ) Admin Dashboard Inbox အတွက် Mic ခလုတ်နှင့် Smart Cards Toolbar ထည့်ခြင်း
+    const adminSendBtn = document.getElementById('btnAdminSendChat');
+    const adminReplyBar = document.getElementById('adminChatReplyBar');
+    if (adminSendBtn && !document.getElementById('adminChatVoiceRecordBtn')) {
+      const adminMicBtn = document.createElement('button');
+      adminMicBtn.type = 'button';
+      adminMicBtn.id = 'adminChatVoiceRecordBtn';
+      adminMicBtn.innerHTML = '🎤';
+      adminMicBtn.title = 'Admin အသံဖိုင် ပို့ရန်';
+      adminMicBtn.style.cssText = 'background:#1e293b; color:#fde047; border:1px solid rgba(253,224,71,0.4); border-radius:6px; padding:6px 10px; cursor:pointer; font-size:14px; flex-shrink:0;';
+      adminMicBtn.onclick = () => {
+        if (!window.adminActiveSelectedSession) return alert('ဝယ်သူ စကားဝိုင်းကို အရင်ရွေးချယ်ပါခင်ဗျာ။');
+        toggleAdminVoiceNoteRecording(window.adminActiveSelectedSession);
+      };
+      adminSendBtn.parentElement.insertBefore(adminMicBtn, adminSendBtn);
+    }
+
+    if (adminReplyBar && !document.getElementById('adminChatSmartToolbar')) {
+      const toolBar = document.createElement('div');
+      toolBar.id = 'adminChatSmartToolbar';
+      toolBar.innerHTML = `
+        <button type="button" class="smart-tool-chip" onclick="promptAdminSendProductCard()">🛍️ ပစ္စည်းကတ်</button>
+        <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartQrCard(adminActiveSelectedSession, 'kpay')">💳 KBZPay QR</button>
+        <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartQrCard(adminActiveSelectedSession, 'wave')">💳 WavePay QR</button>
+        <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartCouponCard(adminActiveSelectedSession, 2000)">🎟️ 2,000 Ks ကူပွန်</button>
+        <button type="button" class="smart-tool-chip" onclick="quickAdminReply('မင်္ဂလာပါခင်ဗျာ! ဘာများကူညီပေးရမလဲခင်ဗျ?')">💬 မင်္ဂလာပါ</button>
+        <button type="button" class="smart-tool-chip" onclick="quickAdminReply('ပစ္စည်းလက်ကျန် အသင့်ရှိပါတယ်ခင်ဗျာ။')">✅ လက်ကျန်ရှိ</button>
+        <button type="button" class="smart-tool-chip" onclick="quickAdminReply('ပို့ဆောင်မှု လုံးဝ လျှို့ဝှက်ထုပ်ပိုးပေးပါတယ်ခင်ဗျာ။')">📦 လျှို့ဝှက်ထုပ်ပိုး</button>
+      `;
+      adminReplyBar.insertBefore(toolBar, adminReplyBar.firstChild);
+    }
   });
+
+  // Admin အတွက် သီးသန့် Voice Note ဖမ်းယူပို့ဆောင်ခြင်း
+  let adminMediaRecorder = null;
+  let adminAudioChunks = [];
+  let isAdminRecording = false;
+  window.toggleAdminVoiceNoteRecording = async function(sessionId) {
+    const btn = document.getElementById('adminChatVoiceRecordBtn');
+    if (!isAdminRecording) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        adminMediaRecorder = new MediaRecorder(stream);
+        adminAudioChunks = [];
+        adminMediaRecorder.ondataavailable = e => { if (e.data.size > 0) adminAudioChunks.push(e.data); };
+        adminMediaRecorder.onstop = () => {
+          const blob = new Blob(adminAudioChunks, { type: 'audio/webm' });
+          if (btn) { btn.innerHTML = '⏳'; btn.disabled = true; }
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            try {
+              const base64Audio = reader.result;
+              const tgRes = await fetch('/api/telegram-webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  action: 'sendLiveChat',
+                  audioBase64: base64Audio,
+                  messageText: `🎤 <b>Admin ထံမှ အသံဖိုင် (သို့) ${sessionId}</b>`
+                })
+              });
+              const tgData = await tgRes.json();
+              if (tgData && tgData.streamUrl) {
+                const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                await fbDb.ref(`support_chats/${sessionId}/messages`).push({
+                  sender: 'admin',
+                  text: '🎤 အသံဖိုင် (Voice Note)',
+                  mediaUrl: tgData.streamUrl,
+                  mediaType: 'audio',
+                  timeStr: timeStr,
+                  timestamp: Date.now(),
+                  isRead: false
+                });
+                await fbDb.ref(`support_chats/${sessionId}`).update({
+                  lastMessage: 'Admin: 🎤 အသံဖိုင်',
+                  lastSender: 'admin',
+                  lastUpdate: Date.now()
+                });
+              }
+            } finally {
+              if (btn) { btn.innerHTML = '🎤'; btn.style.background = '#1e293b'; btn.disabled = false; }
+              stream.getTracks().forEach(t => t.stop());
+            }
+          };
+          reader.readAsDataURL(blob);
+        };
+        adminMediaRecorder.start();
+        isAdminRecording = true;
+        if (btn) { btn.innerHTML = '⏹️'; btn.style.background = '#ef4444'; }
+      } catch (err) {
+        alert('မိုက်ခရိုဖုန်း အသုံးပြုခွင့် ဖွင့်ပေးပါခင်ဗျာ။');
+      }
+    } else {
+      if (adminMediaRecorder) adminMediaRecorder.stop();
+      isAdminRecording = false;
+    }
+  };
+
+  window.quickAdminReply = function(msg) {
+    const inp = document.getElementById('adminChatReplyInput');
+    if (inp) { inp.value = msg; inp.focus(); }
+  };
+
+  window.promptAdminSendProductCard = function() {
+    if (!window.adminActiveSelectedSession) return alert('ဝယ်သူ စကားဝိုင်းကို အရင်ရွေးချယ်ပါ။');
+    const keyword = prompt('ပို့လိုသော ပစ္စည်းအမည် (သို့) SKU ရိုက်ထည့်ပါ:');
+    if (!keyword || typeof products === 'undefined') return;
+    const found = products.find(p => (p.name && p.name.toLowerCase().includes(keyword.toLowerCase())) || (p.sku && p.sku.toLowerCase().includes(keyword.toLowerCase())));
+    if (found) {
+      sendSmartProductCard(window.adminActiveSelectedSession, found);
+    } else {
+      alert('ရှာမတွေ့ပါခင်ဗျာ။ ပစ္စည်းအမည် အတိအကျ ပြန်ရိုက်ကြည့်ပါ။');
+    }
+  };
 })();
 </script>
 </body>
