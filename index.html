@@ -4057,6 +4057,38 @@ function scrollCategories(amount) {
           </button>
         </div>
         <div id="adminKeywordRulesListContainer"></div>
+        <!-- 3. Admin Saved Quick Replies Manager -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-top:10px; margin-bottom:10px;">
+      <h5 style="color:#fde047; font-size:0.8rem; margin:0 0 6px 0;">⚡ Admin Saved Quick Replies (Inbox နှင့် Telegram /r1, /r2 မှ တန်းပို့ရန်)</h5>
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px; margin-bottom:6px;">
+        <input type="text" id="newAdminQuickTitle" placeholder="ခေါင်းစဉ်တို (ဥပမာ- ပို့ခနှုန်း)..." style="padding:6px; background:#0f172a; border:1px solid #475569; color:#fff; border-radius:6px; font-size:0.75rem;">
+        <input type="text" id="newAdminQuickText" placeholder="ဝယ်သူထံ ပို့မည့် စာသားအပြည့်အစုံ..." style="padding:6px; background:#0f172a; border:1px solid #475569; color:#fff; border-radius:6px; font-size:0.75rem;">
+      </div>
+      <button type="button" class="btn-gold" onclick="saveAdminQuickReplyFromTab()" style="padding:6px 12px; font-size:0.74rem;">
+        <i class="fas fa-plus"></i> Saved Reply အသစ်ထည့်မည်
+      </button>
+      <div id="adminSavedQuickRepliesList" style="margin-top:8px; display:flex; flex-direction:column; gap:5px;"></div>
+    </div>
+
+    <!-- 4. Payment QR Accounts Manager -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:10px;">
+      <h5 style="color:#38bdf8; font-size:0.8rem; margin:0 0 6px 0;">💳 ငွေလွှဲ QR အကောင့်များ ပြင်ဆင်ရန် (Copy ခလုတ်ပါဝင်မည်)</h5>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div style="background:#0f172a; padding:8px; border-radius:6px; border:1px solid #334155;">
+          <div style="font-size:0.72rem; color:#fde047; font-weight:bold; margin-bottom:4px;">KBZPay အကောင့်</div>
+          <input type="text" id="cfgChatKpayName" placeholder="အကောင့်အမည်" value="Ma Win Win Myint" style="width:100%; padding:5px; margin-bottom:4px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+          <input type="text" id="cfgChatKpayPhone" placeholder="ဖုန်းနံပါတ်" value="09768124433" style="width:100%; padding:5px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+        </div>
+        <div style="background:#0f172a; padding:8px; border-radius:6px; border:1px solid #334155;">
+          <div style="font-size:0.72rem; color:#fde047; font-weight:bold; margin-bottom:4px;">WavePay အကောင့်</div>
+          <input type="text" id="cfgChatWaveName" placeholder="အကောင့်အမည်" value="Nu Nu Htwe" style="width:100%; padding:5px; margin-bottom:4px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+          <input type="text" id="cfgChatWavePhone" placeholder="ဖုန်းနံပါတ်" value="09768124433" style="width:100%; padding:5px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+        </div>
+      </div>
+      <button type="button" class="btn-secondary" onclick="saveChatQrAccountsConfig()" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.74rem; cursor:pointer;">
+        <i class="fas fa-save"></i> ငွေလွှဲအကောင့်များ သိမ်းဆည်းမည်
+      </button>
+    </div>
       </div>
 
       <!-- Tab: Community Moderation & Replies -->
@@ -17683,6 +17715,226 @@ function forceOpenAdminDashboard() {
     }
   };
 })();
+
+(function initAdvancedSalesAndRadarSuite() {
+  window.chatQrAccountsCache = {
+    kpay: { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' },
+    wave: { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' }
+  };
+  window.adminInboxFilterMode = 'active'; // 'active' or 'done'
+
+  // ၁။ Database မှ QR Accounts နှင့် Quick Replies များကို Real-time ဆွဲယူခြင်း
+  function bindChatConfigFromDb() {
+    if (typeof fbDb === 'undefined') return setTimeout(bindChatConfigFromDb, 800);
+
+    fbDb.ref('chat_qr_accounts').on('value', snap => {
+      const val = snap.val();
+      if (val) {
+        if (val.kpay) window.chatQrAccountsCache.kpay = { ...window.chatQrAccountsCache.kpay, ...val.kpay };
+        if (val.wave) window.chatQrAccountsCache.wave = { ...window.chatQrAccountsCache.wave, ...val.wave };
+        const kn = document.getElementById('cfgChatKpayName');
+        const kp = document.getElementById('cfgChatKpayPhone');
+        const wn = document.getElementById('cfgChatWaveName');
+        const wp = document.getElementById('cfgChatWavePhone');
+        if (kn) kn.value = window.chatQrAccountsCache.kpay.name;
+        if (kp) kp.value = window.chatQrAccountsCache.kpay.phone;
+        if (wn) wn.value = window.chatQrAccountsCache.wave.name;
+        if (wp) wp.value = window.chatQrAccountsCache.wave.phone;
+      }
+    });
+
+    fbDb.ref('chat_quick_replies').on('value', snap => {
+      const val = snap.val();
+      const listEl = document.getElementById('adminSavedQuickRepliesList');
+      const toolBar = document.getElementById('adminChatSmartToolbar');
+      const entries = val ? Object.entries(val) : [];
+
+      if (listEl) {
+        listEl.innerHTML = entries.length ? entries.map(([k, item], idx) => `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px; border:1px solid #334155; font-size:0.74rem;">
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:75%;">
+              <span style="color:#38bdf8; font-weight:bold;">/r${idx + 1}</span>
+              <b style="color:#fde047; margin:0 4px;">[${item.title}]</b>
+              <span style="color:#cbd5e1;">${item.text}</span>
+            </div>
+            <div style="display:flex; gap:6px; flex-shrink:0;">
+              <button type="button" onclick="editAdminQuickReplyFromTab('${k}', ${JSON.stringify(item.title).replace(/"/g, '&quot;')}, ${JSON.stringify(item.text).replace(/"/g, '&quot;')})" style="background:#1e293b; color:#38bdf8; border:1px solid #38bdf8; border-radius:4px; padding:2px 6px; font-size:0.68rem; cursor:pointer;">ပြင်ရန်</button>
+              <button type="button" onclick="deleteAdminQuickReplyFromTab('${k}')" style="background:#450a0a; color:#f87171; border:1px solid #f87171; border-radius:4px; padding:2px 6px; font-size:0.68rem; cursor:pointer;">ဖျက်</button>
+            </div>
+          </div>
+        `).join('') : '<div style="font-size:0.72rem; color:#94a3b8;">သိမ်းဆည်းထားသော Quick Reply မရှိသေးပါ။</div>';
+      }
+
+      if (toolBar) {
+        const fixedHtml = `
+          <button type="button" class="smart-tool-chip" onclick="promptAdminSendProductCard()">🛍️ ပစ္စည်းကတ်</button>
+          <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartQrCard(adminActiveSelectedSession, 'kpay')">💳 KBZPay QR</button>
+          <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartQrCard(adminActiveSelectedSession, 'wave')">💳 WavePay QR</button>
+          <button type="button" class="smart-tool-chip" onclick="if(adminActiveSelectedSession) sendSmartCouponCard(adminActiveSelectedSession, 2000)">🎟️ 2,000 Ks ကူပွန်</button>
+        `;
+        const customHtml = entries.map(([k, item]) => `
+          <button type="button" class="smart-tool-chip" onclick="quickAdminReply(${JSON.stringify(item.text).replace(/"/g, '&quot;')})">💬 ${item.title}</button>
+        `).join('');
+        toolBar.innerHTML = fixedHtml + customHtml;
+      }
+    });
+  }
+
+  window.saveAdminQuickReplyFromTab = function() {
+    const tInp = document.getElementById('newAdminQuickTitle');
+    const mInp = document.getElementById('newAdminQuickText');
+    if (!tInp || !mInp || !tInp.value.trim() || !mInp.value.trim()) return alert('ခေါင်းစဉ်နှင့် စာသား အပြည့်အစုံ ဖြည့်ပါခင်ဗျာ။');
+    fbDb.ref('chat_quick_replies').push({ title: tInp.value.trim(), text: mInp.value.trim() });
+    tInp.value = ''; mInp.value = '';
+  };
+
+  window.editAdminQuickReplyFromTab = function(key, oldTitle, oldText) {
+    const newTitle = prompt('ခေါင်းစဉ်တို ပြင်ဆင်ရန်:', oldTitle);
+    if (newTitle === null || !newTitle.trim()) return;
+    const newText = prompt('စာသား ပြင်ဆင်ရန်:', oldText);
+    if (newText === null || !newText.trim()) return;
+    fbDb.ref(`chat_quick_replies/${key}`).update({ title: newTitle.trim(), text: newText.trim() });
+  };
+
+  window.deleteAdminQuickReplyFromTab = function(key) {
+    if (confirm('ဤ Quick Reply ကို ဖျက်မှာ သေချာပါသလား?')) fbDb.ref(`chat_quick_replies/${key}`).remove();
+  };
+
+  window.saveChatQrAccountsConfig = function() {
+    const kpay = {
+      bank: 'KBZPay',
+      name: (document.getElementById('cfgChatKpayName')?.value || 'Ma Win Win Myint').trim(),
+      phone: (document.getElementById('cfgChatKpayPhone')?.value || '09768124433').trim(),
+      qr: 'kpay-qr.jpg'
+    };
+    const wave = {
+      bank: 'WavePay',
+      name: (document.getElementById('cfgChatWaveName')?.value || 'Nu Nu Htwe').trim(),
+      phone: (document.getElementById('cfgChatWavePhone')?.value || '09768124433').trim(),
+      qr: 'wave-qr.jpg'
+    };
+    fbDb.ref('chat_qr_accounts').set({ kpay, wave }).then(() => alert('✅ ငွေလွှဲအကောင့်များ သိမ်းဆည်းပြီးပါပြီ!'));
+  };
+
+  // ၂။ QR Card ပို့ရာတွင် စိတ်ကြိုက်ပြင်ထားသော အကောင့် + Copy ခလုတ် သုံးရန် Override လုပ်ခြင်း
+  window.sendSmartQrCard = function(sessionId, bank = 'kpay') {
+    if (typeof fbDb === 'undefined') return;
+    const info = bank === 'wave' ? window.chatQrAccountsCache.wave : window.chatQrAccountsCache.kpay;
+    fbDb.ref(`support_chats/${sessionId}/messages`).push({
+      sender: 'admin',
+      text: `${info.bank} ငွေလွှဲအကောင့်`,
+      mediaUrl: info.qr,
+      mediaType: 'qr_card',
+      cardData: info,
+      timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp: Date.now()
+    });
+    fbDb.ref(`support_chats/${sessionId}`).update({ lastMessage: `💳 ${info.bank} QR ကတ် ပို့လိုက်သည်`, lastSender: 'admin', lastUpdate: Date.now() });
+    fbDb.ref(`support_chats/${sessionId}/telegramThreadId`).once('value').then(snap => {
+      fetch('/api/telegram-webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sendLiveChat',
+          topicId: snap.val() || null,
+          messageText: `👑 <b>[Admin မှ ${info.bank} ငွေလွှဲကတ် ပို့လိုက်ပါသည်]</b>\n🏦 <b>${info.bank}</b>\n👤 အမည်: <b>${info.name}</b>\n📞 ဖုန်း: <code>${info.phone}</code>`
+        })
+      }).catch(() => {});
+    });
+  };
+
+  window.copyChatQrPhone = function(btn, phoneNum) {
+    navigator.clipboard.writeText(phoneNum).then(() => {
+      const old = btn.innerHTML;
+      btn.innerHTML = '✅ Copy ကူးပြီးပါပြီ (' + phoneNum + ')';
+      btn.style.background = '#16a34a'; btn.style.color = '#fff';
+      setTimeout(() => { btn.innerHTML = old; btn.style.background = 'linear-gradient(135deg,#eab308,#ca8a04)'; btn.style.color = '#000'; }, 2200);
+    }).catch(() => alert('ဖုန်းနံပါတ်: ' + phoneNum));
+  };
+
+  // ၃။ Customer Live Radar (ဝယ်သူ ကြည့်နေသည့်ပစ္စည်း + Cart တန်ဖိုးကို Database သို့ အချိန်နှင့်တစ်ပြေးညီ ပို့ပေးခြင်း)
+  function updateCustomerLiveRadar(viewingItemName) {
+    const sId = window.currentGuestSessionId;
+    if (!sId || typeof fbDb === 'undefined') return;
+    let cartTotal = 0, cartCount = 0;
+    try {
+      const c = JSON.parse(localStorage.getItem('tm_cart') || '[]');
+      cartCount = c.reduce((sum, i) => sum + Number(i.qty || 1), 0);
+      cartTotal = c.reduce((sum, i) => sum + (Number(i.price || 0) * Number(i.qty || 1)), 0);
+    } catch (e) {}
+    const payload = { cartCount, cartTotal, lastActiveAt: Date.now() };
+    if (viewingItemName) payload.viewingProduct = viewingItemName;
+    fbDb.ref(`support_chats/${sId}/radar`).update(payload).catch(() => {});
+  }
+  setInterval(() => updateCustomerLiveRadar(), 12000);
+
+  // ၄။ ဝယ်သူ Chat Box ထိပ်တွင် Online Badge ထည့်သွင်းခြင်း & 10-Min Auto Follow-up
+  window.addEventListener('DOMContentLoaded', () => {
+    bindChatConfigFromDb();
+
+    const chatHeader = document.querySelector('#liveChatModal .modal-header, #liveChatModal h3');
+    if (chatHeader && !document.getElementById('tmLiveOnlineBadge')) {
+      const badge = document.createElement('div');
+      badge.id = 'tmLiveOnlineBadge';
+      badge.style.cssText = 'font-size:0.68rem; color:#4ade80; margin-top:2px; display:flex; align-items:center; gap:5px;';
+      badge.innerHTML = '<span style="display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; box-shadow:0 0 6px #22c55e;"></span> Online • ပျမ်းမျှ ၁ မိနစ်အတွင်း ပြန်ဖြေပါသည်';
+      chatHeader.appendChild(badge);
+    }
+
+    // Admin Inbox တွင် Active / Done Tab ခလုတ်များ ထည့်သွင်းခြင်း
+    const listContainer = document.getElementById('adminChatSessionsListContainer');
+    if (listContainer && !document.getElementById('adminInboxStatusTabs')) {
+      const tabs = document.createElement('div');
+      tabs.id = 'adminInboxStatusTabs';
+      tabs.style.cssText = 'display:flex; gap:4px; margin-bottom:6px;';
+      tabs.innerHTML = `
+        <button type="button" id="tabInboxActive" onclick="switchAdminInboxTab('active')" style="flex:1; padding:4px; font-size:0.7rem; border-radius:5px; border:1px solid #22c55e; background:#16a34a; color:#fff; cursor:pointer; font-weight:bold;">🟢 Active</button>
+        <button type="button" id="tabInboxDone" onclick="switchAdminInboxTab('done')" style="flex:1; padding:4px; font-size:0.7rem; border-radius:5px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer;">✅ Done</button>
+      `;
+      listContainer.parentElement.insertBefore(tabs, listContainer);
+    }
+  });
+
+  window.switchAdminInboxTab = function(mode) {
+    window.adminInboxFilterMode = mode;
+    const bAct = document.getElementById('tabInboxActive');
+    const bDone = document.getElementById('tabInboxDone');
+    if (bAct && bDone) {
+      bAct.style.background = mode === 'active' ? '#16a34a' : '#1e293b';
+      bDone.style.background = mode === 'done' ? '#0284c7' : '#1e293b';
+    }
+    if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
+  };
+
+  window.toggleChatSessionDoneStatus = function(sessionId, markDone) {
+    if (typeof fbDb === 'undefined') return;
+    fbDb.ref(`support_chats/${sessionId}`).update({ status: markDone ? 'done' : 'active' });
+  };
+
+  // 10 မိနစ်ကြာ စကားငြိမ်နေပြီး အော်ဒါမတင်သေးပါက 1,000 Ks Auto Follow-up ပို့ပေးခြင်း
+  setInterval(() => {
+    const sId = window.currentGuestSessionId;
+    if (!sId || typeof fbDb === 'undefined' || localStorage.getItem('tm_auto_followup_sent_' + sId)) return;
+    fbDb.ref(`support_chats/${sId}`).once('value').then(snap => {
+      const data = snap.val();
+      if (!data || !data.lastUpdate || data.lastSender !== 'user') return;
+      const idleMs = Date.now() - Number(data.lastUpdate);
+      if (idleMs >= 10 * 60 * 1000) {
+        localStorage.setItem('tm_auto_followup_sent_' + sId, '1');
+        const code = 'WELCOME1K';
+        fbDb.ref(`support_chats/${sId}/messages`).push({
+          sender: 'bot',
+          text: 'လူကြီးမင်း သိလိုသည်များ ထပ်မံမေးမြန်းနိုင်ပါတယ်ခင်ဗျာ။ ယခုမှာယူပါက အသုံးပြုနိုင်ရန် 1,000 Ks လျှော့ဈေးကူပွန် လက်ဆောင်ပေးလိုက်ပါတယ်ခင်ဗျာ 🎁',
+          mediaType: 'coupon_card',
+          cardData: { code, discount: 1000, amount: 1000 },
+          timeStr: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: Date.now()
+        });
+      }
+    });
+  }, 60000);
+})();
+</script>
 </script>
 </body>
 </html>
