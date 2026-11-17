@@ -13501,7 +13501,15 @@ applySoundToggleUI(isAudioMuted);
           container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ</p>';
           return;
         }
-
+        
+        // Live Chat Customer Inbox (support_chats) တစ်ခုတည်းကိုသာ ရက်ပေါင်း ၉၀ (၃ လ) ကျော်ပါက Auto ဖျက်ခြင်း
+    const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+    const nowTs = Date.now();
+    Object.entries(val).forEach(([k, d]) => {
+      if (d && d.lastUpdate && (nowTs - Number(d.lastUpdate) > NINETY_DAYS_MS)) {
+        fbDb.ref(`support_chats/${k}`).remove().catch(() => {});
+      }
+    });
         const entries = Object.entries(val).filter(([k, d]) => d && (d.messages || d.lastMessage)).sort((a,b) => (b[1].lastUpdate||0) - (a[1].lastUpdate||0));
         container.innerHTML = entries.map(([sId, data]) => {
           const isAct = adminActiveSelectedSession === sId;
