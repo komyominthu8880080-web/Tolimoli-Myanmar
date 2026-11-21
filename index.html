@@ -3994,16 +3994,16 @@ function scrollCategories(amount) {
         </div>
 
         <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; height:62vh;">
-          <!-- Left: Customer Chat Sessions List -->
-          <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:6px; overflow-y:auto;" id="adminChatSessionsListContainer">
-            <p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">ခဏစောင့်ပေးပါ...</p>
-          </div>
+         <!-- Left: Customer Chat Sessions List -->
+        <div id="adminChatListPane" style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:6px; overflow-y:auto;">
+          <p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">စောင့်ဆိုင်းပေးပါ...</p>
+        </div>
 
-          <!-- Right: Active Chat Conversation Box -->
-          <div style="background:#0b1329; border:1px solid #334155; border-radius:8px; display:flex; flex-direction:column; padding:8px; overflow:hidden;" id="adminActiveChatBox">
-            <div id="adminActiveChatHeader" style="padding-bottom:6px; border-bottom:1px solid #334155; font-size:0.78rem; color:var(--gold); font-weight:bold;">
-              စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ
-            </div>
+        <!-- Right: Active Chat Conversation Box -->
+        <div id="adminChatConversationPane" style="background:#0b1329; border:1px solid #334155; border-radius:8px; display:flex; flex-direction:column; padding:8px; min-height:380px;">
+          <div id="adminActiveChatHeader" style="padding-bottom:6px; border-bottom:1px solid #334155; font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ
+          </div>
             <div id="adminActiveChatMessages" style="flex:1; overflow-y:auto; padding:8px 4px; display:flex; flex-direction:column; gap:6px;">
               <p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:30px;">Chat ရွေးချယ်ထားခြင်း မရှိသေးပါ</p>
             </div>
@@ -13569,27 +13569,63 @@ applySoundToggleUI(isAudioMuted);
     });
   }
 
+  function backToAdminChatListMobile() {
+    adminActiveSelectedSession = null;
+    const listPane = document.getElementById('adminChatListPane');
+    const convPane = document.getElementById('adminChatConversationPane');
+    if (listPane) listPane.style.display = 'block';
+    if (convPane && window.innerWidth <= 768) convPane.style.display = 'none';
+  }
+
   function selectAdminChatSession(sessionId) {
     adminActiveSelectedSession = sessionId;
     if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
+    const listPane = document.getElementById('adminChatListPane');
+    const convPane = document.getElementById('adminChatConversationPane');
     const header = document.getElementById('adminActiveChatHeader');
     const replyBar = document.getElementById('adminChatReplyBar');
     const msgsBox = document.getElementById('adminActiveChatMessages');
 
+    // Mobile ဖုန်း Screen ဖြစ်ပါက List ကို ခဏဖျောက်ပြီး Chat Box ကို အပြည့်အဝ ပြသခြင်း
+    const isMobileView = window.innerWidth <= 768;
+    if (isMobileView) {
+      if (listPane) listPane.style.display = 'none';
+      if (convPane) {
+        convPane.style.display = 'flex';
+        convPane.style.minHeight = '440px';
+        convPane.style.maxHeight = '72vh';
+      }
+    } else {
+      if (listPane) listPane.style.display = 'block';
+      if (convPane) convPane.style.display = 'flex';
+    }
+
     if (header && typeof fbDb !== 'undefined') {
       fbDb.ref(`support_chats/${sessionId}/status`).once('value').then(stSnap => {
         const isDone = stSnap.val() === 'done';
+        const backBtn = isMobileView
+          ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#f8fafc; border:1px solid #475569; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer;">← စာရင်းသို့</button>`
+          : '';
         const toggleBtn = isDone
-          ? `<button onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">🟢 Active ပြန်လုပ်မည်</button>`
-          : `<button onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#0ea5e9; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">✅ Done မှတ်မည်</button>`;
+          ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">🟢 Active ပြန်လုပ်မည်</button>`
+          : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#0ea5e9; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">✅ Done မှတ်မည်</button>`;
         header.style.display = 'flex';
         header.style.alignItems = 'center';
-        header.innerHTML = `<i class="fas fa-comments" style="color:var(--gold);"></i> စကားဝိုင်း: <strong style="color:#00ff88; margin-left:4px;">${sessionId}</strong> ${toggleBtn}`;
+        header.style.gap = '6px';
+        header.style.flexWrap = 'wrap';
+        header.innerHTML = `${backBtn}<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-comments" style="color:var(--gold);"></i> <strong style="color:#00ff88;">${sessionId}</strong></span>${toggleBtn}`;
       });
     }
-    if (replyBar) replyBar.style.display = 'flex';
+    if (replyBar) {
+      replyBar.style.display = 'flex';
+      replyBar.style.marginTop = 'auto';
+      replyBar.style.paddingTop = '6px';
+    }
+    if (msgsBox) {
+      msgsBox.style.minHeight = isMobileView ? '230px' : '220px';
+      msgsBox.style.maxHeight = isMobileView ? '44vh' : '340px';
+    }
     if (!msgsBox || typeof fbDb === 'undefined') return;
-  // Admin ဘက်မှ ဖတ်ပြီးကြောင်း Read Status Update လုပ်ရန်
   if (typeof updateMessageReadStatus === 'function') {
     updateMessageReadStatus(sessionId, 'admin');
   }
