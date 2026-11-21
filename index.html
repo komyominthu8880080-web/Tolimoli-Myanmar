@@ -13573,6 +13573,11 @@ applySoundToggleUI(isAudioMuted);
     adminActiveSelectedSession = null;
     const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
+    const gridWrap = listPane ? listPane.parentElement : null;
+    if (gridWrap && window.innerWidth <= 768) {
+      gridWrap.style.display = 'block';
+      gridWrap.style.height = 'auto';
+    }
     if (listPane) listPane.style.display = 'block';
     if (convPane && window.innerWidth <= 768) convPane.style.display = 'none';
   }
@@ -13582,20 +13587,33 @@ applySoundToggleUI(isAudioMuted);
     if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
     const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
+    const gridWrap = listPane ? listPane.parentElement : null;
     const header = document.getElementById('adminActiveChatHeader');
     const replyBar = document.getElementById('adminChatReplyBar');
     const msgsBox = document.getElementById('adminActiveChatMessages');
 
-    // Mobile ဖုန်း Screen ဖြစ်ပါက List ကို ခဏဖျောက်ပြီး Chat Box ကို အပြည့်အဝ ပြသခြင်း
+    // Mobile ဖုန်း Screen ဖြစ်ပါက Grid ကို Block ပြောင်းပြီး ဘောင်အတွင်း ကွက်တိ အပြည့်ပြသခြင်း
     const isMobileView = window.innerWidth <= 768;
     if (isMobileView) {
+      if (gridWrap) {
+        gridWrap.style.display = 'block';
+        gridWrap.style.height = 'auto';
+      }
       if (listPane) listPane.style.display = 'none';
       if (convPane) {
         convPane.style.display = 'flex';
+        convPane.style.width = '100%';
+        convPane.style.maxWidth = '100%';
+        convPane.style.boxSizing = 'border-box';
         convPane.style.minHeight = '440px';
         convPane.style.maxHeight = '72vh';
+        convPane.style.overflowX = 'hidden';
       }
     } else {
+      if (gridWrap) {
+        gridWrap.style.display = 'grid';
+        gridWrap.style.height = '62vh';
+      }
       if (listPane) listPane.style.display = 'block';
       if (convPane) convPane.style.display = 'flex';
     }
