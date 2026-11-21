@@ -3995,7 +3995,7 @@ function scrollCategories(amount) {
 
         <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; height:62vh;">
          <!-- Left: Customer Chat Sessions List -->
-        <div id="adminChatListPane" style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:6px; overflow-y:auto;">
+        <div id="adminChatSessionsListContainer" style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:6px; overflow-y:auto;">
           <p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">စောင့်ဆိုင်းပေးပါ...</p>
         </div>
 
@@ -13571,7 +13571,7 @@ applySoundToggleUI(isAudioMuted);
 
   function backToAdminChatListMobile() {
     adminActiveSelectedSession = null;
-    const listPane = document.getElementById('adminChatListPane');
+    const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
     if (listPane) listPane.style.display = 'block';
     if (convPane && window.innerWidth <= 768) convPane.style.display = 'none';
@@ -13580,7 +13580,7 @@ applySoundToggleUI(isAudioMuted);
   function selectAdminChatSession(sessionId) {
     adminActiveSelectedSession = sessionId;
     if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
-    const listPane = document.getElementById('adminChatListPane');
+    const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
     const header = document.getElementById('adminActiveChatHeader');
     const replyBar = document.getElementById('adminChatReplyBar');
