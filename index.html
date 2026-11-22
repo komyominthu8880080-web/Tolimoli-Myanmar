@@ -5206,11 +5206,30 @@ fetchArticles();
 }
 
     function saveOrders() {
-      localStorage.setItem('tm_orders', JSON.stringify(orders));
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('shop_orders').set(orders);
-      }
-    }
+  try {
+    const lightOrders = (Array.isArray(orders) ? orders : []).slice(-30).map(o => {
+      if (!o || typeof o !== 'object') return o;
+      const copy = { ...o };
+      if (typeof copy.slipImage === 'string' && copy.slipImage.startsWith('data:')) copy.slipImage = '';
+      if (typeof copy.paymentSlip === 'string' && copy.paymentSlip.startsWith('data:')) copy.paymentSlip = '';
+      return copy;
+    });
+    localStorage.setItem('tm_orders', JSON.stringify(lightOrders));
+  } catch (err) {
+    try {
+      localStorage.removeItem('tm_orders');
+      const latestOnly = (Array.isArray(orders) ? orders : []).slice(-5).map(o => ({
+        ...o,
+        slipImage: (typeof o?.slipImage === 'string' && o.slipImage.startsWith('data:')) ? '' : (o?.slipImage || ''),
+        paymentSlip: (typeof o?.paymentSlip === 'string' && o.paymentSlip.startsWith('data:')) ? '' : (o?.paymentSlip || '')
+      }));
+      localStorage.setItem('tm_orders', JSON.stringify(latestOnly));
+    } catch (_) {}
+  }
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_orders').set(orders);
+  }
+}
     function saveCart() {
       localStorage.setItem('tm_cart', JSON.stringify(cart));
       updateCartBadge();
