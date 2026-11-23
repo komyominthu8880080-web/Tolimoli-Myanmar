@@ -4824,6 +4824,7 @@ function handleTownshipSelect() {
                 : [];
 
   let availableDeliOptions = [];
+  let hasAnyTownMatch = false;
 
   comps.forEach(comp => {
     const townList = comp.townDetails || (Array.isArray(comp.townships) ? comp.townships.map(t => ({ name: t, fee: comp.fee, duration: comp.days, cod: comp.isCod !== false })) : []);
@@ -4839,6 +4840,7 @@ function handleTownshipSelect() {
     if (isYangon && isBus) return;
 
     if (matchedTown) {
+      hasAnyTownMatch = true;
       availableDeliOptions.push({
         id: comp.id || ('comp_' + Math.random()),
         name: comp.name || 'Deli',
@@ -4890,8 +4892,12 @@ function handleTownshipSelect() {
       const idx = availableDeliOptions.findIndex(o => o.name === saved);
       if (idx > -1) defaultIdx = idx;
     }
-
-    cardsList.innerHTML = availableDeliOptions.map((opt, idx) => {
+    const unknownTownBanner = (!hasAnyTownMatch && !isYangon)
+      ? `<div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.45); border-radius:8px; padding:8px 10px; margin-bottom:8px; font-size:11px; color:#fde047; line-height:1.45;">
+          ℹ️ <b>"${val}"</b> ကို အိမ်အရောက်ငွေချေ (COD) မြို့စာရင်းတွင် မတွေ့ပါ — စာလုံးပေါင်း ပြန်စစ်ကြည့်ပါ (သို့) စာရင်းမပါဝင်သော နယ်မြို့ဖြစ်ပါက အောက်ပါ <b>ကားဂိတ်ချ / ငွေကြိုလွှဲ</b> စနစ်ဖြင့် ပို့ဆောင်ပေးပါသည်။
+        </div>`
+      : '';
+    cardsList.innerHTML = unknownTownBanner + availableDeliOptions.map((opt, idx) => {
       const isBus = opt.isBus;
       return `
         <div class="deli-option-card-smart ${idx === defaultIdx ? 'active-selected' : ''}" 
