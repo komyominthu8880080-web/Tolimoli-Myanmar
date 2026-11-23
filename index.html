@@ -5266,15 +5266,16 @@ fetchArticles();
     function saveCart() {
   localStorage.setItem('tm_cart', JSON.stringify(cart));
   updateCartBadge();
-  const recoveryBar = document.getElementById('abandonedCartBanner') || document.querySelector('.abandoned-cart-banner');
-  if (recoveryBar) {
-    const totalQty = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0) : 0;
-    if (totalQty === 0) {
-      recoveryBar.style.display = 'none';
-    } else {
-      recoveryBar.innerHTML = recoveryBar.innerHTML.replace(/\(\s*\d+\s*\)/, `(${totalQty})`);
+  const totalQty = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (Number(item.qty) || 1), 0) : 0;
+  document.querySelectorAll('div, section, aside').forEach(el => {
+    if (el.children.length <= 4 && el.textContent && el.textContent.includes('ခြင်းတောင်းထဲ ပစ္စည်း') && el.textContent.includes('ကျန်ရှိနေပါသည်')) {
+      if (totalQty === 0) {
+        el.style.display = 'none';
+      } else {
+        el.innerHTML = el.innerHTML.replace(/\(\s*\d+\s*\)/g, `(${totalQty})`);
+      }
     }
-  }
+  });
 }
     function saveDiscounts() {
       localStorage.setItem('tm_discounts', JSON.stringify(discounts));
