@@ -7894,27 +7894,35 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
         slipUrl = await uploadToImgBB(file);
       }
 
-     // Stock လျှော့ချခြင်း (Local & Firebase shop_products Sync)
-cart.forEach(it => {
-  const p = products.find(prod => String(prod.id) === String(it.id));
-  if (p) {
-    p.stock = Math.max(0, (Number(p.stock) || 0) - (Number(it.qty) || 1));
-    // Firebase ပေါ်ရှိ shop_products node ထဲသို့ တိုက်ရိုက် Update ပြုလုပ်ခြင်း
-    try {
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('shop_products/' + p.id + '/stock').set(p.stock);
+     // Stock လျှော့ချခြင်း (ID / SKU / Combo အားလုံး ကိုက်ညီအောင် ရှာပြီး Firebase နှင့် Sync လုပ်ခြင်း)
+  cart.forEach(it => {
+    const qty = Number(it.qty) || 1;
+    if (it.isCombo && Array.isArray(it.bundleItems)) {
+      it.bundleItems.forEach(bIt => {
+        const bp = products.find(prod => String(prod.id) === String(bIt.id) || (bIt.sku && prod.sku === bIt.sku));
+        if (bp) bp.stock = Math.max(0, (Number(bp.stock) || 0) - qty);
+      });
+    } else {
+      const p = products.find(prod =>
+        String(prod.id) === String(it.id) ||
+        (it.sku && prod.sku && String(prod.sku).trim() === String(it.sku).trim()) ||
+        (it.name && prod.name && String(prod.name).trim() === String(it.name).trim())
+      );
+      if (p) {
+        p.stock = Math.max(0, (Number(p.stock) || 0) - qty);
       }
-    } catch (e) {
-      console.warn("Stock sync warning:", e);
     }
+  });
+
+  if (currentCustomerSelectedFocGift && !currentCustomerSelectedFocGift.isManualGift) {
+    const focProd = products.find(prod => String(prod.id) === String(currentCustomerSelectedFocGift.id));
+    if (focProd) focProd.stock = Math.max(0, (Number(focProd.stock) || 0) - 1);
   }
-});
-      if (currentCustomerSelectedFocGift && !currentCustomerSelectedFocGift.isManualGift) {
-        const focProd = products.find(prod => prod.id === currentCustomerSelectedFocGift.id);
-        if (focProd) focProd.stock = Math.max(0, focProd.stock - 1);
-      }
-      saveProducts();
-      renderCatalog();
+
+  saveProducts();
+  renderCatalog();
+  if (typeof renderStockTable === 'function') renderStockTable();
+  if (typeof renderAdminProducts === 'function') renderAdminProducts();
 
       const now = new Date();
       const orderId = 'ORD-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(1000 + Math.random()*9000);
