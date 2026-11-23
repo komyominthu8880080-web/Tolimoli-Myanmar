@@ -11144,45 +11144,78 @@ function closeModal(id) {
         return;
       }
 
-      container.innerHTML = custList.map(c => {
-        const isVip = c.orderCount >= (vipConfig?.vipThreshold || 5);
-        const formattedDateTime = c.lastDate ? formatExactDateTime(c.lastDate) : '-';
-        const latestOrder = c.ordersList.sort((a, b) => parseOrderTimestamp(b) - parseOrderTimestamp(a))[0];
-        const latestItemsSummary = latestOrder && Array.isArray(latestOrder.items)
-          ? latestOrder.items.map(i => `${i.name} (x${i.qty || 1})`).join('၊ ')
-          : '';
-        const custPoints = typeof calculateCustomerPoints === 'function' ? calculateCustomerPoints(c.phone) : 0;
-        return `
-          <div style="background:rgba(255,255,255,0.03); border:1px solid ${isVip ? 'var(--gold)' : '#334155'}; border-radius:8px; padding:10px 12px; margin-bottom:8px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-              <div style="flex:1; min-width:0;">
-                <div style="font-weight:700; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span>👤 ${c.name}</span>
-                  ${isVip ? '<span style="background:var(--gold); color:#000; font-size:9px; padding:1px 6px; border-radius:4px; font-weight:800;">👑 VIP</span>' : ''}
-                </div>
-                <div style="font-size:0.75rem; color:#38bdf8; margin-top:3px;">📞 ${c.phone}</div>
-                <div style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">📍 ${c.address} ${c.township ? '(' + c.township + ')' : ''}</div>
-                <div style="font-size:0.71rem; color:#fde047; margin-top:4px; display:flex; align-items:center; gap:5px;">
-                  <i class="far fa-clock"></i> <span>ဝယ်ယူသည့်အချိန်: <b>${formattedDateTime}</b></span>
-                </div>
-                ${latestItemsSummary ? `<div style="font-size:0.69rem; color:#cbd5e1; margin-top:3px; opacity:0.85;">🛍 နောက်ဆုံးဝယ်ယူမှု: ${latestItemsSummary}</div>` : ''}
-              </div>
-              <div style="text-align:right; flex-shrink:0;">
-                <div style="font-size:0.88rem; font-weight:700; color:#00ff88;">${c.totalSpent.toLocaleString()} Ks</div>
-                <div style="font-size:0.7rem; color:var(--gold); margin-top:2px;">အော်ဒါ: <b>${c.orderCount}</b> ကြိမ်</div>
-              <div style="margin-top:4px; display:flex; align-items:center; justify-content:flex-end; gap:5px;">
-  <span style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#10b981; padding:2px 7px; border-radius:12px; font-size:0.72rem; font-weight:700;">
-    🍃 ${custPoints} pts
-  </span>
-  <button type="button" onclick="openAdminPointAdjustModal('${c.phone}', '${(c.name || '').replace(/'/g, '')}')" style="background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.5); color:#fbbf24; padding:2px 7px; border-radius:6px; font-size:0.7rem; font-weight:600; cursor:pointer;">
-    ✏️ တိုး/နှုတ်
-  </button>
-</div>
-</div>
+      container.innerHTML = custList.map((c, idx) => {
+    const isVip = c.orderCount >= (vipConfig?.vipThreshold || 5);
+    const formattedDateTime = c.lastDate ? formatExactDateTime(c.lastDate) : '-';
+    const sortedOrders = (c.ordersList || []).slice().sort((a, b) => parseOrderTimestamp(b) - parseOrderTimestamp(a));
+    const latestOrder = sortedOrders[0];
+    const latestItemsSummary = latestOrder && Array.isArray(latestOrder.items)
+      ? latestOrder.items.map(i => `${i.name} (x${i.qty || 1})`).join('၊ ')
+      : '';
+    const custPoints = typeof calculateCustomerPoints === 'function' ? calculateCustomerPoints(c.phone) : 0;
+    const historyBoxId = `custOrderHistory_${idx}`;
+
+    const historyRowsHtml = sortedOrders.map((ord, oIdx) => {
+      const ordTime = ord.date ? formatExactDateTime(ord.date) : '-';
+      const ordItems = Array.isArray(ord.items)
+        ? ord.items.map(it => `${it.name} (x${it.qty || 1})`).join('၊ ')
+        : (ord.itemsSummary || '-');
+      const ordTotal = Number(ord.total || 0).toLocaleString();
+      const ordStatus = ord.status || 'Pending';
+      const isBad = String(ordStatus).includes('Cancel') || String(ordStatus).includes('Returned') || String(ordStatus).includes('ငြင်းပယ်');
+      return `
+        <div style="padding:7px 9px; border-top:1px dashed rgba(255,255,255,0.12); font-size:0.72rem; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+          <div style="flex:1; min-width:0;">
+            <div style="color:#fde047; font-weight:600;">#${sortedOrders.length - oIdx} • ${ordTime} <span style="color:#94a3b8; font-weight:400;">(${ord.id || ''})</span></div>
+            <div style="color:#e2e8f0; margin-top:2px;">🛍️ ${ordItems}</div>
+            ${ord.address ? `<div style="color:#94a3b8; font-size:0.68rem; margin-top:2px;">📍 ${ord.address} ${ord.township ? '(' + ord.township + ')' : ''}</div>` : ''}
+          </div>
+          <div style="text-align:right; flex-shrink:0;">
+            <div style="color:#00ff88; font-weight:700;">${ordTotal} Ks</div>
+            <span style="display:inline-block; margin-top:2px; padding:1px 6px; border-radius:4px; font-size:0.65rem; background:${isBad ? 'rgba(239,68,68,0.2)' : 'rgba(56,189,248,0.18)'}; color:${isBad ? '#fca5a5' : '#38bdf8'};">${ordStatus}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid ${isVip ? 'var(--gold)' : '#334155'}; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+        <div onclick="const el=document.getElementById('${historyBoxId}'); if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';" style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; cursor:pointer;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:700; color:#fff; font-size:0.85rem; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              <span>👤 ${c.name}</span>
+              ${isVip ? '<span style="background:var(--gold); color:#000; font-size:9px; padding:1px 6px; border-radius:4px; font-weight:800;">VIP</span>' : ''}
+            </div>
+            <div style="font-size:0.75rem; color:#38bdf8; margin-top:3px;">📞 ${c.phone}</div>
+            <div style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">📍 ${c.address} ${c.township ? '(' + c.township + ')' : ''}</div>
+            <div style="font-size:0.71rem; color:#fde047; margin-top:4px; display:flex; align-items:center; gap:5px;">
+              <i class="far fa-clock"></i> <span>ဝယ်ယူသည့်အချိန်: <b>${formattedDateTime}</b></span>
+            </div>
+            ${latestItemsSummary ? `<div style="font-size:0.69rem; color:#cbd5e1; margin-top:3px; opacity:0.85;">🛍️ နောက်ဆုံးဝယ်ယူမှု: ${latestItemsSummary}</div>` : ''}
+            <div style="font-size:0.68rem; color:#38bdf8; margin-top:4px;">▼ အော်ဒါမှတ်တမ်း (${c.orderCount} ကြိမ်) ကြည့်ရန် နှိပ်ပါ</div>
+          </div>
+          <div style="text-align:right; flex-shrink:0;" onclick="event.stopPropagation();">
+            <div style="font-size:0.88rem; font-weight:700; color:#00ff88;">${c.totalSpent.toLocaleString()} Ks</div>
+            <div onclick="const el=document.getElementById('${historyBoxId}'); if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';" style="font-size:0.7rem; color:var(--gold); margin-top:2px; cursor:pointer; text-decoration:underline;">အော်ဒါ: <b>${c.orderCount}</b> ကြိမ် ▾</div>
+            <div style="margin-top:4px; display:flex; align-items:center; justify-content:flex-end; gap:5px;">
+              <span style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#10b981; padding:2px 7px; border-radius:12px; font-size:0.72rem; font-weight:700;">
+                🍃 ${custPoints} pts
+              </span>
+              <button type="button" onclick="openAdminPointAdjustModal('${c.phone}', '${(c.name || '').replace(/'/g, '')}')" style="background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.5); color:#fbbf24; padding:2px 7px; border-radius:6px; font-size:0.7rem; font-weight:600; cursor:pointer;">
+                ✏️ တိုး/နှုတ်
+              </button>
             </div>
           </div>
-        `;
-      }).join('');
+        </div>
+        <div id="${historyBoxId}" style="display:none; margin-top:8px; background:rgba(15,23,42,0.65); border:1px solid rgba(56,189,248,0.25); border-radius:8px; overflow:hidden;">
+          <div style="padding:5px 9px; background:rgba(56,189,248,0.12); color:#38bdf8; font-size:0.7rem; font-weight:700;">
+            📋 ဝယ်ယူခဲ့သော အော်ဒါမှတ်တမ်း အပြည့်အစုံ (${c.orderCount} ကြိမ်)
+          </div>
+          ${historyRowsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
     }
 
     // ========================================================
