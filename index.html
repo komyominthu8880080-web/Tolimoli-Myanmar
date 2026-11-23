@@ -8475,6 +8475,7 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       if (sInp) sInp.value = '';
       if (sel) sel.value = 'all';
       if (cDate) cDate.value = '';
+      window.currentStockSummaryFilter = 'all';
       renderStockTable();
     }
 
@@ -8534,7 +8535,11 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         const inCount = leftCount + soldCount + damagedCount;
 
         totalIn += inCount; totalSold += soldCount; totalDamaged += damagedCount; totalLeft += leftCount;
-
+        const sMode = window.currentStockSummaryFilter || 'all';
+    if (sMode === 'in' && inCount <= 0) return '';
+    if (sMode === 'sold' && soldCount <= 0) return '';
+    if (sMode === 'damaged' && damagedCount <= 0) return '';
+    if (sMode === 'left' && leftCount <= 0) return '';
         const expInfo = getProductExpiryStatus(p);
 
         return `
@@ -8586,7 +8591,29 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       document.getElementById('summaryStockDamaged').innerText = totalDamaged + ' ခု';
       document.getElementById('summaryStockLeft').innerText = totalLeft + ' ခု';
     }
-
+    // ကဒ် ၄ ခု (ထပ်သွင်း / ရောင်းထွက် / ပျက်စီး / လက်ကျန်) ကို နှိပ်ကြည့်နိုင်ရန် ချိတ်ဆက်ခြင်း
+  const cardFilters = [
+    { id: 'summaryStockIn', mode: 'in', label: '📥 ထပ်သွင်းစာရင်း ရှိသော ပစ္စည်းများ' },
+    { id: 'summaryStockSold', mode: 'sold', label: '🛍️ ရောင်းထွက်ထားသော ပစ္စည်းများ' },
+    { id: 'summaryStockDamaged', mode: 'damaged', label: '⚠️ ပျက်စီးစာရင်း ရှိသော ပစ္စည်းများ' },
+    { id: 'summaryStockLeft', mode: 'left', label: '📊 လက်ကျန် Stock ရှိသော ပစ္စည်းများ' }
+  ];
+  cardFilters.forEach(cf => {
+    const valEl = document.getElementById(cf.id);
+    const cardEl = valEl ? valEl.parentElement : null;
+    if (cardEl && !cardEl.dataset.clickBound) {
+      cardEl.dataset.clickBound = '1';
+      cardEl.style.cursor = 'pointer';
+      cardEl.title = 'နှိပ်၍ စာရင်းစစ်ထုတ်ကြည့်ရန်';
+      cardEl.onclick = () => {
+        window.currentStockSummaryFilter = (window.currentStockSummaryFilter === cf.mode) ? 'all' : cf.mode;
+        renderStockTable();
+      };
+    }
+    if (cardEl) {
+      cardEl.style.outline = (window.currentStockSummaryFilter === cf.mode) ? '2px solid #d4af37' : 'none';
+    }
+  });
     function openStockAdjustmentModal(pId) {
   const p = products.find(x => x.id === pId);
   if (!p) return;
