@@ -3574,6 +3574,39 @@ function scrollCategories(amount) {
 
       <!-- Tab 6: Discounts & VIP Loyalty Management -->
       <div class="admin-tab" id="discountsTab">
+        <!-- LOYALTY POINT SYSTEM MASTER CONTROL PANEL -->
+        <div style="background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.85)); border:1px solid rgba(16,185,129,0.4); border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div>
+              <h4 style="color:#10b981; font-size:0.92rem; margin:0; display:flex; align-items:center; gap:6px;">
+                <i class="fas fa-coins" style="color:var(--gold);"></i> ဝယ်သူ Loyalty Point စနစ် ထိန်းချုပ်မှု
+              </h4>
+              <small id="loyaltyStatusHint" style="color:#a7f3d0; font-size:0.72rem;">လက်ရှိ အခြေအနေ: ဖွင့်ထားပါသည် (ON)</small>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.35); padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.15); cursor:pointer;">
+              <input type="checkbox" id="adminLoyaltyMasterToggle" checked onchange="toggleLoyaltyMasterSwitch()" style="width:16px; height:16px; accent-color:#10b981; cursor:pointer;">
+              <span id="adminLoyaltyToggleLabel" style="color:#10b981; font-weight:700; font-size:0.78rem;">စနစ် ဖွင့်ထားသည်</span>
+            </label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.74rem; color:#cbd5e1;">Point ၁ မှတ် ရမည့် ဝယ်ယူငွေ (Ks)</label>
+              <input type="number" id="adminLoyaltyEarnRate" value="1000" min="100" step="100" placeholder="ဥပမာ - 1000" style="padding:7px; font-size:0.82rem;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.74rem; color:#cbd5e1;">Point ၁ မှတ် လျှော့ပေးမည့် တန်ဖိုး (Ks)</label>
+              <input type="number" id="adminLoyaltyRedeemRate" value="10" min="1" step="1" placeholder="ဥပမာ - 10" style="padding:7px; font-size:0.82rem;">
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; flex-wrap:wrap;">
+            <small style="color:#94a3b8; font-size:0.7rem;">* ပိတ်ထားပါက Checkout စာမျက်နှာတွင် Point အကွက် ပေါ်မည်မဟုတ်ပါ။</small>
+            <button type="button" onclick="saveLoyaltySettingsToFirebase()" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; border:none; padding:7px 14px; border-radius:7px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+              <i class="fas fa-save"></i> စည်းမျဉ်း သိမ်းဆည်းမည်
+            </button>
+          </div>
+        </div>
         <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">လျှော့ဈေး ကူပွန်များ စီမံခန့်ခွဲခြင်း (Promo Codes)</h4>
         
         <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px;">
@@ -6147,29 +6180,150 @@ function openComparisonModal() {
       }).join('');
     }
 
-    function calculateCustomerPoints(phoneDigits) {
-      if (!phoneDigits || phoneDigits.length < 8) return 0;
-      let points = 0;
-      orders.forEach(o => {
-        if (!o || !o.phone) return;
-        const p = String(o.phone).replace(/[^0-9]/g, '');
-        if (p === phoneDigits && !String(o.status).includes('Returned') && !String(o.status).includes('Cancelled')) {
-          points += Math.floor((Number(o.total) || 0) / 1000);
-        }
-      });
-      return points;
-    }
+    // =========================================================
+// 🌟 MODERN LOYALTY POINTS ENGINE (FIREBASE REALTIME SYNC)
+// =========================================================
+var loyaltyConfig = {
+  enabled: true,
+  earnRate: 1000,   // 1000 Ks = 1 Point
+  redeemRate: 10    // 1 Point = 10 Ks
+};
+var customerPointsAdjustments = {}; // Firebase မှ Admin တိုး/နှုတ် နှင့် သုံးပြီးသား Point မှတ်တမ်း
 
-    function togglePointsRedemption() {
-      const chk = document.getElementById('chkUsePoints');
-      const pCount = Number(document.getElementById('availPointsCount')?.innerText) || 0;
-      if (chk && chk.checked) {
-        currentRedeemedPointsDiscount = pCount * 10;
-      } else {
-        currentRedeemedPointsDiscount = 0;
-      }
-      renderCartUI();
+// Firebase မှ Loyalty Settings နှင့် Customer Point Adjustments များကို Real-time နားထောင်ခြင်း
+(function initLoyaltyFirebaseSync() {
+  if (typeof database === 'undefined') return;
+
+  database.ref('loyalty_settings').on('value', (snap) => {
+    const val = snap.val();
+    if (val) {
+      loyaltyConfig.enabled = val.enabled !== false;
+      loyaltyConfig.earnRate = Number(val.earnRate) > 0 ? Number(val.earnRate) : 1000;
+      loyaltyConfig.redeemRate = Number(val.redeemRate) > 0 ? Number(val.redeemRate) : 10;
     }
+    syncLoyaltyAdminUI();
+    if (typeof checkVipBenefitsOnPhoneInput === 'function') checkVipBenefitsOnPhoneInput();
+  });
+
+  database.ref('customer_points_adjustments').on('value', (snap) => {
+    customerPointsAdjustments = snap.val() || {};
+    if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+    if (typeof checkVipBenefitsOnPhoneInput === 'function') checkVipBenefitsOnPhoneInput();
+  });
+})();
+
+function syncLoyaltyAdminUI() {
+  const chk = document.getElementById('adminLoyaltyMasterToggle');
+  const lbl = document.getElementById('adminLoyaltyToggleLabel');
+  const hint = document.getElementById('loyaltyStatusHint');
+  const earnInp = document.getElementById('adminLoyaltyEarnRate');
+  const redeemInp = document.getElementById('adminLoyaltyRedeemRate');
+
+  if (chk) chk.checked = loyaltyConfig.enabled;
+  if (lbl) {
+    lbl.innerText = loyaltyConfig.enabled ? 'စနစ် ဖွင့်ထားသည်' : 'စနစ် ပိတ်ထားသည်';
+    lbl.style.color = loyaltyConfig.enabled ? '#10b981' : '#ef4444';
+  }
+  if (hint) {
+    hint.innerText = loyaltyConfig.enabled
+      ? `လက်ရှိ အခြေအနေ: ဖွင့်ထားပါသည် (${loyaltyConfig.earnRate.toLocaleString()} Ks = 1 pt | 1 pt = ${loyaltyConfig.redeemRate.toLocaleString()} Ks)`
+      : 'လက်ရှိ အခြေအနေ: ယာယီ ရပ်နားထားပါသည် (OFF)';
+    hint.style.color = loyaltyConfig.enabled ? '#a7f3d0' : '#fca5a5';
+  }
+  if (earnInp && document.activeElement !== earnInp) earnInp.value = loyaltyConfig.earnRate;
+  if (redeemInp && document.activeElement !== redeemInp) redeemInp.value = loyaltyConfig.redeemRate;
+}
+
+function toggleLoyaltyMasterSwitch() {
+  const chk = document.getElementById('adminLoyaltyMasterToggle');
+  loyaltyConfig.enabled = chk ? chk.checked : true;
+  saveLoyaltySettingsToFirebase();
+}
+
+function saveLoyaltySettingsToFirebase() {
+  const chk = document.getElementById('adminLoyaltyMasterToggle');
+  const earnInp = document.getElementById('adminLoyaltyEarnRate');
+  const redeemInp = document.getElementById('adminLoyaltyRedeemRate');
+
+  const payload = {
+    enabled: chk ? chk.checked : true,
+    earnRate: Math.max(100, Number(earnInp?.value) || 1000),
+    redeemRate: Math.max(1, Number(redeemInp?.value) || 10),
+    updatedAt: Date.now()
+  };
+
+  if (typeof database !== 'undefined') {
+    database.ref('loyalty_settings').set(payload).then(() => {
+      syncLoyaltyAdminUI();
+      alert('✅ Loyalty Point စည်းမျဉ်းများကို သိမ်းဆည်းပြီးပါပြီ!');
+    });
+  }
+}
+
+// ဝယ်သူ၏ လက်ကျန် Point အတိအကျ တွက်ချက်ခြင်း (အော်ဒါမှရသော Point + Admin တိုး/နှုတ် Point)
+function calculateCustomerPoints(phoneDigits) {
+  if (!phoneDigits) return 0;
+  const cleanPhone = String(phoneDigits).replace(/[^0-9]/g, '');
+  let earned = 0;
+  const earnDivisor = Number(loyaltyConfig.earnRate) || 1000;
+
+  if (Array.isArray(orders)) {
+    orders.forEach(o => {
+      if (!o || !o.phone) return;
+      const p = String(o.phone).replace(/[^0-9]/g, '');
+      if (p === cleanPhone && !String(o.status).includes('Returned') && !String(o.status).includes('Cancel')) {
+        earned += Math.floor((Number(o.total) || 0) / earnDivisor);
+      }
+    });
+  }
+
+  const manualAdj = Number(customerPointsAdjustments[cleanPhone]) || 0;
+  return Math.max(0, earned + manualAdj);
+}
+
+// Checkout တွင် Point သုံးမည် အမှန်ခြစ်သည့်အခါ ငွေလျှော့ပေးခြင်း
+function togglePointsRedemption() {
+  const chk = document.getElementById('chkUsePoints');
+  const pCount = Number(document.getElementById('availPointsCount')?.innerText) || 0;
+  const rate = Number(loyaltyConfig.redeemRate) || 10;
+
+  if (loyaltyConfig.enabled && chk && chk.checked && pCount > 0) {
+    currentRedeemedPointsDiscount = pCount * rate;
+    window.currentRedeemedPointsUsedCount = pCount;
+  } else {
+    currentRedeemedPointsDiscount = 0;
+    window.currentRedeemedPointsUsedCount = 0;
+  }
+  if (typeof renderCartUI === 'function') renderCartUI();
+}
+
+// Admin မှ ဝယ်သူတစ်ဦးချင်းစီ၏ Point ကို တိုးခြင်း / နှုတ်ခြင်း
+function openAdminPointAdjustModal(phone, custName) {
+  const cleanPhone = String(phone).replace(/[^0-9]/g, '');
+  const currentPts = calculateCustomerPoints(cleanPhone);
+  const input = prompt(
+    `🍃 ${custName || cleanPhone} (${cleanPhone})\n` +
+    `လက်ရှိ Point: ${currentPts} မှတ်\n\n` +
+    `Point တိုးလိုပါက ဂဏန်းရိုက်ထည့်ပါ (ဥပမာ: 50)\n` +
+    `Point နှုတ်လိုပါက အနှုတ်လက္ခဏာ ခံရိုက်ပါ (ဥပမာ: -30)`
+  );
+  if (input === null || input.trim() === '') return;
+
+  const delta = parseInt(input.trim(), 10);
+  if (isNaN(delta) || delta === 0) {
+    alert('⚠️ မှန်ကန်သော Point ဂဏန်း ရိုက်ထည့်ပါ။');
+    return;
+  }
+
+  const prevAdj = Number(customerPointsAdjustments[cleanPhone]) || 0;
+  const newAdj = prevAdj + delta;
+
+  if (typeof database !== 'undefined') {
+    database.ref('customer_points_adjustments/' + cleanPhone).set(newAdj).then(() => {
+      alert(`✅ ${custName || cleanPhone} အတွက် Point ${delta > 0 ? '+' + delta : delta} ပြင်ဆင်ပြီးပါပြီ! (လက်ကျန်: ${Math.max(0, currentPts + delta)} မှတ်)`);
+    });
+  }
+}
 
     function handleSortFilterChange() {
       renderCatalog();
@@ -7270,15 +7424,21 @@ setTimeout(() => {
         return;
       }
 
-            const userPoints = calculateCustomerPoints(phone);
-      const pBox = document.getElementById('custPointsBox');
-      const pCountSpan = document.getElementById('availPointsCount');
-      if (userPoints > 0 && pBox && pCountSpan) {
-        pCountSpan.innerText = userPoints;
-        pBox.style.display = 'block';
-      } else if (pBox) {
-        pBox.style.display = 'none';
-      }
+        const userPoints = calculateCustomerPoints(phone);
+  const pBox = document.getElementById('custPointsBox');
+  const pCountSpan = document.getElementById('availPointsCount');
+  const pRateLabel = document.getElementById('pointsDiscountLabel');
+  if (loyaltyConfig.enabled && userPoints > 0 && pBox && pCountSpan) {
+    pCountSpan.innerText = userPoints;
+    if (pRateLabel) pRateLabel.innerText = `(၁ မှတ် = ${Number(loyaltyConfig.redeemRate || 10).toLocaleString()} Ks လျှော့ပေးပါသည်)`;
+    pBox.style.display = 'block';
+  } else if (pBox) {
+    pBox.style.display = 'none';
+    const chkPts = document.getElementById('chkUsePoints');
+    if (chkPts) chkPts.checked = false;
+    currentRedeemedPointsDiscount = 0;
+    window.currentRedeemedPointsUsedCount = 0;
+  }
       const pastOrders = orders.filter(o => {
         if (!o || !o.phone) return false;
         const op = String(o.phone).replace(/[^0-9]/g, '');
@@ -7869,6 +8029,12 @@ if (typeof checkAndTriggerLowStockAlert === 'function') {
   currentDeliveryService = '';
   currentEstimatedDays = '';
   currentCustomerSelectedFocGift = null;
+  if (window.currentRedeemedPointsUsedCount > 0 && newOrder?.phone && typeof database !== 'undefined') {
+      const usedPhone = String(newOrder.phone).replace(/[^0-9]/g, '');
+      const prevAdj = Number(customerPointsAdjustments[usedPhone]) || 0;
+      database.ref('customer_points_adjustments/' + usedPhone).set(prevAdj - Number(window.currentRedeemedPointsUsedCount));
+      window.currentRedeemedPointsUsedCount = 0;
+    }
   if (typeof currentRedeemedPointsDiscount !== 'undefined') currentRedeemedPointsDiscount = 0;
 
   // Promo Code နှင့် ဖောင်အကွက်အဟောင်းများ အားလုံးကို အလိုအလျောက် ပြန်ရှင်းလင်းခြင်း
@@ -10985,7 +11151,7 @@ function closeModal(id) {
         const latestItemsSummary = latestOrder && Array.isArray(latestOrder.items)
           ? latestOrder.items.map(i => `${i.name} (x${i.qty || 1})`).join('၊ ')
           : '';
-
+        const custPoints = typeof calculateCustomerPoints === 'function' ? calculateCustomerPoints(c.phone) : 0;
         return `
           <div style="background:rgba(255,255,255,0.03); border:1px solid ${isVip ? 'var(--gold)' : '#334155'}; border-radius:8px; padding:10px 12px; margin-bottom:8px;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
@@ -11004,7 +11170,15 @@ function closeModal(id) {
               <div style="text-align:right; flex-shrink:0;">
                 <div style="font-size:0.88rem; font-weight:700; color:#00ff88;">${c.totalSpent.toLocaleString()} Ks</div>
                 <div style="font-size:0.7rem; color:var(--gold); margin-top:2px;">အော်ဒါ: <b>${c.orderCount}</b> ကြိမ်</div>
-              </div>
+              <div style="margin-top:4px; display:flex; align-items:center; justify-content:flex-end; gap:5px;">
+  <span style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#10b981; padding:2px 7px; border-radius:12px; font-size:0.72rem; font-weight:700;">
+    🍃 ${custPoints} pts
+  </span>
+  <button type="button" onclick="openAdminPointAdjustModal('${c.phone}', '${(c.name || '').replace(/'/g, '')}')" style="background:rgba(245,158,11,0.2); border:1px solid rgba(245,158,11,0.5); color:#fbbf24; padding:2px 7px; border-radius:6px; font-size:0.7rem; font-weight:600; cursor:pointer;">
+    ✏️ တိုး/နှုတ်
+  </button>
+</div>
+</div>
             </div>
           </div>
         `;
