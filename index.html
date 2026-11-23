@@ -3426,6 +3426,10 @@ function scrollCategories(amount) {
             <span style="font-size:0.7rem; color:#94a3b8; display:block;">📊 လက်ကျန်</span>
             <b id="summaryStockLeft" style="font-size:1rem; color:#38bdf8;">0 ခု</b>
           </div>
+          <div style="background:rgba(239,68,68,0.12); border:1px solid #ef4444; border-radius:8px; padding:8px; text-align:center;">
+              <span style="font-size:0.7rem; color:#fecaca; display:block;">⚠️ ၅ ခုနှင့်အောက်</span>
+              <b id="summaryStockLow" style="font-size:1rem; color:#ef4444;">0 မျိုး</b>
+            </div>
         </div>
 
         <div id="adminStockTableContainer" style="overflow-x:auto;"></div>
@@ -8490,6 +8494,7 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       const customDateVal = document.getElementById('adminStockCustomExpiryDate')?.value || '';
 
       let totalIn = 0, totalSold = 0, totalDamaged = 0, totalLeft = 0;
+      let totalLowStock = 0;
 
       const filteredProducts = products.filter(p => {
         const matchSearch = (p.name || '').toLowerCase().includes(searchVal) || (p.sku || '').toLowerCase().includes(searchVal);
@@ -8535,11 +8540,13 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         const inCount = leftCount + soldCount + damagedCount;
 
         totalIn += inCount; totalSold += soldCount; totalDamaged += damagedCount; totalLeft += leftCount;
+        if (leftCount <= 5) totalLowStock++;
         const sMode = window.currentStockSummaryFilter || 'all';
     if (sMode === 'in' && inCount <= 0) return '';
     if (sMode === 'sold' && soldCount <= 0) return '';
     if (sMode === 'damaged' && damagedCount <= 0) return '';
     if (sMode === 'left' && leftCount <= 0) return '';
+    if (sMode === 'low' && leftCount > 5) return '';
         const expInfo = getProductExpiryStatus(p);
 
         return `
@@ -8590,13 +8597,16 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       document.getElementById('summaryStockSold').innerText = totalSold + ' ခု';
       document.getElementById('summaryStockDamaged').innerText = totalDamaged + ' ခု';
       document.getElementById('summaryStockLeft').innerText = totalLeft + ' ခု';
+      const lowEl = document.getElementById('summaryStockLow');
+  if (lowEl) lowEl.innerText = totalLowStock + ' မျိုး';
     }
     // ကဒ် ၄ ခု (ထပ်သွင်း / ရောင်းထွက် / ပျက်စီး / လက်ကျန်) ကို နှိပ်ကြည့်နိုင်ရန် ချိတ်ဆက်ခြင်း
   const cardFilters = [
     { id: 'summaryStockIn', mode: 'in', label: '📥 ထပ်သွင်းစာရင်း ရှိသော ပစ္စည်းများ' },
     { id: 'summaryStockSold', mode: 'sold', label: '🛍️ ရောင်းထွက်ထားသော ပစ္စည်းများ' },
     { id: 'summaryStockDamaged', mode: 'damaged', label: '⚠️ ပျက်စီးစာရင်း ရှိသော ပစ္စည်းများ' },
-    { id: 'summaryStockLeft', mode: 'left', label: '📊 လက်ကျန် Stock ရှိသော ပစ္စည်းများ' }
+    { id: 'summaryStockLeft', mode: 'left', label: '📊 လက်ကျန် Stock ရှိသော ပစ္စည်းများ' },
+    { id: 'summaryStockLow', mode: 'low', label: '⚠️ ၅ ခုနှင့်အောက် ပစ္စည်းများ' }
   ];
   cardFilters.forEach(cf => {
     const valEl = document.getElementById(cf.id);
