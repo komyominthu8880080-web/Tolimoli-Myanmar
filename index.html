@@ -7511,6 +7511,9 @@ setTimeout(() => {
         `;
       }).join('');
 
+      const cartSubEl = document.getElementById('cartSubTotal');
+  if (cartSubEl) cartSubEl.innerText = subTotal.toLocaleString() + ' Ks';
+
       let vipDiscountAmount = 0;
       if (currentVipStatus.isVip) {
         const pct = vipConfig.vipDiscountPercent || 5;
