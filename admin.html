@@ -9217,125 +9217,6 @@ function printOrderWaybill(orderId) {
           အရေးပေါ်ဖုန်း: 09768124433
         </div>
       
-<script>
-// ==================== FIREBASE AUTH CONTROLLER FOR ADMIN.HTML ====================
-async function handleAdminFirebaseLogin(e) {
-  if (e) e.preventDefault();
-  const email = (document.getElementById('adminLoginEmail')?.value || '').trim();
-  const pass = document.getElementById('adminLoginPassword')?.value || '';
-  const errBox = document.getElementById('adminAuthError');
-  const btn = document.getElementById('btnAdminLoginSubmit');
-
-  if (errBox) errBox.style.display = 'none';
-  if (!email || !pass) return;
-
-  if (btn) {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> စစ်ဆေးနေပါသည်...';
-  }
-  try {
-    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-    await firebase.auth().signInWithEmailAndPassword(email, pass);
-  } catch (err) {
-    if (errBox) {
-      let msg = 'Email သို့မဟုတ် Password မှားယွင်းနေပါသည်';
-      if (err && err.code === 'auth/too-many-requests') {
-        msg = 'အကြိမ်ရေများနေသဖြင့် ခေတ္တစောင့်ပြီးမှ ပြန်ကြိုးစားပါ';
-      } else if (err && err.code === 'auth/network-request-failed') {
-        msg = 'အင်တာနက်ချိတ်ဆက်မှု မရှိပါ';
-      }
-      errBox.textContent = '⚠️ ' + msg;
-      errBox.style.display = 'block';
-    }
-  } finally {
-    if (btn) {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Admin Dashboard ဝင်မည်';
-    }
-  }
-}
-
-async function handleAdminFirebaseLogout() {
-  if (!confirm('Admin အကောင့်မှ ထွက်ရန် သေချာပါသလား?')) return;
-  try {
-    sessionStorage.removeItem('admin_auth_token');
-    await firebase.auth().signOut();
-  } catch (e) {
-    window.location.reload();
-  }
-}
-
-// Keep standalone admin dashboard open & override PIN check
-window.forceOpenAdminDashboard = function() {
-  const adminEl = document.getElementById('adminModal');
-  if (adminEl) {
-    adminEl.classList.add('active');
-    const prodTab = document.getElementById('productsTab');
-    if (prodTab && !document.querySelector('.admin-tab.active')) {
-      prodTab.classList.add('active');
-      prodTab.style.setProperty('display', 'flex', 'important');
-    }
-  }
-};
-
-// Prevent closing the main standalone #adminModal
-const _origCloseModal = window.closeModal;
-window.closeModal = function(id) {
-  if (id === 'adminModal') return;
-  if (typeof _origCloseModal === 'function') _origCloseModal(id);
-};
-
-// Listen to Firebase Auth state
-if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
-  firebase.auth().onAuthStateChanged(function(user) {
-    const gate = document.getElementById('adminAuthGate');
-    const lbl = document.getElementById('adminLoggedInEmailLabel');
-    if (user) {
-      document.body.classList.add('admin-authenticated');
-      if (gate) gate.style.display = 'none';
-      if (lbl) lbl.textContent = '👤 ' + (user.email || user.uid);
-      sessionStorage.setItem('admin_auth_token', 'firebase_' + user.uid);
-
-      // Initialize all Admin data & UI views after authentication
-      window.forceOpenAdminDashboard();
-      if (typeof fbDb !== 'undefined') {
-        fbDb.ref('shop_orders').off('value');
-        fbDb.ref('shop_orders').on('value', function(snap) {
-          const val = snap.val();
-          if (val) {
-            const raw = Array.isArray(val) ? val : Object.values(val);
-            orders = (typeof deduplicateOrders === 'function') ? deduplicateOrders(raw) : raw;
-            try { localStorage.setItem('tm_orders', JSON.stringify(orders)); } catch(e) {}
-            if (typeof renderAdminOrders === 'function') renderAdminOrders();
-            if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
-            if (typeof renderAnalytics === 'function') renderAnalytics();
-            if (typeof renderStockTable === 'function') renderStockTable();
-          }
-        });
-      }
-      setTimeout(function() {
-        try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
-        try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
-        try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
-        try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
-        try { if (typeof renderAdminCustomers === 'function') renderAdminCustomers(); } catch(e){}
-        try { if (typeof renderDiscountsList === 'function') renderDiscountsList(); } catch(e){}
-        try { if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings(); } catch(e){}
-        try { if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory(); } catch(e){}
-        try { if (typeof loadComboDealsFromRTDB === 'function') loadComboDealsFromRTDB(); } catch(e){}
-        try { if (typeof renderAdminArticleList === 'function') renderAdminArticleList(); } catch(e){}
-        try { if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList(); } catch(e){}
-        try { if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts(); } catch(e){}
-        try { if (typeof applyCentralSettingsUI === 'function') applyCentralSettingsUI(); } catch(e){}
-      }, 300);
-    } else {
-      document.body.classList.remove('admin-authenticated');
-      sessionStorage.removeItem('admin_auth_token');
-      if (gate) gate.style.display = 'flex';
-    }
-  });
-}
-</script>
 
 </body>
     </html>
@@ -18953,6 +18834,126 @@ function forceOpenAdminDashboard() {
     });
   }, 60000);
 })();
+</script>
+
+<script>
+// ==================== FIREBASE AUTH CONTROLLER FOR ADMIN.HTML ====================
+async function handleAdminFirebaseLogin(e) {
+  if (e) e.preventDefault();
+  const email = (document.getElementById('adminLoginEmail')?.value || '').trim();
+  const pass = document.getElementById('adminLoginPassword')?.value || '';
+  const errBox = document.getElementById('adminAuthError');
+  const btn = document.getElementById('btnAdminLoginSubmit');
+
+  if (errBox) errBox.style.display = 'none';
+  if (!email || !pass) return;
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> စစ်ဆေးနေပါသည်...';
+  }
+  try {
+    await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
+  } catch (err) {
+    if (errBox) {
+      let msg = 'Email သို့မဟုတ် Password မှားယွင်းနေပါသည်';
+      if (err && err.code === 'auth/too-many-requests') {
+        msg = 'အကြိမ်ရေများနေသဖြင့် ခေတ္တစောင့်ပြီးမှ ပြန်ကြိုးစားပါ';
+      } else if (err && err.code === 'auth/network-request-failed') {
+        msg = 'အင်တာနက်ချိတ်ဆက်မှု မရှိပါ';
+      }
+      errBox.textContent = '⚠️ ' + msg;
+      errBox.style.display = 'block';
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Admin Dashboard ဝင်မည်';
+    }
+  }
+}
+
+async function handleAdminFirebaseLogout() {
+  if (!confirm('Admin အကောင့်မှ ထွက်ရန် သေချာပါသလား?')) return;
+  try {
+    sessionStorage.removeItem('admin_auth_token');
+    await firebase.auth().signOut();
+  } catch (e) {
+    window.location.reload();
+  }
+}
+
+// Keep standalone admin dashboard open & override PIN check
+window.forceOpenAdminDashboard = function() {
+  const adminEl = document.getElementById('adminModal');
+  if (adminEl) {
+    adminEl.classList.add('active');
+    const prodTab = document.getElementById('productsTab');
+    if (prodTab && !document.querySelector('.admin-tab.active')) {
+      prodTab.classList.add('active');
+      prodTab.style.setProperty('display', 'flex', 'important');
+    }
+  }
+};
+
+// Prevent closing the main standalone #adminModal
+const _origCloseModal = window.closeModal;
+window.closeModal = function(id) {
+  if (id === 'adminModal') return;
+  if (typeof _origCloseModal === 'function') _origCloseModal(id);
+};
+
+// Listen to Firebase Auth state
+if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
+  firebase.auth().onAuthStateChanged(function(user) {
+    const gate = document.getElementById('adminAuthGate');
+    const lbl = document.getElementById('adminLoggedInEmailLabel');
+    if (user) {
+      document.body.classList.add('admin-authenticated');
+      if (gate) gate.style.display = 'none';
+      if (lbl) lbl.textContent = '👤 ' + (user.email || user.uid);
+      sessionStorage.setItem('admin_auth_token', 'firebase_' + user.uid);
+
+      // Initialize all Admin data & UI views after authentication
+      window.forceOpenAdminDashboard();
+      if (typeof fbDb !== 'undefined') {
+        fbDb.ref('shop_orders').off('value');
+        fbDb.ref('shop_orders').on('value', function(snap) {
+          const val = snap.val();
+          if (val) {
+            const raw = Array.isArray(val) ? val : Object.values(val);
+            orders = (typeof deduplicateOrders === 'function') ? deduplicateOrders(raw) : raw;
+            try { localStorage.setItem('tm_orders', JSON.stringify(orders)); } catch(e) {}
+            if (typeof renderAdminOrders === 'function') renderAdminOrders();
+            if (typeof renderAdminCustomers === 'function') renderAdminCustomers();
+            if (typeof renderAnalytics === 'function') renderAnalytics();
+            if (typeof renderStockTable === 'function') renderStockTable();
+          }
+        });
+      }
+      setTimeout(function() {
+        try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
+        try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
+        try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
+        try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
+        try { if (typeof renderAdminCustomers === 'function') renderAdminCustomers(); } catch(e){}
+        try { if (typeof renderDiscountsList === 'function') renderDiscountsList(); } catch(e){}
+        try { if (typeof renderAdminDeliverySettings === 'function') renderAdminDeliverySettings(); } catch(e){}
+        try { if (typeof renderAdminStationsDirectory === 'function') renderAdminStationsDirectory(); } catch(e){}
+        try { if (typeof loadComboDealsFromRTDB === 'function') loadComboDealsFromRTDB(); } catch(e){}
+        try { if (typeof renderAdminArticleList === 'function') renderAdminArticleList(); } catch(e){}
+        try { if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList(); } catch(e){}
+        try { if (typeof renderAdminCommunityPosts === 'function') renderAdminCommunityPosts(); } catch(e){}
+        try { if (typeof applyCentralSettingsUI === 'function') applyCentralSettingsUI(); } catch(e){}
+      }, 300);
+    } else {
+      document.body.classList.remove('admin-authenticated');
+      sessionStorage.removeItem('admin_auth_token');
+      if (gate) gate.style.display = 'flex';
+    }
+  });
+}
 </script>
 </body>
 </html>
