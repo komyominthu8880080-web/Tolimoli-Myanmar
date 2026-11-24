@@ -1,9 +1,9 @@
-const STATIC_CACHE = 'tolimoli-static-v6';
-const DYNAMIC_CACHE = 'tolimoli-dynamic-v6';
+const STATIC_CACHE = 'tolimoli-static-v7';
+const DYNAMIC_CACHE = 'tolimoli-dynamic-v7';
 
 const STATIC_ASSETS = [
   '/manifest.json',
-  '/logo.png'
+  '/logo.jpg'
 ];
 
 self.addEventListener('install', (e) => {
@@ -29,10 +29,20 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  // GET request မဟုတ်လျှင် (POST, PUT, DELETE) Cache မလုပ်ဘဲ ကျော်သွားမည်
+  if (e.request.method !== 'GET') {
+    return;
+  }
+
   const requestUrl = new URL(e.request.url);
 
-  // API requests များကို Cache မလုပ်ဘဲ တိုက်ရိုက်သွားစေရန်
-  if (requestUrl.pathname.startsWith('/api/')) {
+  // API requests နှင့် Firebase Realtime Database requests များကို Cache မလုပ်ဘဲ တိုက်ရိုက်သွားစေရန်
+  if (
+    requestUrl.pathname.startsWith('/api/') ||
+    requestUrl.hostname.includes('firebasedatabase.app') ||
+    requestUrl.hostname.includes('firebaseio.com') ||
+    requestUrl.hostname.includes('firebaseapp.com')
+  ) {
     return;
   }
 
@@ -41,8 +51,10 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(e.request)
         .then((networkResponse) => {
-          const copy = networkResponse.clone();
-          caches.open(STATIC_CACHE).then((cache) => cache.put(e.request, copy));
+          if (networkResponse && networkResponse.ok) {
+            const copy = networkResponse.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put(e.request, copy));
+          }
           return networkResponse;
         })
         .catch(() => caches.match(e.request).then((res) => res || caches.match('/')))
@@ -60,19 +72,21 @@ self.addEventListener('fetch', (e) => {
       caches.match(e.request).then((cachedResponse) => {
         if (cachedResponse) return cachedResponse;
         return fetch(e.request).then((networkResponse) => {
-          return caches.open(DYNAMIC_CACHE).then((cache) => {
-            cache.put(e.request, networkResponse.clone());
-            return networkResponse;
-          });
-        }).catch(() => caches.match(e.request));
+          if (networkResponse && networkResponse.ok) {
+            return caches.open(DYNAMIC_CACHE).then((cache) => {
+              cache.put(e.request, networkResponse.clone());
+              return networkResponse;
+            });
+          }
+          return networkResponse;
+        });
       })
     );
     return;
   }
 
+  // အခြား Static Assets (ပုံများ၊ JS/CSS) — မအောင်မြင်ပါက HTML ပြန်မပေးဘဲ ပုံမှန်အတိုင်း Fail ဖြစ်စေမည်
   e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request).catch(() => caches.match('/'));
-    })
+    caches.match(e.request).then((res) => res || fetch(e.request))
   );
 });

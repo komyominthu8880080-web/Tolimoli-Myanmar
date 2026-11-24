@@ -12,36 +12,6 @@
     {
       "source": "/p/:product",
       "destination": "/api/share?product=:product"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "query",
-          "key": "article"
-        }
-      ],
-      "destination": "/api/share"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "query",
-          "key": "product"
-        }
-      ],
-      "destination": "/api/share"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "query",
-          "key": "cat"
-        }
-      ],
-      "destination": "/api/share"
     }
   ]
 }
