@@ -2,22 +2,23 @@
 <html lang="my">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="canonical" href="https://www.tolimolimyanmar.com/">
   <title>Tolimoli Myanmar - Premium Adult Toys Shop</title>
   
   <!-- PWA Settings -->
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#d4af37">
-    <link rel="apple-touch-icon" href="/logo.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
-    <link rel="shortcut icon" href="/logo.png">
+    <link rel="apple-touch-icon" href="/logo.jpg">
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo.jpg">
+    <link rel="shortcut icon" href="/logo.jpg">
 
   <!-- OPEN GRAPH & SOCIAL PREVIEW META TAGS -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.tolimolimyanmar.com/">
 <meta property="og:title" content="Tolimoli Myanmar — Adult Toys Shop">
 <meta property="og:description" content="၁၀၀% လျှို့ဝှက်လုံခြုံသော ပို့ဆောင်မှု • အရည်အသွေးမြင့် ပစ္စည်းများ စုံလင်စွာ ဝယ်ယူရရှိနိုင်ပါသည်">
-<meta property="og:image" content="https://www.tolimolimyanmar.com/logo.png">
+<meta property="og:image" content="https://www.tolimolimyanmar.com/logo.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 
@@ -25,7 +26,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Tolimoli Myanmar — Adult Toys Shop">
 <meta name="twitter:description" content="၁၀၀% လျှို့ဝှက်လုံခြုံသော ပို့ဆောင်မှုဖြင့် မှာယူရရှိနိုင်ပါသည်">
-<meta name="twitter:image" content="https://www.tolimolimyanmar.com/logo.png">
+<meta name="twitter:image" content="https://www.tolimolimyanmar.com/logo.jpg">
 
   <!-- Font Awesome & Google Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -280,7 +281,6 @@ html {
     .color-qty-num { font-size: 0.82rem; font-weight: bold; color: var(--gold); min-width: 20px; text-align: center; }
   
     /* --- NEW FEATURES CSS --- */
-    body.discreet-mask-active .brand-title { content: 'PS Online Care'; }
     body.discreet-mask-active .brand-subtitle { display: none; }
     body.discreet-mask-active .product-card img,
     body.discreet-mask-active #detailMediaContainer img { filter: blur(10px) grayscale(60%); transition: filter 0.3s ease; }
@@ -1791,7 +1791,7 @@ header.sticky-scrolled .hero-compact {
 #communityModal,
 [id*="Modal"],
 [id*="modal"],
-[class*="modal"] {
+[class*="modal"]:not(.btn-open-cat-modal) {
   z-index: 2147483647 !important; /* Browser ၏ အမြင့်ဆုံး z-index သတ်မှတ်ချက် */
 }
 
@@ -2123,7 +2123,7 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   <header>
     <div class="header-main-row">
       <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
-        <img src="logo.png" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
+        <img src="logo.jpg" alt="Logo" class="brand-logo" onerror="this.src='logo.jpg'">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
           <span class="brand-subtitle">Adult Toys Shop</span>
@@ -2191,6 +2191,7 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
       <i class="fas fa-truck-moving" style="color: #ef4444;"></i> Deli & ဂိတ်ခွဲများ
     </button>
   </div>
+</div>
 
   <!-- CATEGORIES PILLS SCROLL -->
 <div class="category-bar-wrapper" style="position: relative; display: flex; align-items: center; gap: 4px;">
@@ -2299,7 +2300,7 @@ function scrollCategories(amount) {
   <div id="detailStickyBar" style="display: none; position: absolute; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px); border-top: 1px solid rgba(99, 102, 241, 0.3); padding: 8px 12px; z-index: 9999; box-shadow: 0 -4px 15px rgba(0,0,0,0.5); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
       <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-        <img id="stickyBarImg" src="logo.png" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
+        <img id="stickyBarImg" src="logo.jpg" style="width: 36px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.15);">
         <div style="min-width: 0;">
           <div id="stickyBarTitle" style="font-size: 11px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">-</div>
           <div id="stickyBarPrice" style="font-size: 11px; color: #fbbf24; font-weight: bold;">-</div>
@@ -2618,6 +2619,7 @@ function scrollCategories(amount) {
         </button>
       </div>
     </div>
+  </div>
 
   <!-- 3. ORDER SUCCESS MODAL -->
   <div class="modal-overlay" id="orderSuccessModal" style="z-index: 99999;">
@@ -2783,10 +2785,7 @@ function scrollCategories(amount) {
           <button class="btn-gold" onclick="trackOrderAccountFree()" style="width:auto; padding:0 14px; white-space:nowrap;">စစ်မည်</button>
         </div>
       </div>
-      <div id="trackResultArea" style="margin-top:10px; max-height:65vh; overflow-y:auto;"></div>
-    </div>
-  </div>
-  <!-- Optional OTP Verification Box for Enhanced Privacy -->
+      <!-- Optional OTP Verification Box for Enhanced Privacy -->
       <div id="trackOtpVerificationBox" style="display:none; background:rgba(16, 185, 129, 0.1); border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:10px;">
         <div style="font-size:0.75rem; color:#a7f3d0; margin-bottom:6px;">လုံခြုံရေးအရ ပို့ဆောင်ထားသော ၄ လုံးကုဒ်ကို ရိုက်ထည့်ပါ (ဆင်းကတ်စစ်ဆေးခြင်း):</div>
         <div style="display:flex; gap:6px;">
@@ -2794,6 +2793,9 @@ function scrollCategories(amount) {
           <button type="button" class="btn-secondary" onclick="confirmTrackOtp()" style="background:#10b981; color:#fff; border:none; padding:6px 14px; font-weight:bold; cursor:pointer;">အတည်ပြု</button>
         </div>
       </div>
+      <div id="trackResultArea" style="margin-top:10px; max-height:65vh; overflow-y:auto;"></div>
+    </div>
+  </div>
 
   <!-- 6. CUSTOMER HISTORY MODAL -->
   <div class="modal-overlay" id="custHistoryModal" style="z-index: 999999;">
@@ -2813,7 +2815,7 @@ function scrollCategories(amount) {
 
       <div id="printableInvoiceCard" style="background:#ffffff; color:#000000; padding:12px; border-radius:6px; font-family:'Courier New', monospace; font-size:11px; margin-bottom:10px;">
         <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:4px; margin-bottom:4px;">
-          <img src="logo.png" alt="Logo" crossorigin="anonymous" style="max-height:40px;" onerror="this.src='logo.jpg'">
+          <img src="logo.jpg" alt="Logo" crossorigin="anonymous" style="max-height:40px;" onerror="this.src='logo.jpg'">
           <h2 style="margin:0; font-size:14px; font-weight:bold;">TOLIMOLI STORE</h2>
           <div style="font-size:9.5px;">ဖုန်း: 09-768124433 | ရန်ကုန်မြို့</div>
         </div>
@@ -4576,7 +4578,6 @@ function scrollCategories(amount) {
       <div id="communityPostsContainer" style="max-height:46vh; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
     </div>
   </div>
-</div>
 
   <!-- 13. VIP MYSTERY BOX MODAL -->
   <div class="modal-overlay" id="mysteryBoxModal" style="z-index: 10008;">
@@ -5054,7 +5055,7 @@ function updateCheckoutGrandTotal(deliFee) {
       products = [
         {
           id: 'p1', sku: 'TM-LUX-01', name: 'Tolimoli Luxe Gold Wireless Massager', category: 'တုန်စက်',
-          price: 58000, cost: 35000, stock: 12, damaged: 0, rating: 4.9, image: 'logo.png', images: ['logo.png'], video: '',
+          price: 58000, cost: 35000, stock: 12, damaged: 0, rating: 4.9, image: 'logo.jpg', images: ['logo.jpg'], video: '',
           colors: ['ရွှေရောင်', 'ခရမ်းရောင်'], length: '19.5 cm', width: '3.8 cm', girth: '12 cm', weight: '220 g',
           youtube: 'https://youtube.com/@tolimolimyanmar', facebook: 'https://www.facebook.com/@adulttoysshopmyanmar',
           telegram: 'http://t.me/tolimolimyanmarchannel', tiktok: 'http://tiktok.com/@tolimolimyanmar',
@@ -5182,10 +5183,7 @@ function fetchArticles() {
 }
 fetchArticles();
 
-    fbDb.ref('shop_admin_pin').on('value', snap => {
-      const pin = snap.val();
-      if (pin) localStorage.setItem('tm_admin_pin', pin);
-    });
+    // Admin PIN is verified securely via /api/admin-auth (not read from client RTDB)
 
         fbDb.ref('shop_categories').on('value', snap => {
       const val = snap.val();
@@ -5741,7 +5739,7 @@ orders = deduplicateOrders(raw);
         if (!cardSelectedColors[p.id] && colors.length > 0) cardSelectedColors[p.id] = colors[0];
 
         const urgencyMsg = isLowStock ? `<div class="low-stock-urgency"><i class="fas fa-fire"></i> လက်ကျန် ${stockNum} ခုသာ ကျန်ပါတော့သည်! အမြန်ဝယ်ယူပါ</div>` : '';
-        const mainImg = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+        const mainImg = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
         const displayName = isDiscreetMaskActive ? getDiscreetMaskName(p.name) : p.name;
 
         return `
@@ -5759,7 +5757,7 @@ orders = deduplicateOrders(raw);
                 </span>
               ` : ''}
               ${p.sku ? `<span class="badge-sku">${p.sku}</span>` : ''}
-              <img src="${mainImg}" alt="${displayName}" loading="lazy" onerror="this.src='logo.png'">
+              <img src="${mainImg}" alt="${displayName}" loading="lazy" onerror="this.src='logo.jpg'">
             </div>
             <div class="card-body">
               <h3 class="product-title">${displayName}</h3>
@@ -5801,7 +5799,7 @@ orders = deduplicateOrders(raw);
       <i class="fas fa-eye"></i> အသေးစိတ်
     </button>
     <!-- ၃။ Viber -->
-    <button type="button" class="btn-viber-direct-order" onclick="event.stopPropagation(); orderViaViberDirect('${p.name}', ${p.price})">
+    <button type="button" class="btn-viber-direct-order" onclick="event.stopPropagation(); orderViaViberDirect('${String(p.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', ${Number(p.price) || 0})">
   <i class="fab fa-viber"></i> Viber
 </button>
 <!-- ၃။ ပစ္စည်းချင်း ယှဉ်ကြည့်မည် -->
@@ -5872,13 +5870,13 @@ function renderSearchSuggestions(query) {
   }
 
   box.innerHTML = matches.map(p => {
-    const imgUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+    const imgUrl = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
     const priceFormatted = Number(p.price || 0).toLocaleString();
     const isOut = Number(p.stock !== undefined ? p.stock : 10) <= 0;
 
     return `
       <div onclick="selectSearchSuggestion('${p.id}')" style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(99,102,241,0.2)'" onmouseout="this.style.background='transparent'">
-        <img src="${imgUrl}" style="width: 34px; height: 34px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='logo.png'">
+        <img src="${imgUrl}" style="width: 34px; height: 34px; object-fit: cover; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);" onerror="this.src='logo.jpg'">
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 11px; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name || ''}</div>
           <div style="font-size: 10px; color: #fbbf24; font-weight: bold;">${priceFormatted} MMK ${isOut ? '<span style="color:#ef4444; margin-left:4px;">(ကုန်ပြီ)</span>' : ''}</div>
@@ -6042,7 +6040,7 @@ function openComparisonModal() {
 
   let tableHeaderCols = compList.map(p => `
     <th style="padding:10px 6px; text-align:center; min-width:110px; border-bottom:1px solid #334155;">
-      <img src="${(Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png'}" style="width:55px; height:55px; object-fit:cover; border-radius:8px; margin-bottom:4px;" onerror="this.src='logo.png'">
+      <img src="${(Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg'}" style="width:55px; height:55px; object-fit:cover; border-radius:8px; margin-bottom:4px;" onerror="this.src='logo.jpg'">
       <div style="font-size:11px; color:#fff; line-height:1.2; font-weight:bold; height:28px; overflow:hidden;">${p.name}</div>
       <div style="color:#f59e0b; font-size:12px; font-weight:bold; margin-top:4px;">${Number(p.price).toLocaleString()} Ks</div>
     </th>
@@ -6114,12 +6112,15 @@ function openComparisonModal() {
 
     function applyDiscreetMaskUI() {
       const btn = document.getElementById('btnDiscreetMask');
+      const brandTitle = document.querySelector('.brand-title');
       if (isDiscreetMaskActive) {
         document.body.classList.add('discreet-mask-active');
         if (btn) btn.classList.add('mask-active');
+        if (brandTitle) brandTitle.textContent = 'PS Online Care';
       } else {
         document.body.classList.remove('discreet-mask-active');
         if (btn) btn.classList.remove('mask-active');
+        if (brandTitle) brandTitle.textContent = 'Tolimoli Myanmar';
       }
     }
 
@@ -6179,10 +6180,10 @@ function openComparisonModal() {
       }
       const wishProducts = products.filter(p => wishlist.includes(p.id));
       list.innerHTML = wishProducts.map(p => {
-        const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+        const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg';
         return `
           <div style="display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.04); border:1px solid #334155; border-radius:8px; padding:8px; margin-bottom:6px;">
-            <img src="${thumb}" style="width:48px; height:48px; border-radius:6px; object-fit:cover;" onerror="this.src='logo.png'">
+            <img src="${thumb}" style="width:48px; height:48px; border-radius:6px; object-fit:cover;" onerror="this.src='logo.jpg'">
             <div style="flex:1;">
               <h4 style="font-size:0.8rem; color:#fff; margin:0 0 2px;">${p.name}</h4>
               <span style="font-size:0.75rem; color:var(--gold); font-weight:bold;">${Number(p.price).toLocaleString()} Ks</span>
@@ -6533,11 +6534,11 @@ function renderRecentlyViewedSection() {
       </div>
       <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none;">
         ${recentProducts.map(p => {
-          const img = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+          const img = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
           const priceStr = Number(p.price || 0).toLocaleString();
           return `
             <div onclick="if(typeof openProductDetail==='function') openProductDetail('${p.id}')" style="flex:0 0 110px; background:#1e1b4b; border:1px solid rgba(99,102,241,0.25); border-radius:10px; padding:8px; cursor:pointer; text-align:center; transition:transform 0.2s;">
-              <img src="${img}" style="width:100%; height:75px; object-fit:cover; border-radius:6px; margin-bottom:6px;" onerror="this.src='logo.png'">
+              <img src="${img}" style="width:100%; height:75px; object-fit:cover; border-radius:6px; margin-bottom:6px;" onerror="this.src='logo.jpg'">
               <div style="font-size:11px; font-weight:bold; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name || ''}</div>
               <div style="font-size:10px; color:#fbbf24; font-weight:bold; margin-top:2px;">${priceStr} MMK</div>
             </div>
@@ -6556,6 +6557,7 @@ setTimeout(() => {
 }, 1500);
 
 // --- MODERN TOAST NOTIFICATION HELPER ---
+function showClipboardToast(message) { showToast(message, 'success'); }
 function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
   if (!container) {
@@ -6629,11 +6631,11 @@ function renderRecommendedProducts(currentProduct) {
 
   container.style.display = 'block';
   list.innerHTML = related.slice(0, 6).map(item => {
-    const thumb = (Array.isArray(item.images) && item.images[0]) || item.image || 'logo.png';
+    const thumb = (Array.isArray(item.images) && item.images[0]) || item.image || 'logo.jpg';
     const priceFormatted = Number(item.price || 0).toLocaleString() + ' MMK';
     return `
       <div onclick="openProductDetail('${item.id}')" style="min-width: 105px; max-width: 105px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 6px; cursor: pointer; text-align: center; flex-shrink: 0; transition: transform 0.2s ease;">
-        <img src="${thumb}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 4px;" onerror="this.src='logo.png'">
+        <img src="${thumb}" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; margin-bottom: 4px;" onerror="this.src='logo.jpg'">
         <div style="font-size: 10px; color: #fff; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px;">${item.name}</div>
         <div style="font-size: 10px; color: var(--gold); font-weight: bold;">${priceFormatted}</div>
       </div>
@@ -6694,7 +6696,7 @@ function formatExpiryInput(input) {
     if (stickyTitle) stickyTitle.textContent = p.name || '';
     if (stickyPrice) stickyPrice.textContent = Number(p.price || 0).toLocaleString() + ' MMK';
     if (stickyImg) {
-      const sImg = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.png');
+      const sImg = (Array.isArray(p.images) && p.images.length > 0) ? p.images[0] : (p.image || 'logo.jpg');
       stickyImg.src = sImg;
     }
     if (stickyAddBtn) {
@@ -6885,7 +6887,7 @@ if (socBox) {
       if (Array.isArray(p.images) && p.images.length > 0) {
         imgList = p.images.filter(x => x && x.trim() !== '');
       }
-      if (imgList.length === 0) imgList = [p.image || 'logo.png'];
+      if (imgList.length === 0) imgList = [p.image || 'logo.jpg'];
 
       const mediaBox = document.getElementById('detailMediaContainer');
       const thumbsBox = document.getElementById('detailGalleryThumbs');
@@ -6894,11 +6896,11 @@ if (socBox) {
         if (mediaBox) mediaBox.innerHTML = `<video controls autoplay muted loop src="${p.video}" style="width:100%; max-height:240px; object-fit:contain;"></video>`;
         if (thumbsBox) thumbsBox.style.display = 'none';
       } else {
-        if (mediaBox) mediaBox.innerHTML = `<img id="detailMainImgView" src="${imgList[0]}" onerror="this.src='logo.png'">`;
+        if (mediaBox) mediaBox.innerHTML = `<img id="detailMainImgView" src="${imgList[0]}" onerror="this.src='logo.jpg'">`;
         if (imgList.length > 1 && thumbsBox) {
           thumbsBox.style.display = 'flex';
           thumbsBox.innerHTML = imgList.map((src, i) => `
-            <img src="${src}" class="gallery-thumb-item ${i===0?'active':''}" onclick="selectDetailGalleryImage('${src}', this)" onerror="this.src='logo.png'">
+            <img src="${src}" class="gallery-thumb-item ${i===0?'active':''}" onclick="selectDetailGalleryImage('${src}', this)" onerror="this.src='logo.jpg'">
           `).join('');
         } else if (thumbsBox) {
           thumbsBox.style.display = 'none';
@@ -6913,7 +6915,7 @@ if (socBox) {
           <div class="cross-sell-grid">
             ${relatedProducts.map(rp => `
               <div class="cross-sell-card" onclick="openProductDetail('${rp.id}')">
-                <img src="${(Array.isArray(rp.images)&&rp.images[0])||rp.image||'logo.png'}" onerror="this.src='logo.png'">
+                <img src="${(Array.isArray(rp.images)&&rp.images[0])||rp.image||'logo.jpg'}" onerror="this.src='logo.jpg'">
                 <div class="cross-sell-name">${rp.name}</div>
                 <div class="cross-sell-price">${Number(rp.price).toLocaleString()} Ks</div>
               </div>
@@ -7000,16 +7002,16 @@ function submitBackInStockAlert(prodId, prodName) {
 
   localStorage.setItem('tm_back_in_stock_requests', JSON.stringify(alertList));
 
-  if (typeof botConfig !== 'undefined' && botConfig.tgToken && botConfig.tgChatId) {
+  {
     const msg = `🔔 <b>[Back-in-Stock တောင်းဆိုချက်]</b>\n` +
       `📦 ပစ္စည်း: <b>${prodName}</b>\n` +
       `📞 ဖုန်းနံပါတ်: <code>${phone}</code>\n` +
       `ပစ္စည်း Stock ပြန်ရောက်ပါက အကြောင်းကြားပေးရန် စာရင်းသွင်းထားပါသည်။`;
 
-    fetch(`https://api.telegram.org/bot${botConfig.tgToken.trim()}/sendMessage`, {
+    fetch('/api/telegram-webhook', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: botConfig.tgChatId.trim(), text: msg, parse_mode: 'HTML' })
+      body: JSON.stringify({ action: 'sendOrderNotification', messageText: msg })
     }).catch(err => console.log('Back-in-stock telegram notify failed:', err));
   }
 
@@ -7030,7 +7032,7 @@ function addToCart(productId, chosenColor) {
   if (!p || (Number(p.stock) || 0) <= 0) return showToast('ပစ္စည်းလက်ကျန် မရှိတော့ပါခင်ဗျာ', 'error');
   const cartKey = productId + (chosenColor ? ('_' + chosenColor) : '');
   const exist = cart.find(c => c.cartKey === cartKey);
-  const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+  const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg';
   if (exist) {
     if (exist.qty >= p.stock) return showToast('လက်ကျန်ထက်ကျော်လွန်၍ မရနိုင်ပါ', 'warning');
     exist.qty++;
@@ -7234,6 +7236,7 @@ function saveLogisticsSettingsToCloud() {
   const multiCityOn = document.getElementById('cfgToggleMultiCity') ? document.getElementById('cfgToggleMultiCity').checked : false;
   const freeDeliveryOn = document.getElementById('cfgToggleFreeDelivery') ? document.getElementById('cfgToggleFreeDelivery').checked : false;
   const smartGateOn = document.getElementById('cfgToggleSmartGate') ? document.getElementById('cfgToggleSmartGate').checked : false;
+  const estimatedDateOn = document.getElementById('cfgToggleEstimatedDate') ? document.getElementById('cfgToggleEstimatedDate').checked : false;
   const smartGateNames = document.getElementById('cfgSmartGateNames')?.value.trim() || 'အောင်မင်္ဂလာအဝေးပြေးဂိတ်၊ ဒဂုံဧရာအဝေးပြေးဂိတ်';
   const etaCity = document.getElementById('cfgEtaCity')?.value.trim() || '၁ ရက် မှ ၂ ရက်အတွင်း';
   const etaGate = document.getElementById('cfgEtaGate')?.value.trim() || '၂ ရက် မှ ၃ ရက်အတွင်း';
@@ -7269,14 +7272,10 @@ function saveLogisticsSettingsToCloud() {
   // LocalStorage တွင် အမြန်သိမ်းဆည်းခြင်း
   localStorage.setItem('tm_logistics_config', JSON.stringify(logisticsConfig));
 
-  // Firebase Firestore / Realtime Database သို့ သိမ်းဆည်းခြင်း
+  // Firebase Realtime Database သို့ သိမ်းဆည်းခြင်း
   try {
-    if (typeof db !== 'undefined') {
-      if (typeof db.collection === 'function') {
-        db.collection('settings').doc('logistics').set(logisticsConfig, { merge: true });
-      } else if (typeof db.ref === 'function') {
-        db.ref('settings/logistics').update(logisticsConfig);
-      }
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_delivery_config/logisticsRules').set(logisticsConfig);
     }
   } catch (err) {
     console.warn('Logistics Cloud Save:', err);
@@ -7503,10 +7502,10 @@ setTimeout(() => {
     const itemTot = it.price * it.qty;
     subTotal += itemTot;
     const origProd = (typeof products !== 'undefined' && Array.isArray(products)) ? products.find(p => p && p.id === it.id) : null;
-    const itemImg = it.image || it.img || it.imageUrl || (Array.isArray(it.images) && it.images[0]) || (origProd && (origProd.image || origProd.img || origProd.imageUrl || (Array.isArray(origProd.images) && origProd.images[0]))) || 'logo.png';
+    const itemImg = it.image || it.img || it.imageUrl || (Array.isArray(it.images) && it.images[0]) || (origProd && (origProd.image || origProd.img || origProd.imageUrl || (Array.isArray(origProd.images) && origProd.images[0]))) || 'logo.jpg';
     return `
       <div class="cart-item">
-        <img src="${itemImg}" onerror="this.src='logo.png'">
+        <img src="${itemImg}" onerror="this.src='logo.jpg'">
             <div style="flex:1;">
               <h4 style="font-size:0.8rem; color:#fff;">${it.name}</h4>
               <div style="font-size:0.68rem; color:#38bdf8;">SKU: ${it.sku || '-'} ${it.color ? '| ' + it.color : ''}</div>
@@ -7931,7 +7930,7 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       const now = new Date();
       const orderId = 'ORD-' + now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(1000 + Math.random()*9000);
       const subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-      const totalDiscount = currentAppliedDiscount + (currentVipStatus.discountAmount || 0);
+      const totalDiscount = (Number(currentAppliedDiscount) || 0) + (Number(currentVipStatus.discountAmount) || 0) + (Number(currentRedeemedPointsDiscount) || 0);
       // Logistics Config စစ်ဆေး၍ ပို့ခ သတ်မှတ်ခြင်း
     let logisticsConfig = null;
     try {
@@ -7972,11 +7971,23 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
     );
 
     let activePayment = 'KBZPay';
+    const rawPayStr = String(window.selectedPaymentMethod || window.currentPaymentMethod || '').toLowerCase();
     if (isCodSelected) {
       activePayment = 'COD';
+    } else if (rawPayStr.includes('wave')) {
+      activePayment = 'WavePay';
+    } else if (rawPayStr.includes('cb')) {
+      activePayment = 'CB Pay';
+    } else if (rawPayStr.includes('aya')) {
+      activePayment = 'AYA Pay';
+    } else if (rawPayStr.includes('uab')) {
+      activePayment = 'UAB Pay';
+    } else if (rawPayStr.includes('bank')) {
+      activePayment = (typeof selectedBankType !== 'undefined' && typeof PAYMENT_ACCOUNTS !== 'undefined' && PAYMENT_ACCOUNTS[selectedBankType])
+        ? PAYMENT_ACCOUNTS[selectedBankType].title
+        : 'Banking';
     } else {
-      const isWave = String(window.selectedPaymentMethod || window.currentPaymentMethod || '').toLowerCase().includes('wave');
-      activePayment = isWave ? 'WavePay' : 'KBZPay';
+      activePayment = 'KBZPay';
     }
 
     // ပစ္စည်းမူရင်း တန်ဖိုးအစစ် (Subtotal) ကို တွက်ထုတ်ခြင်း
@@ -8188,52 +8199,7 @@ window.addEventListener('DOMContentLoaded', () => {
 }
     
     function showOrderSuccessScreen(o) {
-      // --- SECURE TELEGRAM NOTIFICATION DISPATCH ---
-  try {
-    // Discount နှင့် Total အမှန်ကို တိကျစွာ တွက်ချက်ခြင်း
-    const discAmount = Number(o.discount || o.discountAmount || (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-    const subAmount = Number(o.subTotal || (document.getElementById('cartSubTotal') ? document.getElementById('cartSubTotal').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-    const deliAmount = Number(o.deliveryFee || o.deliFee || (document.getElementById('cartDeliveryFeeText') ? document.getElementById('cartDeliveryFeeText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
-    
-    // ပစ္စည်းတန်ဖိုးထဲမှ Discount နှုတ်ပြီး Deli ပေါင်းသည့် စုစုပေါင်း အမှန်
-    const accurateTotal = (subAmount > 0) ? (Math.max(0, subAmount - discAmount) + deliAmount) : (Number(o.total || 0));
-
-    // Order Object အထဲရှိ total တန်ဖိုးများကိုပါ အမှန်ပြင်ဆင်ပေးခြင်း (Voucher Auto Save ပါ မှန်ကန်စေရန်)
-    o.total = accurateTotal;
-    o.discount = discAmount;
-    o.discountAmount = discAmount;
-
-    fetch('/api/telegram-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sendOrderNotification',
-        orderData: {
-          id: o.id || '',
-          customer: o.customer || '',
-          phone: o.phone || '',
-          address: o.address || '',
-          township: o.township || '',
-          deliveryService: o.deliveryService || o.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli',
-          deliveryType: o.deliveryType || o.deliveryService || 'ရန်ကုန်မြို့တွင်း Deli',
-          busGate: o.busGate || o.busGateDetails || '',
-          busGateDetails: o.busGateDetails || o.busGate || '',
-          subTotal: subAmount,
-          discount: discAmount,
-          discountAmount: discAmount,
-          deliveryFee: deliAmount,
-          deliFee: deliAmount,
-          total: accurateTotal,
-          payment: o.payment || 'COD',
-          specialNote: o.specialNote || '',
-          slipUrl: o.slipUrl || '',
-          items: o.items || []
-        }
-      })
-    }).catch(err => console.error('Telegram dispatch error:', err));
-  } catch (tgErr) {
-    console.error('Telegram trigger failed:', tgErr);
-  }
+      // (Telegram notification is already dispatched once inside submitOrder)
   
       const ownerPhone = botConfig.ownerPhone || '09768124433';
       const shareText = `Tolimoli Order: ${o.id} | ဝယ်သူ: ${o.customer} (${o.phone}) | စုစုပေါင်း: ${Number(o.total).toLocaleString()} MMK`;
@@ -8268,21 +8234,15 @@ window.addEventListener('DOMContentLoaded', () => {
       const note = document.getElementById('custFeedbackNote')?.value.trim();
       const oId = lastSubmittedOrder ? lastSubmittedOrder.id : 'N/A';
       
-      if (!botConfig.tgToken || !botConfig.tgChatId) {
-        alert('အကြံပြုချက်အတွက် ကျေးဇူးတင်ရှိပါသည်ခင်ဗျာ!');
-        closeModal('orderSuccessModal');
-        return;
-      }
-
       const fbMsg = `⭐ <b>ဝယ်သူ အကြံပြုချက် (Feedback) ရောက်ရှိပါပြီ!</b>\n` +
         `🆔 <b>Order ID:</b> <code>${oId}</code>\n` +
         `🌟 <b>အဆင့်သတ်မှတ်ချက်:</b> ${selectedQuickRatingVal}\n` +
         `📝 <b>အကြံပြုချက်စာတို:</b> ${note || 'အထူးမှတ်ချက် မရှိပါ'}`;
 
-      fetch(`https://api.telegram.org/bot${botConfig.tgToken.trim()}/sendMessage`, {
+      fetch('/api/telegram-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: botConfig.tgChatId.trim(), text: fbMsg, parse_mode: 'HTML' })
+        body: JSON.stringify({ action: 'sendOrderNotification', messageText: fbMsg })
       }).then(() => {
         alert('တန်ဖိုးရှိသော အကြံပြုချက် ပေးပို့မှုအတွက် အထူးကျေးဇူးတင်ရှိပါသည်ခင်ဗျာ!');
         closeModal('orderSuccessModal');
@@ -8304,9 +8264,8 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
     const prod = products.find(p => p.id === item.id || p.name === item.name);
     if (!prod) return;
 
-    // အော်ဒါတက်သွားပြီးနောက် လက်ကျန် Stock (၃ ခု သို့မဟုတ် ၃ ခုအောက် ဖြစ်ပါက Alert ပို့မည်)
-    const currentStock = (typeof prod.stock !== 'undefined') ? Number(prod.stock) : 0;
-    const remainingStock = Math.max(0, currentStock - (Number(item.qty) || 1));
+    // submitOrder() တွင် Stock နှုတ်ပြီးသားဖြစ်သဖြင့် လက်ရှိ prod.stock ကိုသာ တိုက်ရိုက်စစ်မည်
+    const remainingStock = Math.max(0, (typeof prod.stock !== 'undefined') ? Number(prod.stock) : 0);
 
     if (remainingStock <= 3) {
       const alertMsg = `⚠️ <b>[LOW-STOCK ALERT] ပစ္စည်းလက်ကျန် နည်းနေပါပြီ!</b> ⚠️\n` +
@@ -8598,32 +8557,33 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
       document.getElementById('summaryStockDamaged').innerText = totalDamaged + ' ခု';
       document.getElementById('summaryStockLeft').innerText = totalLeft + ' ခု';
       const lowEl = document.getElementById('summaryStockLow');
-  if (lowEl) lowEl.innerText = totalLowStock + ' မျိုး';
+      if (lowEl) lowEl.innerText = totalLowStock + ' မျိုး';
+
+      // ကဒ် ၅ ခု (ထပ်သွင်း / ရောင်းထွက် / ပျက်စီး / လက်ကျန် / ၅ ခုအောက်) ကို နှိပ်ကြည့်နိုင်ရန် ချိတ်ဆက်ခြင်း
+      const cardFilters = [
+        { id: 'summaryStockIn', mode: 'in', label: '📥 ထပ်သွင်းစာရင်း ရှိသော ပစ္စည်းများ' },
+        { id: 'summaryStockSold', mode: 'sold', label: '🛍️ ရောင်းထွက်ထားသော ပစ္စည်းများ' },
+        { id: 'summaryStockDamaged', mode: 'damaged', label: '⚠️ ပျက်စီးစာရင်း ရှိသော ပစ္စည်းများ' },
+        { id: 'summaryStockLeft', mode: 'left', label: '📊 လက်ကျန် Stock ရှိသော ပစ္စည်းများ' },
+        { id: 'summaryStockLow', mode: 'low', label: '⚠️ ၅ ခုနှင့်အောက် ပစ္စည်းများ' }
+      ];
+      cardFilters.forEach(cf => {
+        const valEl = document.getElementById(cf.id);
+        const cardEl = valEl ? valEl.parentElement : null;
+        if (cardEl && !cardEl.dataset.clickBound) {
+          cardEl.dataset.clickBound = '1';
+          cardEl.style.cursor = 'pointer';
+          cardEl.title = 'နှိပ်၍ စာရင်းစစ်ထုတ်ကြည့်ရန်';
+          cardEl.onclick = () => {
+            window.currentStockSummaryFilter = (window.currentStockSummaryFilter === cf.mode) ? 'all' : cf.mode;
+            renderStockTable();
+          };
+        }
+        if (cardEl) {
+          cardEl.style.outline = (window.currentStockSummaryFilter === cf.mode) ? '2px solid #d4af37' : 'none';
+        }
+      });
     }
-    // ကဒ် ၄ ခု (ထပ်သွင်း / ရောင်းထွက် / ပျက်စီး / လက်ကျန်) ကို နှိပ်ကြည့်နိုင်ရန် ချိတ်ဆက်ခြင်း
-  const cardFilters = [
-    { id: 'summaryStockIn', mode: 'in', label: '📥 ထပ်သွင်းစာရင်း ရှိသော ပစ္စည်းများ' },
-    { id: 'summaryStockSold', mode: 'sold', label: '🛍️ ရောင်းထွက်ထားသော ပစ္စည်းများ' },
-    { id: 'summaryStockDamaged', mode: 'damaged', label: '⚠️ ပျက်စီးစာရင်း ရှိသော ပစ္စည်းများ' },
-    { id: 'summaryStockLeft', mode: 'left', label: '📊 လက်ကျန် Stock ရှိသော ပစ္စည်းများ' },
-    { id: 'summaryStockLow', mode: 'low', label: '⚠️ ၅ ခုနှင့်အောက် ပစ္စည်းများ' }
-  ];
-  cardFilters.forEach(cf => {
-    const valEl = document.getElementById(cf.id);
-    const cardEl = valEl ? valEl.parentElement : null;
-    if (cardEl && !cardEl.dataset.clickBound) {
-      cardEl.dataset.clickBound = '1';
-      cardEl.style.cursor = 'pointer';
-      cardEl.title = 'နှိပ်၍ စာရင်းစစ်ထုတ်ကြည့်ရန်';
-      cardEl.onclick = () => {
-        window.currentStockSummaryFilter = (window.currentStockSummaryFilter === cf.mode) ? 'all' : cf.mode;
-        renderStockTable();
-      };
-    }
-    if (cardEl) {
-      cardEl.style.outline = (window.currentStockSummaryFilter === cf.mode) ? '2px solid #d4af37' : 'none';
-    }
-  });
     function openStockAdjustmentModal(pId) {
   const p = products.find(x => x.id === pId);
   if (!p) return;
@@ -9651,10 +9611,6 @@ function renderVisualSalesCharts(orderList) {
 }
 
     function sendDailySalesSummaryTelegram() {
-      if (!botConfig.tgToken || !botConfig.tgChatId) {
-        return alert('Settings Tab တွင် Telegram Bot Token နှင့် Chat ID အရင် ဖြည့်သွင်းပေးပါခင်ဗျာ');
-      }
-
       const today = new Date().toDateString();
       const todayOrders = orders.filter(o => {
         if (!o || !o.date) return false;
@@ -9672,10 +9628,10 @@ function renderVisualSalesCharts(orderList) {
         `━━━━━━━━━━━━━━━━━━\n` +
         `အသေးစိတ် စာရင်းဇယားကို Tolimoli Admin Dashboard တွင် ကြည့်ရှုနိုင်ပါသည်။`;
 
-      fetch(`https://api.telegram.org/bot${botConfig.tgToken.trim()}/sendMessage`, {
+      fetch('/api/telegram-webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: botConfig.tgChatId.trim(), text: reportMsg, parse_mode: 'HTML' })
+        body: JSON.stringify({ action: 'sendOrderNotification', messageText: reportMsg })
       }).then(() => {
         alert('တစ်နေ့တာ အရောင်းအစီရင်ခံစာကို Telegram သို့ အောင်မြင်စွာ ပို့ဆောင်ပြီးပါပြီ!');
       }).catch(err => {
@@ -9772,7 +9728,7 @@ function renderVisualSalesCharts(orderList) {
       Promise.all([...imgUploadPromises, videoPromise]).then(results => {
         const uploadedImgs = results.slice(0, numImages).filter(x => x && x.trim() !== '');
         const finalVideo = results[numImages] || '';
-        const primaryImg = uploadedImgs.length > 0 ? uploadedImgs[0] : 'logo.png';
+        const primaryImg = uploadedImgs.length > 0 ? uploadedImgs[0] : 'logo.jpg';
 
         const productData = {
           sku: sku || '',
@@ -9795,7 +9751,7 @@ function renderVisualSalesCharts(orderList) {
           description: desc, // ပင်မ Description
           desc: desc,        // အရန် Desc Key (မည်သည့်နေရာမှ ဖတ်ဖတ် မပျောက်စေရန်)
           image: primaryImg,
-          images: uploadedImgs.length > 0 ? uploadedImgs : ['logo.png'],
+          images: uploadedImgs.length > 0 ? uploadedImgs : ['logo.jpg'],
           video: finalVideo,
           colors: colors,
           colorVariants: colorVariants,
@@ -10223,13 +10179,13 @@ function renderAdminColorInputs() {
           </thead>
           <tbody>
             ${filtered.length === 0 ? '<tr><td colspan="6" style="text-align:center; padding:15px; color:var(--text-muted);">ပစ္စည်း မတွေ့ရှိပါ</td></tr>' : filtered.map(p => {
-              const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+              const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg';
               const isPromo = isProductPromo(p);
               const stockNum = Number(p.stock !== undefined ? p.stock : 10);
               const isOutOfStock = stockNum <= 0;
               return `
                 <tr style="border-bottom:1px solid rgba(255,255,255,0.05); ${isOutOfStock ? 'background:rgba(239,68,68,0.06);' : p.isHidden ? 'background:rgba(100,116,139,0.08);' : isPromo ? 'background:rgba(239,68,68,0.03);' : ''}">
-                  <td style="padding:4px;"><img src="${thumb}" style="width:34px; height:34px; object-fit:cover; border-radius:4px;" onerror="this.src='logo.png'"></td>
+                  <td style="padding:4px;"><img src="${thumb}" style="width:34px; height:34px; object-fit:cover; border-radius:4px;" onerror="this.src='logo.jpg'"></td>
                   <td style="padding:4px; color:#38bdf8; font-family:monospace;">${p.sku||'-'}</td>
                   <td style="padding:4px; font-weight:600;">
                     ${p.name}
@@ -10613,6 +10569,7 @@ function normalizeTownData(townList, defaultFee = 5000, defaultDuration = "3/4 �
                       </div>
                   `;
                 })()}
+        </div>
   `).join('') + `
     <div style="margin-top:16px; margin-bottom:12px; display:flex; justify-content:center;">
       <button type="button" class="btn-gold" onclick="saveDeliveryConfig()" style="width:100%; padding:12px; font-size:0.95rem; font-weight:bold; cursor:pointer; background:linear-gradient(135deg, #d4af37, #f3e5ab); color:#000; border:none; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
@@ -10837,7 +10794,7 @@ function onSearchCompanyTown(cIdx, query) {
                   id: 'p_' + Date.now() + Math.random(), sku: sku, name: r.Name || 'Product',
                   category: r.Category || 'တုန်စက်', price: Number(r.SellingPrice) || 0,
                   cost: Number(r.CostPrice) || 0, stock: Number(r.Stock) || 0, damaged: 0,
-                  image: 'logo.png', images: ['logo.png'], rating: 5.0
+                  image: 'logo.jpg', images: ['logo.jpg'], rating: 5.0
                 });
               }
             });
@@ -11837,7 +11794,7 @@ function closeModal(id) {
   }
 
   // ပုံ URL သေချာတိကျစွာ ဆွဲယူသိမ်းဆည်းခြင်း
-  let itemImg = 'logo.png';
+  let itemImg = 'logo.jpg';
   if (Array.isArray(prod.images) && prod.images.length > 0 && prod.images[0]) {
     itemImg = prod.images[0];
   } else if (prod.image) {
@@ -11880,7 +11837,7 @@ function closeModal(id) {
 
       if (btn) { btn.disabled = true; btn.innerText = 'ပုံတင်နေပါသည်...'; }
 
-      let finalImg = urlInput || 'logo.png';
+      let finalImg = urlInput || 'logo.jpg';
       if (file && typeof uploadToImgBB === 'function') {
         const uploaded = await uploadToImgBB(file);
         if (uploaded) finalImg = uploaded;
@@ -11946,7 +11903,7 @@ function closeModal(id) {
       box.innerHTML = focConfig.selectedGifts.map(g => `
         <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(212,175,55,0.18); border:1.5px solid var(--gold); border-radius:8px; padding:6px 10px; margin:3px 0; color:#fff; width:100%;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${g.image || 'logo.png'}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;" onerror="this.src='logo.png'">
+            <img src="${g.image || 'logo.jpg'}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;" onerror="this.src='logo.jpg'">
             <span style="font-size:0.78rem; font-weight:600;">🎁 ${g.name} ${g.tier === 2 ? '<b style="color:#38bdf8;">(Tier 2)</b>' : ''}</span>
           </div>
           <button type="button" onclick="removeFocGiftItem('${g.id}')" style="background:#ef4444; border:none; color:#fff; font-weight:bold; cursor:pointer; font-size:0.75rem; padding:3px 8px; border-radius:4px;">
@@ -12123,35 +12080,7 @@ function closeModal(id) {
       return exact || 'All';
     }
 
-    // --- 1-CLICK COPY TO CLIPBOARD HELPER (WITH MODERN TOAST) ---
-function copyTextToClipboard(text, successMsg) {
-  const msg = successMsg || 'Link ကူးယူပြီးပါပြီ!';
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(() => {
-      showToast(msg, 'success');
-    }).catch(() => fallbackCopyText(text, msg));
-  } else {
-    fallbackCopyText(text, msg);
-  }
-}
-
-function fallbackCopyText(text, successMsg) {
-  const msg = successMsg || 'Link ကူးယူပြီးပါပြီ!';
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.left = '-9999px';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  try {
-    document.execCommand('copy');
-    showToast(msg, 'success');
-  } catch (err) {
-    showToast('Link ကူးယူ၍ မရပါခင်ဗျာ', 'error');
-  }
-  ta.remove();
-}
+    // (copyTextToClipboard & fallbackCopyText defined below)
 
     // --- CATEGORY SELECTION & SHARING ---
     function selectCategoryByName(catName, updateUrl = true) {
@@ -12330,7 +12259,7 @@ function copyProductLink(productId) {
           const colorLabel = (color === 'ပုံမှန်') ? '' : color;
           const cartKey = productId + (colorLabel ? ('_' + colorLabel) : '');
           const exist = cart.find(c => c.cartKey === cartKey);
-          const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+          const thumb = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg';
 
           if (exist) {
             exist.qty += qty;
@@ -12488,8 +12417,8 @@ function copyProductLink(productId) {
     const isCod = comp && comp.isCod !== false;
     if (isCod) {
       if (typeof selectPayment === 'function') {
-        const codCardElem = document.getElementById('payCard_COD');
-        if (codCardElem) selectPayment('COD', codCardElem);
+        const codCardElem = document.getElementById('payMethod_cod');
+        if (codCardElem && typeof selectPaymentMethod === 'function') selectPaymentMethod('cod');
       }
       // QR Code container ရှိပါက ဖျောက်ပေးခြင်း
       const qrBox = document.getElementById('dynamicPaymentQRContainer') || document.querySelector('.payment-qr-container');
@@ -12514,15 +12443,15 @@ function copyProductLink(productId) {
         `;
       }
 
-      const codCard = document.getElementById('payCard_COD');
+      const codCard = document.getElementById('payMethod_cod');
       if (codCard) {
         if (isCodAllowed) {
           codCard.style.opacity = '1'; codCard.style.pointerEvents = 'auto';
         } else {
           codCard.style.opacity = '0.3'; codCard.style.pointerEvents = 'none';
-          if (selectedPaymentMethod === 'COD') {
+          if (String(selectedPaymentMethod).toUpperCase() === 'COD') {
             alert(`${comp.name} အတွက် KBZPay သို့မဟုတ် WavePay ဖြင့် ငွေကြိုရှင်းပေးရပါမည်ခင်ဗျာ။`);
-            selectPayment('KBZPay', document.getElementById('payCard_KBZPay'));
+            if (typeof selectPaymentMethod === 'function') selectPaymentMethod('kpay');
           }
         }
       }
@@ -12868,7 +12797,7 @@ function handleCustomerGateSelection(val) {
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
           <div style="display:flex; align-items:center; gap:6px;">
-            <img src="${comp.image || 'logo.png'}" style="width:36px; height:36px; border-radius:6px; object-fit:cover;">
+            <img src="${comp.image || 'logo.jpg'}" style="width:36px; height:36px; border-radius:6px; object-fit:cover;">
             <div>
               <b style="font-size:0.75rem; color:#fff;">+ ${comp.name}</b>
               <div style="font-size:0.72rem; color:var(--gold);">${Number(comp.price).toLocaleString()} Ks</div>
@@ -13038,7 +12967,7 @@ function handleCustomerGateSelection(val) {
       if (!mb) return;
       cart.push({
         cartKey: 'mb_' + mId, id: 'mb_' + mId, sku: 'MYSTERY-BOX', name: mb.name,
-        color: 'Mystery Box', price: mb.price, cost: Math.round(mb.price * 0.6), image: 'logo.png', qty: 1
+        color: 'Mystery Box', price: mb.price, cost: Math.round(mb.price * 0.6), image: 'logo.jpg', qty: 1
       });
       saveCart();
       closeModal('mysteryBoxModal');
@@ -13814,6 +13743,7 @@ applySoundToggleUI(isAudioMuted);
       });
     }
 
+    fbDb.ref('support_chats').off('value');
     fbDb.ref('support_chats').on('value', snap => {
       const val = snap.val();
       if (!val) {
@@ -14870,7 +14800,7 @@ function handleStationSelectAutoFill(typedText) {
       });
 
       // ၂။ CUSTOMER သီးသန့် NOTI - မိမိဖုန်းရှိ Guest Session သို့ Admin က စာပြန်မှသာ အသံမြည်စေခြင်း
-      const mySessionId = localStorage.getItem('tm_guest_chat_session') || (typeof currentGuestSessionId !== 'undefined' ? currentGuestSessionId : null);
+      const mySessionId = localStorage.getItem('tm_chat_session_id') || (typeof currentGuestSessionId !== 'undefined' ? currentGuestSessionId : null);
       if (mySessionId) {
         fbDb.ref(`support_chats/${mySessionId}/messages`).on('child_added', snap => {
           const m = snap.val();
@@ -15015,6 +14945,7 @@ applyDiscountCoupon = function() {
       baseRenderCartUI();
       checkCartStockReservation();
       renderCheckoutFocSection();
+      if (typeof checkCartNonCodRestriction === 'function') checkCartNonCodRestriction();
     };
 
     // ၅။ Tiered FOC, Milestone Progress Bar & Custom Photo Gift
@@ -15065,7 +14996,7 @@ applyDiscountCoupon = function() {
         currentCustomerSelectedFocGift = availableGifts[0] || focConfig.selectedGifts[0];
         container.innerHTML = `
           <div style="background:rgba(16,185,129,0.1); border:1px solid #10b981; border-radius:8px; padding:10px; margin:8px 0; display:flex; align-items:center; gap:8px;">
-            <img src="${currentCustomerSelectedFocGift.image || 'logo.png'}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
+            <img src="${currentCustomerSelectedFocGift.image || 'logo.jpg'}" style="width:40px; height:40px; border-radius:6px; object-fit:cover;">
             <div>
               <div style="color:#00ff88; font-weight:bold; font-size:0.78rem;">🎁 ${focConfig.title || 'အထူးလက်ဆောင် (FOC)'}</div>
               <div style="font-size:0.75rem; color:#fff;">ရရှိမည့်လက်ဆောင်: <b>${currentCustomerSelectedFocGift.name}</b> (အခမဲ့ - 0 Ks)</div>
@@ -15100,7 +15031,7 @@ applyDiscountCoupon = function() {
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ပုံတင်နေပါသည်...';
 
-      let finalImg = directUrl || 'logo.png';
+      let finalImg = directUrl || 'logo.jpg';
       if (file) {
         const up = await uploadToImgBB(file);
         if (up) finalImg = up;
@@ -15183,7 +15114,7 @@ applyDiscountCoupon = function() {
     }
 
     function checkCartNonCodRestriction() {
-      const codCard = document.getElementById('payCard_COD');
+      const codCard = document.getElementById('payMethod_cod');
       const warningBox = document.getElementById('cartNonCodWarningBox');
       
       const hasNonCodItem = (cart || []).some(item => {
@@ -15198,9 +15129,8 @@ applyDiscountCoupon = function() {
           codCard.style.pointerEvents = 'none';
           codCard.style.filter = 'grayscale(100%)';
         }
-        if (selectedPaymentMethod === 'COD') {
-          const kpayCard = document.getElementById('payCard_KBZPay');
-          if (kpayCard) selectPayment('KBZPay', kpayCard);
+        if (String(selectedPaymentMethod).toUpperCase() === 'COD') {
+          if (typeof selectPaymentMethod === 'function') selectPaymentMethod('kpay');
         }
       } else {
         if (warningBox) warningBox.style.display = 'none';
@@ -15313,7 +15243,7 @@ applyDiscountCoupon = function() {
   box.innerHTML = focConfig.selectedGifts.map((g, idx) => `
     <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(212,175,55,0.18); border:1.5px solid var(--gold); border-radius:8px; padding:6px 10px; margin:3px 0; color:#fff; width:100%;">
       <div style="display:flex; align-items:center; gap:8px;">
-        <img src="${g.image || 'logo.png'}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;" onerror="this.src='logo.png'">
+        <img src="${g.image || 'logo.jpg'}" style="width:28px; height:28px; border-radius:4px; object-fit:cover;" onerror="this.src='logo.jpg'">
         <span style="font-size:0.78rem; font-weight:600;">🎁 ${g.name} ${g.tier === 2 ? '<b style="color:#38bdf8;">(Tier 2)</b>' : ''}</span>
       </div>
       <button type="button" onclick="removeFocGiftItem('${g.id}')" style="background:#ef4444; border:none; color:#fff; font-weight:bold; cursor:pointer; font-size:0.75rem; padding:3px 8px; border-radius:4px;">
@@ -15474,7 +15404,7 @@ addFocGiftItem = function() {
     return alert('ဤပစ္စည်းသည် လက်ဆောင်စာရင်းထဲတွင် ထည့်ပြီးသားဖြစ်ပါသည်');
   }
 
-  let itemImg = 'logo.png';
+  let itemImg = 'logo.jpg';
   if (Array.isArray(prod.images) && prod.images.length > 0 && prod.images[0]) {
     itemImg = prod.images[0];
   } else if (prod.image) {
@@ -15514,7 +15444,7 @@ addFocGiftItem = function() {
       btn.disabled = true;
       btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ပုံတင်နေပါသည်...';
 
-      let finalImg = directUrl || 'logo.png';
+      let finalImg = directUrl || 'logo.jpg';
       if (file) {
         const up = await uploadToImgBB(file);
         if (up) finalImg = up;
@@ -15547,7 +15477,7 @@ addFocGiftItem = function() {
       box.innerHTML = focConfig.selectedGifts.map((g, idx) => `
         <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.04); border:1px solid var(--gold); border-radius:6px; padding:6px 10px; margin-bottom:4px;">
           <div style="display:flex; align-items:center; gap:8px;">
-            <img src="${g.image || 'logo.png'}" style="width:36px; height:36px; border-radius:4px; object-fit:cover;">
+            <img src="${g.image || 'logo.jpg'}" style="width:36px; height:36px; border-radius:4px; object-fit:cover;">
             <div>
               <b style="font-size:0.78rem; color:#fff;">🎁 ${g.name}</b>
               <span style="font-size:0.68rem; color:#38bdf8; display:block;">Tier ${g.tier || 1} • ${g.isManualGift ? 'သီးသန့်လက်ဆောင်' : 'ဆိုင်တွင်းပစ္စည်း'}</span>
@@ -15826,7 +15756,7 @@ function openImageLightbox(index) {
   const rawImgs = currentDetailProduct.images;
   currentLightboxImages = (Array.isArray(rawImgs) && rawImgs.length > 0) 
     ? rawImgs 
-    : [currentDetailProduct.image || 'logo.png'];
+    : [currentDetailProduct.image || 'logo.jpg'];
   
   currentLightboxIndex = (index >= 0 && index < currentLightboxImages.length) ? index : 0;
   updateLightboxView();
@@ -16143,34 +16073,7 @@ function readFileAsBase64(file) {
   });
 }
 
-// ၂။ ImgBB / Image Upload Fallback Helper
-async function uploadToImgBB(file) {
-  try {
-    if (!file) return '';
-    return await readFileAsBase64(file);
-  } catch (err) {
-    console.warn('Image upload error:', err);
-    return '';
-  }
-}
-
-// ၃။ အသံသတိပေးချက် ဖွင့်/ပိတ် Helper
-let isGlobalSoundActive = true;
-function toggleGlobalSoundNotification() {
-  isGlobalSoundActive = !isGlobalSoundActive;
-  const msg = isGlobalSoundActive ? '🔔 အသံသတိပေးချက် ဖွင့်ထားပါသည်' : '🔕 အသံသတိပေးချက် ပိတ်ထားပါသည်';
-  if (typeof showToast === 'function') {
-    showToast(msg);
-  } else {
-    alert(msg);
-  }
-}
-
-// ၄။ Search Category Dropdown Sync Helper
-function syncSearchCategoryDropdown() {
-  const catSelect = document.getElementById('searchCategorySelect');
-  if (!catSelect) return;
-}
+// (uploadToImgBB, toggleGlobalSoundNotification, syncSearchCategoryDropdown use their primary implementations above)
 
 // ==========================================
 // PHASE 2: DISCREET SHOPPING & PRIVACY SUITE
@@ -16200,9 +16103,7 @@ function clearAllCustomerTraces() {
   if (confirm('သင့်ဖုန်းထဲရှိ ခြင်းတောင်းမှတ်တမ်းနှင့် ရှာဖွေထားသော အချက်အလက်အားလုံးကို အပြီးတိုင် ဖျက်ပစ်ပါမည်လား?')) {
     try {
       // LocalStorage မှတ်တမ်းများ ရှင်းထုတ်ခြင်း
-      localStorage.removeItem('cart');
-      localStorage.removeItem('user_cart');
-      localStorage.removeItem('search_history');
+      ['cart', 'user_cart', 'search_history', 'tm_cart', 'tm_wishlist', 'tm_recent_views', 'tm_chat_session_id', 'tm_saved_township', 'tm_saved_deliservice'].forEach(k => localStorage.removeItem(k));
       sessionStorage.clear();
 
       alert('မှတ်တမ်းအားလုံးကို လျှို့ဝှက်စွာ ရှင်းလင်းပြီးပါပြီခင်ဗျာ။');
@@ -16216,9 +16117,7 @@ function clearAllCustomerTraces() {
 // Quick Panic Exit: ချက်ချင်းဒေတာဖျက်ပြီး Google သို့ ထွက်ခွာခြင်း
 function triggerQuickPanicExit() {
   try {
-    localStorage.removeItem('cart');
-    localStorage.removeItem('user_cart');
-    localStorage.removeItem('search_history');
+    ['cart', 'user_cart', 'search_history', 'tm_cart', 'tm_wishlist', 'tm_recent_views', 'tm_chat_session_id', 'tm_saved_township', 'tm_saved_deliservice'].forEach(k => localStorage.removeItem(k));
     sessionStorage.clear();
   } catch (err) {
     console.error(err);
@@ -16348,18 +16247,11 @@ async function uploadArticleImage(input) {
     statusEl.style.color = '#d4af37';
   }
 
-  const formData = new FormData();
-  formData.append('image', file);
-
   try {
-    const res = await fetch('https://api.imgbb.com/1/upload?key=6d207e02198a847aa5ad3ac2222c825a', {
-      method: 'POST',
-      body: formData
-    });
-    const data = await res.json();
-    if (data && data.data && data.data.url) {
-      document.getElementById('artCover').value = data.data.url;
-      previewArticleCover(data.data.url);
+    const uploadedUrl = await uploadToImgBB(file);
+    if (uploadedUrl) {
+      document.getElementById('artCover').value = uploadedUrl;
+      previewArticleCover(uploadedUrl);
       if (statusEl) {
         statusEl.textContent = '✓ ဓာတ်ပုံ တင်ယူပြီးပါပြီ!';
         statusEl.style.color = '#4ade80';
@@ -16744,7 +16636,7 @@ function editArticle(id) {
   const linksContainer = document.getElementById('articleLinksContainer');
   linksContainer.innerHTML = '';
   if (Array.isArray(art.socialLinks) && art.socialLinks.length > 0) {
-    art.socialLinks.forEach(l => addArticleLinkRow(l.platform, l.url));
+    art.socialLinks.forEach(l => addArticleLinkRow(l.platform, l.url, l.label || ''));
   } else {
     addArticleLinkRow('youtube', '');
   }
@@ -16765,6 +16657,7 @@ function renderStorefrontArticles(filteredList = null) {
   if (!container) return;
 
   let rawList = filteredList !== null ? filteredList : (typeof appArticles !== 'undefined' ? appArticles : []);
+  rawList = rawList.filter(a => a && a.status !== 'draft');
   
   // 📌 Pin ချိတ်ထားသော သတင်းများကို ထိပ်ဆုံးရောက်အောင် စီတန်းခြင်း
   let list = [...rawList].sort((a, b) => {
@@ -17187,7 +17080,13 @@ window.updateSelectedDeliveryUI = function(selectedTown, comp) {
 
 // Payment Method ရွေးချယ်မှု ပြောင်းလဲသည့် Function
 window.selectPaymentMethod = function(method) {
-    const formattedMethod = String(method).toLowerCase() === 'cod' ? 'COD' : (String(method).toLowerCase().includes('wave') ? 'WavePay' : 'KBZPay');
+    const mLow = String(method).toLowerCase();
+    let formattedMethod = 'KBZPay';
+    if (mLow === 'cod') formattedMethod = 'COD';
+    else if (mLow.includes('wave')) formattedMethod = 'WavePay';
+    else if (mLow === 'banking') {
+      formattedMethod = (PAYMENT_ACCOUNTS[selectedBankType] && PAYMENT_ACCOUNTS[selectedBankType].title) || 'Banking';
+    }
     window.selectedPaymentMethod = formattedMethod;
     window.currentPaymentMethod = formattedMethod;
     currentPaymentMethod = method;
@@ -17221,6 +17120,10 @@ window.selectPaymentMethod = function(method) {
 // Banking အတွက် Sub-Bank ရွေးချယ်ခြင်း
 window.selectBankSubOption = function(bankKey) {
   selectedBankType = bankKey;
+  if (PAYMENT_ACCOUNTS[bankKey]) {
+    window.selectedPaymentMethod = PAYMENT_ACCOUNTS[bankKey].title;
+    window.currentPaymentMethod = PAYMENT_ACCOUNTS[bankKey].title;
+  }
   renderQrBoxContent();
 };
 
@@ -17654,7 +17557,7 @@ function forceOpenAdminDashboard() {
   window.setChatReplyQuote = function(msgKey, senderName, snippet) {
     window.activeChatReplyQuote = { key: msgKey, sender: senderName, text: snippet.slice(0, 80) };
     let bar = document.getElementById('chatReplyPreviewBar');
-    const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+    const input = document.getElementById('liveChatUserInput') || document.querySelector('#liveChatModal input[type="text"]');
     if (!bar && input && input.parentElement) {
       bar = document.createElement('div');
       bar.id = 'chatReplyPreviewBar';
@@ -17697,7 +17600,7 @@ function forceOpenAdminDashboard() {
   };
 
   window.editChatMessage = function(sessionId, msgKey, oldText) {
-    const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+    const input = document.getElementById('liveChatUserInput') || document.querySelector('#liveChatModal input[type="text"]');
     if (!input) return;
 
     window.editingChatMessageKey = { sessionId, msgKey };
@@ -17728,7 +17631,7 @@ function forceOpenAdminDashboard() {
     window.editingChatMessageKey = null;
     const bar = document.getElementById('chatReplyPreviewBar');
     if (bar) bar.style.display = 'none';
-    const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+    const input = document.getElementById('liveChatUserInput') || document.querySelector('#liveChatModal input[type="text"]');
     if (input) input.value = '';
   };
 
@@ -17737,7 +17640,7 @@ function forceOpenAdminDashboard() {
     if (sendBtn && window.editingChatMessageKey) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+      const input = document.getElementById('liveChatUserInput') || document.querySelector('#liveChatModal input[type="text"]');
       const newText = input ? input.value.trim() : '';
       if (newText) {
         const { sessionId, msgKey } = window.editingChatMessageKey;
@@ -17752,7 +17655,7 @@ function forceOpenAdminDashboard() {
 
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Enter' && window.editingChatMessageKey) {
-      const input = document.getElementById('liveChatInput') || document.querySelector('#liveChatModal input[type="text"]');
+      const input = document.getElementById('liveChatUserInput') || document.querySelector('#liveChatModal input[type="text"]');
       if (document.activeElement === input) {
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -17881,7 +17784,7 @@ function forceOpenAdminDashboard() {
 
   window.sendSmartProductCard = function(sessionId, product) {
     if (!product || typeof fbDb === 'undefined') return;
-    const imgUrl = (Array.isArray(product.images) && product.images[0]) || product.image || 'logo.png';
+    const imgUrl = (Array.isArray(product.images) && product.images[0]) || product.image || 'logo.jpg';
     const priceNum = Number(product.price || 0);
     fbDb.ref(`support_chats/${sessionId}/messages`).push({
       sender: 'admin',
@@ -18028,7 +17931,7 @@ function forceOpenAdminDashboard() {
     if (window._tmModernChatInit || typeof fbDb === 'undefined') return;
     window._tmModernChatInit = true;
     setInterval(() => {
-      const sid = window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id');
+      const sid = window.currentGuestSessionId || localStorage.getItem('tm_chat_session_id');
       if (!sid) return;
       const rawCart = JSON.parse(localStorage.getItem('tm_cart') || '[]');
       if (Array.isArray(rawCart)) {
@@ -18036,13 +17939,13 @@ function forceOpenAdminDashboard() {
       }
     }, 8000);
 
-    const userInp = document.getElementById('liveChatInput');
-    const adminInp = document.getElementById('adminActiveChatReplyInput');
+    const userInp = document.getElementById('liveChatUserInput');
+    const adminInp = document.getElementById('adminChatReplyInput');
     let tTimer = null;
     const bindTyping = (el, role) => {
       if (!el) return;
       el.addEventListener('input', () => {
-        const sid = role === 'admin' ? window.adminActiveSelectedSession : (window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id'));
+        const sid = role === 'admin' ? window.adminActiveSelectedSession : (window.currentGuestSessionId || localStorage.getItem('tm_chat_session_id'));
         if (!sid) return;
         fbDb.ref(`support_chats/${sid}/typing_${role}`).set(true);
         clearTimeout(tTimer);
@@ -18053,7 +17956,7 @@ function forceOpenAdminDashboard() {
     bindTyping(adminInp, 'admin');
 
     setInterval(() => {
-      const sid = window.currentGuestSessionId || localStorage.getItem('tm_guest_session_id');
+      const sid = window.currentGuestSessionId || localStorage.getItem('tm_chat_session_id');
       if (!sid) return;
       fbDb.ref(`support_chats/${sid}`).once('value', snap => {
         const d = snap.val() || {};
@@ -18117,7 +18020,7 @@ function forceOpenAdminDashboard() {
     if (mediaType === 'product_card' && cd.name) {
       const safeName = (cd.name || '').replace(/'/g, '');
       const safeSku = (cd.sku || '').replace(/'/g, '');
-      const safeImg = (cd.image || mediaUrl || 'logo.png').replace(/'/g, '');
+      const safeImg = (cd.image || mediaUrl || 'logo.jpg').replace(/'/g, '');
       bodyContentHtml = `
         <div style="background:linear-gradient(145deg,#0f172a,#1e293b); border:1px solid rgba(253,224,71,0.45); border-radius:14px; overflow:hidden; width:235px; box-shadow:0 8px 20px rgba(0,0,0,0.45); margin-top:4px;">
           <div style="position:relative; width:100%; height:145px; background:#020617;">
@@ -18141,10 +18044,10 @@ function forceOpenAdminDashboard() {
       const cardsHtml = cd.items.map(it => {
         const sName = (it.name || '').replace(/'/g, '');
         const sSku = (it.sku || '').replace(/'/g, '');
-        const sImg = (it.image || 'logo.png').replace(/'/g, '');
+        const sImg = (it.image || 'logo.jpg').replace(/'/g, '');
         return `
           <div style="min-width:155px; max-width:155px; background:#0f172a; border:1px solid rgba(253,224,71,0.4); border-radius:10px; overflow:hidden; flex-shrink:0; display:flex; flex-direction:column;">
-            <img src="${it.image || 'logo.png'}" style="width:100%; height:95px; object-fit:cover; background:#020617;">
+            <img src="${it.image || 'logo.jpg'}" style="width:100%; height:95px; object-fit:cover; background:#020617;">
             <div style="padding:7px; flex:1; display:flex; flex-direction:column; justify-content:space-between;">
               <div>
                 <div style="color:#fff; font-size:11px; font-weight:700; line-height:1.3; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${it.name}</div>
@@ -18452,7 +18355,7 @@ function forceOpenAdminDashboard() {
     }
 
     function bindListener() {
-      const sId = window.currentGuestSessionId || localStorage.getItem('tolimoli_guest_session_id');
+      const sId = window.currentGuestSessionId || localStorage.getItem('tm_chat_session_id');
       if (!sId || typeof fbDb === 'undefined') return;
       if (attachedSessionId === sId) return;
       attachedSessionId = sId;
@@ -18535,7 +18438,7 @@ function forceOpenAdminDashboard() {
     }
 
     listEl.innerHTML = matched.map(p => {
-      const img = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png';
+      const img = (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg';
       const price = Number(p.price || 0);
       return `
         <div style="display:flex; align-items:center; gap:10px; background:#020617; border:1px solid #334155; border-radius:10px; padding:7px 9px; transition:0.15s;">
@@ -18741,13 +18644,15 @@ function forceOpenAdminDashboard() {
 
   window.switchAdminInboxTab = function(mode) {
     window.adminInboxFilterMode = mode;
+    if (typeof setAdminChatFilter === 'function') {
+      setAdminChatFilter(mode);
+    }
     const bAct = document.getElementById('tabInboxActive');
     const bDone = document.getElementById('tabInboxDone');
     if (bAct && bDone) {
       bAct.style.background = mode === 'active' ? '#16a34a' : '#1e293b';
       bDone.style.background = mode === 'done' ? '#0284c7' : '#1e293b';
     }
-    if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
   };
 
   window.toggleChatSessionDoneStatus = function(sessionId, markDone) {
