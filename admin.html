@@ -18877,9 +18877,17 @@ async function handleAdminFirebaseLogin(e) {
 
 async function handleAdminFirebaseLogout() {
   const gate = document.getElementById('adminAuthGate');
+  const adminEl = document.getElementById('adminModal');
   document.body.classList.remove('admin-authenticated');
   sessionStorage.removeItem('admin_auth_token');
-  if (gate) gate.style.display = 'flex';
+  if (adminEl) {
+    adminEl.classList.remove('active');
+    adminEl.style.setProperty('display', 'none', 'important');
+  }
+  if (gate) {
+    gate.style.setProperty('display', 'flex', 'important');
+    gate.style.setProperty('z-index', '2147483647', 'important');
+  }
   const passEl = document.getElementById('adminLoginPassword');
   if (passEl) passEl.value = '';
   try {
@@ -18895,6 +18903,7 @@ async function handleAdminFirebaseLogout() {
 window.forceOpenAdminDashboard = function() {
   const adminEl = document.getElementById('adminModal');
   if (adminEl) {
+    adminEl.style.removeProperty('display');
     adminEl.classList.add('active');
     const prodTab = document.getElementById('productsTab');
     if (prodTab && !document.querySelector('.admin-tab.active')) {
@@ -18957,7 +18966,15 @@ if (typeof firebase !== 'undefined' && typeof firebase.auth === 'function') {
     } else {
       document.body.classList.remove('admin-authenticated');
       sessionStorage.removeItem('admin_auth_token');
-      if (gate) gate.style.display = 'flex';
+      const adminEl = document.getElementById('adminModal');
+      if (adminEl) {
+        adminEl.classList.remove('active');
+        adminEl.style.setProperty('display', 'none', 'important');
+      }
+      if (gate) {
+        gate.style.setProperty('display', 'flex', 'important');
+        gate.style.setProperty('z-index', '2147483647', 'important');
+      }
     }
   });
 }
