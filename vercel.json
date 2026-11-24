@@ -2,6 +2,16 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "admin.tolimolimyanmar.com"
+        }
+      ],
+      "destination": "/admin.html"
+    },
+    {
       "source": "/a/:article",
       "destination": "/api/share?article=:article"
     },
