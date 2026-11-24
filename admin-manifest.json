@@ -4,7 +4,7 @@
   "short_name": "Tolimoli Admin",
   "description": "Tolimoli Myanmar Admin Management Dashboard",
   "start_url": "/admin.html",
-  "scope": "/",
+  "scope": "/admin.html",
   "display": "standalone",
   "background_color": "#0d0a1a",
   "theme_color": "#d4af37",
