@@ -7,7 +7,9 @@
   <title>Tolimoli Myanmar - Admin Management Dashboard</title>
   
   <!-- PWA Settings -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/admin-manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Tolimoli Admin">
     <meta name="theme-color" content="#d4af37">
     <link rel="apple-touch-icon" href="/logo.png">
     <link rel="icon" type="image/png" sizes="192x192" href="/logo.png">
@@ -3122,7 +3124,7 @@ function scrollCategories(amount) {
       <!-- Tab 1: Products -->
       <div class="admin-tab active" id="productsTab">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
-          <input type="text" id="adminProductSearchInput" class="admin-filter-search" placeholder="🔍 ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="filterAdminProductList()" style="flex:2; min-width:180px; margin-bottom:0;">
+          <input type="text" id="adminProductSearchInput" autocomplete="off" name="tm_prod_search_nofill" class="admin-filter-search" placeholder="🔍 ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="filterAdminProductList()" style="flex:2; min-width:180px; margin-bottom:0;">
 <select id="adminProductCategoryFilterSelect" onchange="filterAdminProductList()" style="flex:1; min-width:140px; padding:7px 10px; background:#0f172a; border:1.5px solid var(--gold); border-radius:6px; color:#fde047; font-size:0.75rem; font-weight:600; outline:none; cursor:pointer; margin-bottom:0;">
   <option value="All">📂 အမျိုးအစား အားလုံး</option>
 </select>
