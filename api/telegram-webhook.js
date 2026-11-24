@@ -2,23 +2,37 @@
 export default async function handler(req, res) {
   // CORS Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // GET Request ဖြင့် Telegram Audio/Media ဖိုင်ကို တိုက်ရိုက် Stream လုပ်၍ နားထောင်ခြင်း
+  const ORDER_BOT_TOKEN = process.env.ORDER_BOT_TOKEN;
+  const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
+  const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
+  const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
+  const FIREBASE_URL = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+  // Telegram HTML parse_mode အတွက် အထူးသင်္ကေတ (&, <, >) များကို Escape လုပ်ပေးမည့် Helper
+  function escapeTgHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  // GET Request ဖြင့် Telegram Media (Photo/Video/Audio) ကို Bot Token မပေါက်ကြားဘဲ Proxy Stream ပြုလုပ်ခြင်း
   if (req.method === 'GET' && req.query && req.query.file_id) {
     try {
-      const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
-      const fileInfoRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/getFile?file_id=${req.query.file_id}`);
+      const fileInfoRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/getFile?file_id=${encodeURIComponent(req.query.file_id)}`);
       const fileInfo = await fileInfoRes.json();
       if (fileInfo.ok && fileInfo.result && fileInfo.result.file_path) {
         const tgFileUrl = `https://api.telegram.org/file/bot${LIVECHAT_BOT_TOKEN}/${fileInfo.result.file_path}`;
         const mediaRes = await fetch(tgFileUrl);
-        res.setHeader('Content-Type', mediaRes.headers.get('content-type') || 'audio/webm');
+        res.setHeader('Content-Type', mediaRes.headers.get('content-type') || 'application/octet-stream');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
         const arrayBuffer = await mediaRes.arrayBuffer();
         return res.status(200).send(Buffer.from(arrayBuffer));
       }
@@ -31,12 +45,6 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(200).send('Method Not Allowed');
   }
-
-  const ORDER_BOT_TOKEN = process.env.ORDER_BOT_TOKEN;
-  const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
-  const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
-  const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
-  const FIREBASE_URL = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
 
   const body = req.body || {};
 
@@ -85,7 +93,7 @@ export default async function handler(req, res) {
       let photoResultData = null;
 
       if (slipUrl.startsWith('data:image')) {
-        const matches = slipUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+        const matches = slipUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
         if (matches) {
           const mimeType = matches[1];
           const ext = mimeType.split('/')[1] || 'jpg';
@@ -159,7 +167,7 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၁။ FRONTEND မှ အော်ဒါသစ် ပို့ဆောင်ခြင်း (ORDER BOT သီးသန့်)
+  // ၁။ FRONTEND မှ အော်ဒါသစ် / Alert ပို့ဆောင်ခြင်း (ORDER BOT သီးသန့်)
   // -------------------------------------------------------------
   if (body.action === 'sendOrderNotification') {
     const { orderData, messageText, chatId, topicId, slipUrl } = body;
@@ -186,10 +194,10 @@ export default async function handler(req, res) {
       let itemsText = '';
       if (Array.isArray(orderData.items) && orderData.items.length > 0) {
         itemsText = orderData.items.map(it => {
-          const name = it.name || it.title || 'ပစ္စည်း';
-          const sku = it.sku ? ` (SKU: ${it.sku})` : '';
-          const color = it.color || it.selectedColor ? ` [${it.color || it.selectedColor}]` : '';
-          const qty = it.qty || 1;
+          const name = escapeTgHtml(it.name || it.title || 'ပစ္စည်း');
+          const sku = it.sku ? ` (SKU: ${escapeTgHtml(it.sku)})` : '';
+          const color = it.color || it.selectedColor ? ` [${escapeTgHtml(it.color || it.selectedColor)}]` : '';
+          const qty = Number(it.qty || 1);
           const price = Number(it.price || 0) * qty;
           return `• ${name}${color}${sku} x${qty}\n  ${price.toLocaleString()} Ks`;
         }).join('\n');
@@ -198,23 +206,25 @@ export default async function handler(req, res) {
       const timeStr = getMyanmarDateTime();
       const rawDeli = Number(orderData.deliveryFee ?? orderData.deliFee ?? orderData.deliPrice ?? orderData.shippingFee ?? 0) || 0;
       const isHttpSlip = orderData.slipUrl && String(orderData.slipUrl).startsWith('http');
+      const busGateText = escapeTgHtml(orderData.busGate || orderData.busGateDetails || '');
+      const specialNoteText = escapeTgHtml(orderData.specialNote || '');
 
       const orderMessageText = '🚨 <b>အော်ဒါအသစ် ရောက်ရှိပါပြီ!</b>\n' +
-        '🆔 <b>Order ID:</b> <code>' + (orderData.id || '-') + '</code>\n' +
+        '🆔 <b>Order ID:</b> <code>' + escapeTgHtml(orderData.id || '-') + '</code>\n' +
         '📅 <b>ရက်စွဲနှင့် အချိန်:</b> ' + timeStr + '\n\n' +
-        '👤 <b>ဝယ်သူ:</b> ' + (orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
-        '📞 <b>ဖုန်း:</b> ' + (orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
-        '📍 <b>လိပ်စာ:</b> ' + (orderData.address || '') + (orderData.township ? ' (' + orderData.township + ')' : '') + '\n' +
-        (orderData.busGate || orderData.busGateDetails ? '🚌 <b>ကားဂိတ်:</b> ' + (orderData.busGate || orderData.busGateDetails) + '\n' : '') +
-        '🚚 <b>ပို့ဆောင်ရေး:</b> ' + (orderData.deliveryService || orderData.deliveryType || orderData.busLineName || 'Standard Delivery') + '\n' +
-        '💳 <b>ငွေပေးချေမှု:</b> ' + (orderData.payment || 'COD') + '\n\n' +
+        '👤 <b>ဝယ်သူ:</b> ' + escapeTgHtml(orderData.customer || 'မဖော်ပြထားပါ') + '\n' +
+        '📞 <b>ဖုန်း:</b> ' + escapeTgHtml(orderData.phone || 'မဖော်ပြထားပါ') + '\n' +
+        '📍 <b>လိပ်စာ:</b> ' + escapeTgHtml(orderData.address || '') + (orderData.township ? ' (' + escapeTgHtml(orderData.township) + ')' : '') + '\n' +
+        (busGateText ? '🚌 <b>ကားဂိတ်:</b> ' + busGateText + '\n' : '') +
+        '🚚 <b>ပို့ဆောင်ရေး:</b> ' + escapeTgHtml(orderData.deliveryService || orderData.deliveryType || orderData.busLineName || 'Standard Delivery') + '\n' +
+        '💳 <b>ငွေပေးချေမှု:</b> ' + escapeTgHtml(orderData.payment || 'COD') + '\n\n' +
         '🛍 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n' + (itemsText || '- မရှိပါ -') + '\n\n' +
         '💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ' + (Number(orderData.subTotal || orderData.subtotal || (orderData.total - (orderData.deliveryFee || 0) + (orderData.discount || 0)) || 0)).toLocaleString() + ' Ks\n' +
         (orderData.discount ? '🏷 <b>လျှော့စျေး:</b> -' + (Number(orderData.discount)).toLocaleString() + ' Ks\n' : '') +
         '🚚 <b>ပို့ဆောင်ခ:</b> ' + rawDeli.toLocaleString() + ' Ks\n' +
         '💵 <b>စုစုပေါင်း:</b> <b>' + (Number(orderData.total || 0)).toLocaleString() + ' MMK</b>' +
-        (orderData.specialNote ? '\n\n📝 <b>မှတ်ချက်:</b> ' + orderData.specialNote : '') +
-        (isHttpSlip ? '\n\n🧾 <b>ငွေလွှဲပြေစာ:</b> ' + orderData.slipUrl : '');
+        (specialNoteText ? '\n\n📝 <b>မှတ်ချက်:</b> ' + specialNoteText : '') +
+        (isHttpSlip ? '\n\n🧾 <b>ငွေလွှဲပြေစာ:</b> ' + escapeTgHtml(orderData.slipUrl) : '');
 
       const tgData = await sendOrderToTelegram(
         chatId || ADMIN_CHAT_ID,
@@ -236,7 +246,7 @@ export default async function handler(req, res) {
     try {
       const targetChat = CHAT_GROUP_ID || ADMIN_CHAT_ID;
 
-      // ၁။ အသံဖိုင် (Base64 Audio) ပါလာပါက Telegram သို့ တိုက်ရိုက်ပို့ပြီး file_id ပြန်ပေးခြင်း
+      // ၁။ အသံဖိုင် (Base64 Audio)
       if (body.audioBase64 && String(body.audioBase64).startsWith('data:audio')) {
         const matches = body.audioBase64.match(/^data:(audio\/[a-zA-Z0-9.+_-]+);base64,(.+)$/);
         if (matches) {
@@ -262,7 +272,7 @@ export default async function handler(req, res) {
         }
       }
 
-      // ၂။ ဓာတ်ပုံ / ဗီဒီယို သို့မဟုတ် ရိုးရိုး စာသား ပို့ခြင်း (KPay စလစ်စနစ်အတိုင်း Base64 & URL ၂ မျိုးလုံး ပို့မည်)
+      // ၂။ ဓာတ်ပုံ / ဗီဒီယို သို့မဟုတ် ရိုးရိုး စာသား ပို့ခြင်း
       const mediaUrl = body.mediaUrl || '';
       const mediaType = body.mediaType || '';
 
@@ -281,11 +291,11 @@ export default async function handler(req, res) {
             formData.append('caption', (body.messageText || '📷 ဝယ်သူထံမှ ဓာတ်ပုံ').slice(0, 1024));
             formData.append('parse_mode', 'HTML');
             const pRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendPhoto`, { method: 'POST', body: formData });
-        const pData = await pRes.json();
-        const photos = pData.result?.photo || [];
-        const tgFileId = photos.length > 0 ? photos[photos.length - 1].file_id : '';
-        const streamUrl = tgFileId ? `/api/telegram-webhook?file_id=${tgFileId}` : '';
-        return res.status(200).json({ ...pData, streamUrl });
+            const pData = await pRes.json();
+            const photos = pData.result?.photo || [];
+            const tgFileId = photos.length > 0 ? photos[photos.length - 1].file_id : '';
+            const streamUrl = tgFileId ? `/api/telegram-webhook?file_id=${tgFileId}` : '';
+            return res.status(200).json({ ...pData, streamUrl });
           }
         } else {
           const pPayload = {
@@ -364,7 +374,52 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၂။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK (Reply Quote အမှန်တကယ် ပါဝင်သည်)
+  // ၂။ TELEGRAM INLINE CALLBACK BUTTON HANDLER (message မစစ်မီ အပေါ်တွင် အရင်စစ်ရမည်)
+  // -------------------------------------------------------------
+  if (body.callback_query) {
+    try {
+      const cb = body.callback_query;
+      const cbData = cb.data || '';
+      if (cbData.startsWith('verify_slip:')) {
+        const targetSessionId = cbData.split(':')[1];
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
+        await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sender: 'admin',
+            text: '✅ လူကြီးမင်း၏ ငွေလွှဲစလစ်ကို လက်ခံရရှိပါပြီခင်ဗျာ။ ပစ္စည်းအမြန်ဆုံး ထုပ်ပိုးပို့ဆောင်ပေးပါမည် 🚚✨',
+            timeStr,
+            timestamp: Date.now()
+          })
+        });
+        await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/answerCallbackQuery`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ callback_query_id: cb.id, text: '✅ ဝယ်သူထံသို့ ငွေလက်ခံရရှိကြောင်း အတည်ပြုပေးပြီးပါပြီ!' })
+        });
+        if (cb.message) {
+          await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: cb.message.chat.id,
+              message_thread_id: cb.message.message_thread_id,
+              text: '✅ <b>[Admin မှ ငွေလွှဲစလစ် အတည်ပြုပြီးကြောင်း ဝယ်သူထံ အကြောင်းကြားပြီးပါပြီ]</b>',
+              parse_mode: 'HTML'
+            })
+          });
+        }
+      }
+    } catch (cbErr) {
+      console.error('Callback query error:', cbErr);
+    }
+    return res.status(200).send('OK');
+  }
+
+  // -------------------------------------------------------------
+  // ၃။ TELEGRAM မှ ဝင်လာသော LIVE CHAT WEBHOOK
   // -------------------------------------------------------------
   const update = body;
   if (!update || !update.message) return res.status(200).send('OK');
@@ -383,7 +438,7 @@ export default async function handler(req, res) {
       const sessions = await sessionsRes.json();
       if (sessions) {
         for (const [sId, sVal] of Object.entries(sessions)) {
-          if (String(sVal.telegramThreadId) === String(threadId)) {
+          if (sVal && String(sVal.telegramThreadId) === String(threadId)) {
             await fetch(`${FIREBASE_URL}/support_chats/${sId}.json`, { method: 'DELETE' });
           }
         }
@@ -399,46 +454,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // ငွေလွှဲစလစ် အတည်ပြုခလုတ် (Inline Callback Button) နှိပ်သည့်အခါ ဝယ်သူ့ဆီ အတည်ပြုကတ် ပို့ပေးခြင်း
-  if (body.callback_query) {
-    const cb = body.callback_query;
-    const cbData = cb.data || '';
-    if (cbData.startsWith('verify_slip:')) {
-      const targetSessionId = cbData.split(':')[1];
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
-      await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sender: 'admin',
-          text: '✅ လူကြီးမင်း၏ ငွေလွှဲစလစ်ကို လက်ခံရရှိပါပြီခင်ဗျာ။ ပစ္စည်းအမြန်ဆုံး ထုပ်ပိုးပို့ဆောင်ပေးပါမည် 🚚✨',
-          timeStr,
-          timestamp: Date.now()
-        })
-      });
-      await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/answerCallbackQuery`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callback_query_id: cb.id, text: '✅ ဝယ်သူထံသို့ ငွေလက်ခံရရှိကြောင်း အတည်ပြုပေးပြီးပါပြီ!' })
-      });
-      if (cb.message) {
-        await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: cb.message.chat.id,
-            message_thread_id: cb.message.message_thread_id,
-            text: '✅ <b>[Admin မှ ငွေလွှဲစလစ် အတည်ပြုပြီးကြောင်း ဝယ်သူထံ အကြောင်းကြားပြီးပါပြီ]</b>',
-            parse_mode: 'HTML'
-          })
-        });
-      }
-    }
-    return res.status(200).send('OK');
-  }
-
-  // Telegram Topic Commands: /kpay, /wave, /coupon, /list, /r1.., /p [name], /track [orderId]
+  // Telegram Topic Commands: /kpay, /wave, /cbpay, /ayapay, /uabpay, /coupon, /list, /r1.., /p, /c, /cart, /track, /cat, /news, /done, /active
   const rawCmd = text.trim();
   const lowerCmd = rawCmd.toLowerCase();
   if (threadId && rawCmd.startsWith('/')) {
@@ -446,20 +462,20 @@ export default async function handler(req, res) {
       const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
       const sessions = await sessionsRes.json();
       let targetSessionId = null;
-        if (sessions) {
-          for (const [sId, sVal] of Object.entries(sessions)) {
-            if (sVal && String(sVal.telegramThreadId || sVal.threadId || '') === String(threadId)) {
-              targetSessionId = sId;
-              break;
-            }
+      if (sessions) {
+        for (const [sId, sVal] of Object.entries(sessions)) {
+          if (sVal && String(sVal.telegramThreadId || sVal.threadId || '') === String(threadId)) {
+            targetSessionId = sId;
+            break;
           }
         }
-        // အကယ်၍ Topic အဟောင်း သို့မဟုတ် Pinned Message ထဲမှ Guest ID ဖြင့် ပြန်ရှာရန်
-        if (!targetSessionId && msg.reply_to_message && msg.reply_to_message.text) {
-          const m = msg.reply_to_message.text.match(/Guest\s*#(\d+)/i);
-          if (m) targetSessionId = 'guest_' + m[1];
-        }
-        if (targetSessionId) {
+      }
+      if (!targetSessionId && msg.reply_to_message && msg.reply_to_message.text) {
+        const m = msg.reply_to_message.text.match(/Guest\s*#(\d+)/i);
+        if (m) targetSessionId = 'guest_' + m[1];
+      }
+
+      if (targetSessionId) {
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
         const replyTg = async (tgMsg) => {
@@ -476,8 +492,8 @@ export default async function handler(req, res) {
             body: JSON.stringify({ ...msgObj, sender: 'admin', timeStr, timestamp: Date.now() })
           });
         };
-        
-        // 0. /done နှင့် /active -> Dashboard Inbox အခြေအနေ ပြောင်းလဲခြင်း
+
+        // 0. /done & /active
         if (lowerCmd === '/done' || lowerCmd === '/active') {
           const newSt = lowerCmd === '/done' ? 'done' : 'active';
           await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/status.json`, {
@@ -490,15 +506,20 @@ export default async function handler(req, res) {
             : `🟢 <b>${targetSessionId}</b> စကားဝိုင်းကို Dashboard တွင် <b>Active</b> ပြန်လုပ်ပြီးပါပြီ။`);
           return res.status(200).send('OK');
         }
-        // 1. /kpay or /wave (Database ထဲမှ ပြင်ထားသော အကောင့်အချက်အလက် အတိုင်း ပို့ပေးမည်)
-        if (lowerCmd === '/kpay' || lowerCmd === '/wave') {
+
+        // 1. /kpay, /wave, /cbpay, /ayapay, /uabpay
+        if (['/kpay', '/wave', '/cbpay', '/ayapay', '/uabpay'].includes(lowerCmd)) {
           const qrRes = await fetch(`${FIREBASE_URL}/chat_qr_accounts.json`);
           const qrDb = (await qrRes.json()) || {};
-          const bankKey = lowerCmd === '/wave' ? 'wave' : 'kpay';
-          const defaultInfo = bankKey === 'wave'
-            ? { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' }
-            : { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' };
-          const info = { ...defaultInfo, ...(qrDb[bankKey] || {}) };
+          const bankKey = lowerCmd.slice(1);
+          const defaults = {
+            kpay: { bank: 'KBZPay', name: 'Ma Win Win Myint', phone: '09768124433', qr: 'kpay-qr.jpg' },
+            wave: { bank: 'WavePay', name: 'Nu Nu Htwe', phone: '09768124433', qr: 'wave-qr.jpg' },
+            cbpay: { bank: 'CB Pay', name: 'U MYO MIN THU', phone: '09421334455', qr: 'cbpay-qr.jpg' },
+            ayapay: { bank: 'AYA Pay', name: 'MYO MIN THU', phone: '09421334455', qr: 'ayapay-qr.jpg' },
+            uabpay: { bank: 'UAB Pay', name: 'Myo Min Thu', phone: '09444744493', qr: 'uabpay-qr.jpg' }
+          };
+          const info = { ...defaults[bankKey], ...(qrDb[bankKey] || {}) };
           await pushChat({ text: `${info.bank} ငွေလွှဲအကောင့်`, mediaUrl: info.qr, mediaType: 'qr_card', cardData: info });
           await replyTg(`✅ ဝယ်သူထံသို့ <b>${info.bank} QR ကတ်</b> (${info.name} <code>${info.phone}</code>) ပို့ပေးပြီးပါပြီ။`);
           return res.status(200).send('OK');
@@ -512,7 +533,7 @@ export default async function handler(req, res) {
           return res.status(200).send('OK');
         }
 
-        // 3. /list နှင့် /r1, /r2... (Saved Quick Replies)
+        // 3. /list နှင့် /r1, /r2...
         if (lowerCmd === '/list' || /^\/r\d+$/.test(lowerCmd)) {
           const qrListRes = await fetch(`${FIREBASE_URL}/chat_quick_replies.json`);
           const qrListVal = await qrListRes.json();
@@ -521,14 +542,14 @@ export default async function handler(req, res) {
             if (!items.length) {
               await replyTg('ℹ️ Admin Dashboard > Auto Reply Bot ထဲတွင် Saved Reply မထည့်ရသေးပါ။');
             } else {
-              const lines = items.map((it, i) => `<b>/r${i + 1}</b> — ${it.title}: <i>${it.text.slice(0, 45)}...</i>`).join('\n');
+              const lines = items.map((it, i) => `<b>/r${i + 1}</b> — ${escapeTgHtml(it.title)}: <i>${escapeTgHtml(it.text.slice(0, 45))}...</i>`).join('\n');
               await replyTg(`📋 <b>Saved Replies စာရင်း (ရိုက်ပို့ရန်):</b>\n\n${lines}`);
             }
           } else {
             const idx = Number(lowerCmd.replace('/r', '')) - 1;
             if (items[idx]) {
               await pushChat({ text: items[idx].text });
-              await replyTg(`✅ <b>[${items[idx].title}]</b> စာတိုကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+              await replyTg(`✅ <b>[${escapeTgHtml(items[idx].title)}]</b> စာတိုကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
             } else {
               await replyTg(`❌ /r${idx + 1} မရှိပါ။ /list ဟု ရိုက်၍ စာရင်းစစ်ဆေးပါ။`);
             }
@@ -542,9 +563,9 @@ export default async function handler(req, res) {
           const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal) : [];
-          const found = prodList.find(p => (p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw)));
+          const found = prodList.find(p => p && ((p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw))));
           if (found) {
-            const imgUrl = (Array.isArray(found.images) && found.images[0]) || found.image || 'logo.png';
+            const imgUrl = (Array.isArray(found.images) && found.images[0]) || found.image || 'logo.jpg';
             const priceNum = Number(found.price || 0);
             await pushChat({
               text: found.name,
@@ -552,12 +573,14 @@ export default async function handler(req, res) {
               mediaType: 'product_card',
               cardData: { id: found.id || '', sku: found.sku || '-', price: priceNum, name: found.name, image: imgUrl }
             });
-            await replyTg(`✅ <b>${found.name}</b> (${priceNum.toLocaleString()} Ks) Product Card ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+            await replyTg(`✅ <b>${escapeTgHtml(found.name)}</b> (${priceNum.toLocaleString()} Ks) Product Card ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
-            await replyTg(`❌ "${kw}" နှင့် ကိုက်ညီသော ပစ္စည်း မတွေ့ပါ။`);
+            await replyTg(`❌ "${escapeTgHtml(kw)}" နှင့် ကိုက်ညီသော ပစ္စည်း မတွေ့ပါ။`);
           }
-          }
-          // 5. /c [ကူပွန်ကုဒ် သို့မဟုတ် လျှော့ဈေးတန်ဖိုး] -> Promo Code ပို့ခြင်း & ၁ ကြိမ်သုံး ကူပွန်အသစ် ဖန်တီးပို့ခြင်း
+          return res.status(200).send('OK');
+        }
+
+        // 5. /c [ကူပွန်ကုဒ် သို့မဟုတ် လျှော့ဈေးတန်ဖိုး]
         if (lowerCmd === '/c' || lowerCmd.startsWith('/c ')) {
           const arg = rawCmd.slice(2).trim();
           if (!arg) {
@@ -574,17 +597,19 @@ export default async function handler(req, res) {
             const isPercent = arg.endsWith('%');
             const numVal = Number(arg.replace(/[^0-9.]/g, ''));
             if (!numVal || numVal <= 0) {
-              await replyTg(`❌ "${arg}" နှင့် ကိုက်ညီသော ကူပွန်ကုဒ် မတွေ့ပါ (အသစ်ဖန်တီးလိုပါက <code>/c 2000</code> သို့မဟုတ် <code>/c 10%</code> ဟု ရိုက်ပါ)။`);
+              await replyTg(`❌ "${escapeTgHtml(arg)}" နှင့် ကိုက်ညီသော ကူပွန်ကုဒ် မတွေ့ပါ (အသစ်ဖန်တီးလိုပါက <code>/c 2000</code> သို့မဟုတ် <code>/c 10%</code> ဟု ရိုက်ပါ)။`);
               return res.status(200).send('OK');
             }
             const randCode = 'VIP' + Math.floor(1000 + Math.random() * 9000);
             targetCoupon = {
               id: 'disc_' + Date.now(),
-              category: 'VIP/အထူး',
+              category: 'vip',
               code: randCode,
               type: isPercent ? 'percent' : 'fixed',
+              val: numVal,
               value: numVal,
               limit: 1,
+              used: 0,
               usedCount: 0,
               expiry: '',
               active: true
@@ -605,21 +630,22 @@ export default async function handler(req, res) {
             cardData: {
               code: targetCoupon.code,
               value: finalVal,
+              discount: finalVal,
               type: targetCoupon.type || 'fixed',
-              category: targetCoupon.category || 'VIP/အထူး',
+              category: targetCoupon.category || 'vip',
               label: valLabel
             }
           });
-          await replyTg(`✅ ကူပွန်ကုဒ် <b>${targetCoupon.code}</b> (${valLabel}) ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ (Discounts & VIP စာရင်းထဲတွင်လည်း အလိုအလျောက် ချိတ်ဆက်ထားပါသည်)။`);
+          await replyTg(`✅ ကူပွန်ကုဒ် <b>${escapeTgHtml(targetCoupon.code)}</b> (${valLabel}) ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           return res.status(200).send('OK');
         }
 
-        // 6. /cart -> ဝယ်သူ့ လက်ရှိ ခြင်းတောင်းနှင့် အော်ဒါမှတ်တမ်း စစ်ကြည့်ခြင်း
+        // 6. /cart
         if (lowerCmd === '/cart') {
           const sSnap = await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`);
           const sData = await sSnap.json() || {};
           const cartItems = Array.isArray(sData.liveCart) ? sData.liveCart : [];
-          let msgOut = `🛒 <b>ဝယ်သူ (${targetSessionId}) ၏ လက်ရှိ ခြင်းတောင်း:</b>\n`;
+          let msgOut = `🛒 <b>ဝယ်သူ (${escapeTgHtml(targetSessionId)}) ၏ လက်ရှိ ခြင်းတောင်း:</b>\n`;
           if (cartItems.length === 0) {
             msgOut += `• ခြင်းတောင်းထဲတွင် ပစ္စည်း မထည့်ရသေးပါ။\n`;
           } else {
@@ -627,7 +653,7 @@ export default async function handler(req, res) {
             cartItems.forEach((it, idx) => {
               const sub = Number(it.price || 0) * Number(it.qty || 1);
               total += sub;
-              msgOut += `${idx + 1}. ${it.name} (x${it.qty || 1}) — ${sub.toLocaleString()} Ks\n`;
+              msgOut += `${idx + 1}. ${escapeTgHtml(it.name)} (x${it.qty || 1}) — ${sub.toLocaleString()} Ks\n`;
             });
             msgOut += `💰 <b>စုစုပေါင်း:</b> ${total.toLocaleString()} Ks\n`;
           }
@@ -635,31 +661,31 @@ export default async function handler(req, res) {
           return res.status(200).send('OK');
         }
 
-        // 5. /track [Order ID] -> Order Tracking Card ပို့ခြင်း
+        // 7. /track [Order ID]
         if (lowerCmd.startsWith('/track ')) {
           const oid = rawCmd.slice(7).trim().toUpperCase();
           const ordRes = await fetch(`${FIREBASE_URL}/shop_orders.json`);
           const ordVal = await ordRes.json();
           const ordList = ordVal ? Object.values(ordVal) : [];
-          const foundOrd = ordList.find(o => String(o.orderId || o.id || '').toUpperCase().includes(oid));
+          const foundOrd = ordList.find(o => o && String(o.orderId || o.id || '').toUpperCase().includes(oid));
           if (foundOrd) {
             const st = foundOrd.status || 'Pending';
             await pushChat({
-              text: `📦 အော်ဒါအမှတ် (${foundOrd.orderId || oid}) ၏ လက်ရှိအခြေအနေ: ${st}\nစုစုပေါင်း: ${Number(foundOrd.total || 0).toLocaleString()} Ks`
+              text: `📦 အော်ဒါအမှတ် (${foundOrd.orderId || foundOrd.id || oid}) ၏ လက်ရှိအခြေအနေ: ${st}\nစုစုပေါင်း: ${Number(foundOrd.total || 0).toLocaleString()} Ks`
             });
-            await replyTg(`✅ အော်ဒါ <b>${foundOrd.orderId || oid}</b> (${st}) အခြေအနေကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+            await replyTg(`✅ အော်ဒါ <b>${escapeTgHtml(foundOrd.orderId || foundOrd.id || oid)}</b> (${escapeTgHtml(st)}) အခြေအနေကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
-            await replyTg(`❌ အော်ဒါအမှတ် "${oid}" ရှာမတွေ့ပါ။`);
+            await replyTg(`❌ အော်ဒါအမှတ် "${escapeTgHtml(oid)}" ရှာမတွေ့ပါ။`);
           }
           return res.status(200).send('OK');
         }
 
-        // 6. /cat [Category အမည်] -> Category အလိုက် ပစ္စည်းကတ်အစုံလိုက် ပို့ခြင်း
+        // 8. /cat [Category]
         if (lowerCmd === '/cat' || lowerCmd.startsWith('/cat ')) {
           const catKw = rawCmd.slice(4).trim().toLowerCase();
           const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
           const prodVal = await prodRes.json();
-          const prodList = prodVal ? Object.values(prodVal) : [];
+          const prodList = prodVal ? Object.values(prodVal).filter(Boolean) : [];
 
           const getProdCats = (p) => {
             const arr = [];
@@ -671,7 +697,7 @@ export default async function handler(req, res) {
           if (!catKw) {
             const cats = [...new Set(prodList.flatMap(getProdCats).filter(Boolean))];
             const listTxt = cats.length
-              ? cats.map(c => `• <code>/cat ${c}</code>`).join('\n')
+              ? cats.map(c => `• <code>/cat ${escapeTgHtml(c)}</code>`).join('\n')
               : 'Category စာရင်း မတွေ့သေးပါ။';
             await replyTg(`📂 <b>ရွေးချယ်ပို့နိုင်သော Categories များ:</b>\n${listTxt}`);
             return res.status(200).send('OK');
@@ -685,28 +711,28 @@ export default async function handler(req, res) {
               sku: p.sku || '-',
               price: Number(p.price || 0),
               name: p.name,
-              image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png'
+              image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg'
             }));
             await pushChat({
               text: `📂 ${catTitle} အမျိုးအစား ပစ္စည်းများ (${items.length} မျိုး)`,
               mediaType: 'category_carousel',
               cardData: { category: catTitle, items }
             });
-            await replyTg(`✅ <b>${catTitle}</b> Category ထဲမှ ပစ္စည်း (${items.length}) မျိုးကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+            await replyTg(`✅ <b>${escapeTgHtml(catTitle)}</b> Category ထဲမှ ပစ္စည်း (${items.length}) မျိုးကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
-            await replyTg(`❌ "${catKw}" Category မတွေ့ပါ။ <code>/cat</code> ဟု ရိုက်၍ စာရင်းစစ်ဆေးပါ။`);
+            await replyTg(`❌ "${escapeTgHtml(catKw)}" Category မတွေ့ပါ။ <code>/cat</code> ဟု ရိုက်၍ စာရင်းစစ်ဆေးပါ။`);
           }
           return res.status(200).send('OK');
         }
 
-        // 7. /news -> နောက်ဆုံး သတင်းလွှာ / ပရိုမိုးရှင်း ပို့ခြင်း
+        // 9. /news
         if (lowerCmd === '/news' || lowerCmd.startsWith('/news ')) {
           const newsKw = rawCmd.slice(5).trim().toLowerCase();
           const newsRes = await fetch(`${FIREBASE_URL}/shop_news.json`);
           const newsVal = await newsRes.json();
           const newsList = newsVal ? Object.values(newsVal).reverse() : [];
           const foundNews = newsKw
-            ? newsList.find(n => (n.title && n.title.toLowerCase().includes(newsKw)) || (n.content && n.content.toLowerCase().includes(newsKw)))
+            ? newsList.find(n => n && ((n.title && n.title.toLowerCase().includes(newsKw)) || (n.content && n.content.toLowerCase().includes(newsKw))))
             : newsList[0];
 
           if (foundNews) {
@@ -721,14 +747,14 @@ export default async function handler(req, res) {
                 date: foundNews.date || ''
               }
             });
-            await replyTg(`✅ <b>${foundNews.title}</b> သတင်းကတ်ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
+            await replyTg(`✅ <b>${escapeTgHtml(foundNews.title)}</b> သတင်းကတ်ကို ဝယ်သူထံ ပို့ပေးပြီးပါပြီ။`);
           } else {
             await replyTg(`❌ ပို့ရန် သတင်းလွှာ မတွေ့သေးပါခင်ဗျာ။`);
           }
           return res.status(200).send('OK');
         }
 
-        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n<code>/c VIP2000</code> သို့ <code>/c 2000</code> — ကူပွန်ပို့ရန်\n<code>/cart</code> — ဝယ်သူ့ခြင်းတောင်းစစ်ရန်\n<code>/kpay</code> — KBZPay QR ပို့ရန်\n<code>/wave</code> — WavePay QR ပို့ရန်\n<code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n<code>/cat</code> — Category စာရင်းကြည့်ရန်\n<code>/news</code> — နောက်ဆုံး သတင်းလွှာ ပို့ရန်\n<code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n<code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n<code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
+        await replyTg('ℹ️ အသုံးပြုနိုင်သော Commands များ:\n<code>/c VIP2000</code> သို့ <code>/c 2000</code> — ကူပွန်ပို့ရန်\n<code>/cart</code> — ဝယ်သူ့ခြင်းတောင်းစစ်ရန်\n<code>/kpay</code>, <code>/wave</code>, <code>/cbpay</code>, <code>/ayapay</code>, <code>/uabpay</code> — QR ပို့ရန်\n<code>/p ပစ္စည်းအမည်</code> — Product Card ပို့ရန်\n<code>/cat</code> — Category စာရင်းကြည့်ရန်\n<code>/news</code> — နောက်ဆုံး သတင်းလွှာ ပို့ရန်\n<code>/list</code> & <code>/r1</code> — Saved Replies ပို့ရန်\n<code>/track OrderID</code> — အော်ဒါစစ်ပေးရန်\n<code>/done</code> / <code>/active</code> — Inbox Status ပြောင်းရန်\n<code>/del</code> — စကားဝိုင်း ဖျက်ရန်');
         return res.status(200).send('OK');
       }
     } catch (e) {
@@ -736,7 +762,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // Telegram တွင် Admin က Reply ထောက်ထားပါက ၎င်း၏ မူရင်းစာသား (သို့) ဓာတ်ပုံကို တိကျစွာ ဖမ်းယူခြင်း
+  // Telegram Reply Quote ဖမ်းယူခြင်း
   if (msg.reply_to_message && !msg.reply_to_message.forum_topic_created) {
     const rep = msg.reply_to_message;
     let rawRepText = rep.text || rep.caption || (rep.photo ? '📷 Photo' : (rep.voice ? '🎤 Voice Note' : ''));
@@ -757,26 +783,19 @@ export default async function handler(req, res) {
     fileId = msg.video.file_id;
     mediaType = 'video';
   } else if (msg.video_note) {
-      fileId = msg.video_note.file_id;
-      mediaType = 'video';
-    } else if (msg.voice) {
-      fileId = msg.voice.file_id;
-      mediaType = 'audio';
-    } else if (msg.audio) {
-      fileId = msg.audio.file_id;
-      mediaType = 'audio';
-    }
+    fileId = msg.video_note.file_id;
+    mediaType = 'video';
+  } else if (msg.voice) {
+    fileId = msg.voice.file_id;
+    mediaType = 'audio';
+  } else if (msg.audio) {
+    fileId = msg.audio.file_id;
+    mediaType = 'audio';
+  }
 
+  // Bot Token မပေါက်ကြားစေရန် Proxy URL ကိုသာ Firebase ထဲ သိမ်းဆည်းခြင်း
   if (fileId) {
-    try {
-      const fileInfoRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/getFile?file_id=${fileId}`);
-      const fileInfo = await fileInfoRes.json();
-      if (fileInfo.ok && fileInfo.result && fileInfo.result.file_path) {
-        mediaUrl = `https://api.telegram.org/file/bot${LIVECHAT_BOT_TOKEN}/${fileInfo.result.file_path}`;
-      }
-    } catch (err) {
-      console.error('Error fetching Telegram media:', err);
-    }
+    mediaUrl = `/api/telegram-webhook?file_id=${encodeURIComponent(fileId)}`;
   }
 
   if (threadId && (text || mediaUrl)) {
@@ -802,7 +821,7 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             sender: 'admin',
             text: text,
-            replyTo: replyToText, // Reply Quote မူရင်းစာသား အမှန်တကယ် ပါဝင်သည်
+            replyTo: replyToText,
             mediaUrl: mediaUrl,
             mediaType: mediaType,
             timeStr: timeFormatted,

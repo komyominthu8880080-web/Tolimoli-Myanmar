@@ -21,9 +21,8 @@ export default async function handler(req, res) {
 
   let title = "Tolimoli Myanmar Adult Toys Shop";
   let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် မှာယူရရှိနိုင်ပါသည်။";
-  let image = "https://www.tolimolimyanmar.com/logo.png";
+  let image = "https://www.tolimolimyanmar.com/logo.jpg";
 
-  // index.html ရှိ CATEGORY_SLUGS နှင့် ၁၀၀% ကိုက်ညီသော Category Mapping
   const CATEGORY_MAP = {
     'promotion': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'promo': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
@@ -34,7 +33,7 @@ export default async function handler(req, res) {
     'lube': { myName: 'ချောဆီ', title: 'ချောဆီ - Tolimoli Myanmar', desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'lubricant': { myName: 'ချောဆီ', title: 'ချောဆီ - Tolimoli Myanmar', desc: 'ချောဆီ အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'masturbator': { myName: 'မတု', title: 'မတု - Tolimoli Myanmar', desc: 'မတု အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
-    'pump': { myName: 'ကြီးရှည်ကျင့်ပြောင်း', title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar', desc: 'ကြီးရှည်ကျင့်ပြောင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
+    'pump': { myName: 'ကြီးရှည်ကျင့်ပြောင်း', title: 'ကြီးရှည်ကျင့်ပြောင်း - Tolimoli Myanmar', desc: 'ကြီးရှည်ကျင့်ပြောင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'condom': { myName: 'စီလီကွန်အစွပ်', title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar', desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'sleeve': { myName: 'စီလီကွန်အစွပ်', title: 'စီလီကွန်အစွပ် - Tolimoli Myanmar', desc: 'စီလီကွန်အစွပ် အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
     'bdsm': { myName: 'BDSM ပစ္စည်းများ', title: 'BDSM ပစ္စည်းများ - Tolimoli Myanmar', desc: 'BDSM အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },
@@ -45,7 +44,6 @@ export default async function handler(req, res) {
     'ring': { myName: 'သုတ်ထိန်းကွင်း', title: 'သုတ်ထိန်းကွင်း - Tolimoli Myanmar', desc: 'သုတ်ထိန်းကွင်း အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' }
   };
 
-  // ပစ္စည်းတစ်ခုမှ ပုံ URL အစစ်ကို ထုတ်ယူပေးမည့် Helper Function
   function extractProductImage(item) {
     if (!item) return '';
     if (typeof item.image === 'string' && item.image.startsWith('http')) return item.image.trim();
@@ -61,7 +59,6 @@ export default async function handler(req, res) {
   const RTDB_URL = `${FIREBASE_BASE}/shop_products.json`;
 
   try {
-    // ၀။ ဆောင်းပါး Link ဖြစ်ပါက
     if (article) {
       const artUrl = `${FIREBASE_BASE}/articles/${encodeURIComponent(article)}.json`;
       const response = await fetch(artUrl);
@@ -74,9 +71,7 @@ export default async function handler(req, res) {
           if (artData.coverImage && artData.coverImage.startsWith('http')) image = artData.coverImage;
         }
       }
-    }
-    // ၁။ ကုန်ပစ္စည်း တစ်ခုချင်း Link ဖြစ်ပါက
-    else if (product) {
+    } else if (product) {
       const response = await fetch(RTDB_URL);
       if (response.ok) {
         const rawData = await response.json();
@@ -93,9 +88,7 @@ export default async function handler(req, res) {
           if (pImg) image = pImg;
         }
       }
-    }
-    // ၂။ Category Link ဖြစ်ပါက
-    else if (cat) {
+    } else if (cat) {
       const rawCat = decodeURIComponent(String(cat)).trim();
       const slugKey = rawCat.toLowerCase();
       const mapped = CATEGORY_MAP[slugKey];
@@ -109,7 +102,6 @@ export default async function handler(req, res) {
         description = `${rawCat} အမျိုးအစား ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။`;
       }
 
-      // Database ထဲမှ သက်ဆိုင်ရာ Category ထဲက ပစ္စည်းတစ်ခုခု၏ ပုံကို တိုက်ရိုက်ရှာဖွေခြင်း
       const response = await fetch(RTDB_URL);
       if (response.ok) {
         const rawData = await response.json();
@@ -117,7 +109,6 @@ export default async function handler(req, res) {
         if (rawData && rawData.products) productsList = Object.values(rawData.products);
 
         const normTarget = targetMyName.replace(/\s+/g, '').toLowerCase();
-
         const matchedItem = productsList.find(p => {
           if (!p || p.isHidden) return false;
           const pCats = Array.isArray(p.categories) ? p.categories : (p.category ? [p.category] : []);
@@ -141,7 +132,7 @@ export default async function handler(req, res) {
       }
     }
   } catch (err) {
-    console.error("Fetch Error:", err);
+    console.error("Share Fetch Error:", err);
   }
 
   const safeTitle = escapeHtml(title);
@@ -192,8 +183,8 @@ export default async function handler(req, res) {
 
   <script>
     setTimeout(function() {
-      window.location.href = "${targetUrl}";
-    }, 800);
+      window.location.replace(${JSON.stringify(targetUrl)});
+    }, 300);
   </script>
 </body>
 </html>`);

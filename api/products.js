@@ -1,8 +1,27 @@
 // api/products.js
+const ALLOWED_ORIGINS = [
+  'https://www.tolimolimyanmar.com',
+  'https://tolimolimyanmar.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
+
+function applyCors(req, res, methods, headers = 'Content-Type') {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.tolimolimyanmar.com');
+  }
+  res.setHeader('Access-Control-Allow-Methods', methods);
+  res.setHeader('Access-Control-Allow-Headers', headers);
+}
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-pin');
+  applyCors(req, res, 'GET, PUT, OPTIONS', 'Content-Type, x-admin-pin');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -24,14 +43,16 @@ export default async function handler(req, res) {
     }
   }
 
-  // ၂။ ပစ္စည်းစာရင်း အသစ်သိမ်းဆည်းခြင်း / Stock လျှော့ချခြင်း (PUT)
+  // ၂။ ပစ္စည်းစာရင်း ပြင်ဆင်/သိမ်းဆည်းခြင်း (PUT - Admin PIN မဖြစ်မနေ လိုအပ်သည်)
   if (req.method === 'PUT') {
     try {
-      const clientPin = req.headers['x-admin-pin'];
-      const SERVER_ADMIN_PIN = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN || '1542';
+      const SERVER_ADMIN_PIN = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN;
+      if (!SERVER_ADMIN_PIN) {
+        return res.status(500).json({ error: 'Server Admin PIN is not configured' });
+      }
 
-      // Admin Dashboard မှ ပြင်ဆင်မှုဖြစ်ပါက (x-admin-pin ပါလာပါက) PIN ကိုက်ညီမှု စစ်ဆေးခြင်း
-      if (clientPin && String(clientPin).trim() !== String(SERVER_ADMIN_PIN).trim()) {
+      const clientPin = req.headers['x-admin-pin'];
+      if (!clientPin || String(clientPin).trim() !== String(SERVER_ADMIN_PIN).trim()) {
         return res.status(401).json({ error: 'Unauthorized: Admin PIN မှားယွင်းနေပါသည်' });
       }
 
@@ -46,7 +67,7 @@ export default async function handler(req, res) {
         body: JSON.stringify(updatedProducts)
       });
 
-      if (!response.ok) throw new Error('Failed to update products stock');
+      if (!response.ok) throw new Error('Failed to update products');
       return res.status(200).json({ success: true });
     } catch (error) {
       return res.status(500).json({ error: error.message });
