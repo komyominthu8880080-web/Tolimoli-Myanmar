@@ -8256,7 +8256,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function checkAndTriggerLowStockAlert(purchasedItems) {
   if (!Array.isArray(purchasedItems) || typeof products === 'undefined') return;
 
-  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId && botConfig.tgChatId.trim()) ? botConfig.tgChatId.trim() : null;
   const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
 
   purchasedItems.forEach(item => {
@@ -8272,7 +8272,7 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         `──────────────────\n` +
         `📦 <b>ပစ္စည်းအမည်:</b> ${prod.name}\n` +
         `🏷️ <b>SKU:</b> <code>${prod.sku || item.sku || '-'}</code>\n` +
-        `🚨 <b>လက်ကျန်အရေအတွက်:</b> <b style="color:red;">${remainingStock} ခုသာ ကျန်ပါတော့သည်</b>\n` +
+        `🚨 <b>လက်ကျန်အရေအတွက်:</b> <b>${remainingStock} ခုသာ ကျန်ပါတော့သည်</b>\n` +
         `──────────────────\n` +
         `💡 <i>ပစ္စည်းပြတ်လပ်မှု မဖြစ်စေရန် ကျေးဇူးပြု၍ Stock ပြန်လည်ဖြည့်တင်းပေးပါခင်ဗျာ။</i>`;
 
@@ -8291,46 +8291,43 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
   });
 }
     function sendTelegramNotificationWithExactTime(o) {
-  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
+  if (!o) return;
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId && botConfig.tgChatId.trim()) ? botConfig.tgChatId.trim() : null;
   const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
 
-  let itemsTxt = (o.items || []).map(i => `  • <b>${i.name}</b> ${i.color ? `[🎨 ${i.color}]` : ''} (SKU: ${i.sku || '-'}) x${i.qty} = ${Number(i.price * i.qty).toLocaleString()} Ks`).join('\n');
+  // Backend Webhook API (/api/telegram-webhook) မှ Vercel ORDER_CHAT_ID နှင့် escapeTgHtml ဖြင့် လုံခြုံစွာ ပေးပို့ခြင်း
+  const payload = {
+    action: 'sendOrderNotification',
+    orderData: {
+      id: o.id || '',
+      customer: o.customer || '',
+      phone: o.phone || '',
+      address: o.address || '',
+      township: o.township || '',
+      deliveryService: o.deliveryService || o.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli',
+      deliveryType: o.deliveryType || o.deliveryService || 'ရန်ကုန်မြို့တွင်း Deli',
+      busGate: o.busGate || o.busGateDetails || '',
+      busGateDetails: o.busGateDetails || o.busGate || '',
+      subTotal: Number(o.subTotal || o.subtotal || 0),
+      discount: Number(o.discount || o.discountAmount || 0),
+      discountAmount: Number(o.discountAmount || o.discount || 0),
+      deliveryFee: Number(o.deliveryFee || o.deliFee || 0),
+      deliFee: Number(o.deliFee || o.deliveryFee || 0),
+      total: Number(o.total || 0),
+      payment: o.payment || 'COD',
+      specialNote: o.specialNote || '',
+      slipUrl: o.slipUrl || '',
+      items: o.items || []
+    },
+    slipUrl: o.slipUrl || null
+  };
+  if (targetChatId) payload.chatId = targetChatId;
+  if (targetTopicId) payload.topicId = targetTopicId;
 
-  const msg = `⚡ <b>အော်ဒါသစ် ရောက်ရှိပါပြီ!</b> ⚡\n` +
-    `🆔 <b>Order ID:</b> <code>${o.id}</code>\n` +
-    `📅 <b>ရက်စွဲနှင့် အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}\n` +
-    `──────────────────\n` +
-    `👤 <b>ဝယ်သူ:</b> ${o.customer}\n` +
-    `📞 <b>ဖုန်း:</b> ${o.phone}\n` +
-    `📍 <b>လိပ်စာ:</b> ${o.address} (${o.township})\n` +
-    (o.busGate || o.busGateDetails ? `🚍 <b>ကားဂိတ်:</b> ${o.busGate || o.busGateDetails}\n` : '') +
-    (o.specialNote ? `📝 <b>အထူးမှာကြားချက်:</b> <mark>${o.specialNote}</mark>\n` : '') +
-    `🚚 <b>ပို့ဆောင်ရေး:</b> ${o.deliveryService}\n` +
-    `💳 <b>ငွေပေးချေမှု:</b> ${o.payment}\n` +
-    `──────────────────\n` +
-    `📦 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsTxt}\n` +
-    `──────────────────\n` +
-    `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${(o.subTotal || o.total).toLocaleString()} Ks\n` +
-    (o.discountAmount ? `🏷️ <b>လျှော့ဈေး:</b> -${Number(o.discountAmount).toLocaleString()} Ks\n` : '') +
-    `🛵 <b>ပို့ဆောင်ခ:</b> ${(o.deliveryFee || 0).toLocaleString()} Ks\n` +
-    `💵 <b>စုစုပေါင်းကျသင့်ငွေ:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n`  ;
-    const isHttpSlip = o.slipUrl && String(o.slipUrl).startsWith('http');
-  const slipLine = o.slipUrl 
-    ? (isHttpSlip ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <i>(Admin Dashboard နှင့် ပုံတွင် စစ်ဆေးပါ)</i>`)
-    : '';
-  const finalMsg = msg + slipLine;
-
-  // Backend Webhook API သို့ လုံခြုံစွာ လွှဲပြောင်းပေးပို့ခြင်း
   fetch('/api/telegram-webhook', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action: 'sendOrderNotification',
-      chatId: targetChatId,
-      topicId: targetTopicId,
-      messageText: finalMsg,
-      slipUrl: o.slipUrl || null
-    })
+    body: JSON.stringify(payload)
   })
   .then(res => res.json())
   .then(data => {
