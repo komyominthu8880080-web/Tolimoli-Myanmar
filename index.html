@@ -2122,7 +2122,7 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   <!-- STICKY TOP HEADER -->
   <header>
     <div class="header-main-row">
-      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Tolimoli Myanmar">
+      <div class="brand-wrap" id="brandLogoTrigger" onclick="openAdminPrompt()" title="Admin ဝင်ရန် ၃ ချက်နှိပ်ပါ">
         <img src="/logo.png" alt="Logo" class="brand-logo" onerror="this.onerror=null;this.src='/logo.jpg';">
         <div>
           <span class="brand-title">Tolimoli Myanmar</span>
@@ -2270,6 +2270,26 @@ function scrollCategories(amount) {
   </footer>
 
   <!-- ==================== MODALS ==================== -->
+
+    <!-- CATEGORY REORDER MODAL -->
+  <div class="modal-overlay" id="categoryReorderModal" style="z-index: 10008;">
+    <div class="modal-content" style="max-width: 440px; padding: 16px;">
+      <button class="modal-close" onclick="closeModal('categoryReorderModal')"><i class="fas fa-times"></i></button>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <i class="fas fa-arrows-alt" style="color:var(--gold); font-size:1.1rem;"></i>
+        <h3 style="color:var(--gold); font-size:1rem; margin:0;">Category များ အစဉ်လိုက် စီစဉ်ခြင်း</h3>
+      </div>
+      <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:10px;">
+        ဝဘ်ဆိုဒ်အပေါ်ဘားတွင် ရှေ့/နောက် ပေါ်မည့် အစီအစဉ်ကို ⬆️ နှင့် ⬇️ ခလုတ်များ နှိပ်၍ စိတ်ကြိုက် နေရာရွှေ့နိုင်ပါသည်ခင်ဗျာ။
+      </p>
+
+      <div id="categoryReorderListContainer" style="max-height:60vh; overflow-y:auto; display:flex; flex-direction:column; gap:6px; margin-bottom:12px;"></div>
+
+      <button type="button" class="btn-gold" onclick="closeModal('categoryReorderModal')">
+        <i class="fas fa-check"></i> ပြီးပါပြီ (Done)
+      </button>
+    </div>
+  </div>
 
   <!-- 1. PRODUCT DETAIL MODAL -->
   <div class="modal-overlay" id="productDetailModal">
@@ -2662,6 +2682,40 @@ function scrollCategories(amount) {
 
   <div id="hiddenVoucherCaptureBox" style="position:fixed; left:-9999px; top:-9999px; width:340px; background:#ffffff; color:#000000; padding:14px; font-family:'Courier New', monospace; font-size:11px; border:1px solid #000;"></div>
 
+  <!-- ADVANCED ORDER EDIT MODAL -->
+  <div class="modal-overlay" id="orderEditModal" style="z-index: 10007;">
+    <div class="modal-content" style="max-width:440px; padding:16px;">
+      <button class="modal-close" onclick="closeModal('orderEditModal')"><i class="fas fa-times"></i></button>
+      <h3 style="color:var(--gold); font-size:1rem; margin-bottom:8px;"><i class="fas fa-edit"></i> အော်ဒါ အချက်အလက် ပြင်ဆင်ရန်</h3>
+      <div id="editOrderSubHeader" style="font-size:0.75rem; color:#38bdf8; margin-bottom:8px;"></div>
+      
+      <div class="form-group">
+        <label>ဝယ်သူအမည်</label>
+        <input type="text" id="editOrderCustName" required>
+      </div>
+      <div class="form-group">
+        <label>ဖုန်းနံပါတ်</label>
+        <input type="tel" id="editOrderCustPhone" required>
+      </div>
+      <div class="form-group">
+        <label>ပို့ဆောင်မည့် လိပ်စာအပြည့်အစုံ</label>
+        <textarea id="editOrderCustAddress" rows="2" required></textarea>
+      </div>
+
+      <h4 style="color:var(--gold); font-size:0.8rem; margin:10px 0 4px;">မှာယူထားသော ပစ္စည်းများ (အတိုး/အလျော့/ဖျက်)</h4>
+      <div id="editOrderItemsList" style="max-height:160px; overflow-y:auto; margin-bottom:10px;"></div>
+
+      <div style="background:#0f172a; padding:8px; border-radius:6px; margin-bottom:10px; font-size:0.8rem; display:flex; justify-content:space-between;">
+        <span>စုစုပေါင်း ပြင်ဆင်ပြီးငွေ:</span>
+        <b id="editOrderTotalDisp" style="color:var(--gold);">0 Ks</b>
+      </div>
+
+      <button class="btn-gold" onclick="saveOrderEdits()">
+        <i class="fas fa-save"></i> ပြင်ဆင်ချက်များ အတည်ပြုသိမ်းဆည်းမည်
+      </button>
+    </div>
+  </div>
+
   <!-- 4. STOCK ADJUSTMENT MODAL -->
   
   <!-- WISHLIST MODAL -->
@@ -2690,6 +2744,36 @@ function scrollCategories(amount) {
     </div>
   </div>
 
+  <div class="modal-overlay" id="stockAdjustmentModal" style="z-index: 99999 !important;">
+    <div class="modal-content" style="max-width:400px;">
+      <button class="modal-close" onclick="closeModal('stockAdjustmentModal'); openModal('adminModal');"><i class="fas fa-times"></i></button>
+      <h3 style="color:var(--gold); font-size:1rem; margin-bottom:8px;"><i class="fas fa-cogs"></i> Stock ချိန်ညှိခြင်းနှင့် ပျက်စီးစာရင်း</h3>
+      <div id="adjProductInfo" style="font-size:0.8rem; color:#38bdf8; margin-bottom:10px;"></div>
+
+      <div class="form-group">
+        <label>ချိန်ညှိမည့် ပုံစံ ရွေးချယ်ပါ</label>
+        <select id="adjActionType">
+          <option value="in">📦 ပစ္စည်းအဝင် ထပ်ဖြည့်မည် (Stock In)</option>
+          <option value="damage">⚠️ ပျက်စီး/ချို့ယွင်း စာရင်းသွင်းမည် (Damage)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>အရေအတွက် (Quantity)</label>
+        <input type="number" id="adjActionQty" value="1" min="1">
+      </div>
+
+      <div class="form-group">
+        <label>အကြောင်းပြချက် / မှတ်ချက် (Reason Log)</label>
+        <input type="text" id="adjActionReason" placeholder="ဥပမာ - ကားဂိတ်ပို့ရင်း ဖိမိ၍ ကွဲသွားခြင်း">
+      </div>
+
+      <button class="btn-gold" onclick="confirmStockAdjustment()" style="margin-top:6px;">
+        <i class="fas fa-check"></i> အတည်ပြု သိမ်းဆည်းမည်
+      </button>
+    </div>
+  </div>
+
   <!-- 5. ORDER TRACKING MODAL -->
   <div class="modal-overlay" id="orderTrackModal">
     <div class="modal-content" style="max-width:460px;">
@@ -2710,6 +2794,1650 @@ function scrollCategories(amount) {
         </div>
       </div>
       <div id="trackResultArea" style="margin-top:10px; max-height:65vh; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- 6. CUSTOMER HISTORY MODAL -->
+  <div class="modal-overlay" id="custHistoryModal" style="z-index: 999999;">
+    <div class="modal-content" style="max-width:560px;">
+      <button class="modal-close" onclick="closeModal('custHistoryModal')"><i class="fas fa-times"></i></button>
+      <h3 style="color:#38bdf8; font-size:1rem; margin-bottom:6px;"><i class="fas fa-history"></i> ဝယ်ယူမှုမှတ်တမ်း အသေးစိတ်</h3>
+      <div id="custHistoryHeader" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px; border-bottom:1px solid #334155; padding-bottom:4px;"></div>
+      <div id="custHistoryList" style="max-height:60vh; overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- 7. ADMIN ORDER DETAIL & ROYAL COD WORKFLOW MODAL -->
+  <div class="modal-overlay" id="adminOrderDetailModal" style="z-index: 9999999 !important; position: fixed !important;">
+    <div class="modal-content" style="max-width:460px;">
+      <button class="modal-close" onclick="closeModal('adminOrderDetailModal')"><i class="fas fa-times"></i></button>
+      <h3 style="color:var(--gold); font-size:15px; margin-bottom:10px;"><i class="fas fa-file-invoice"></i> အော်ဒါအသေးစိတ်နှင့် COD စာရင်းကိုင်</h3>
+
+      <div id="printableInvoiceCard" style="background:#ffffff; color:#000000; padding:12px; border-radius:6px; font-family:'Courier New', monospace; font-size:11px; margin-bottom:10px;">
+        <div style="text-align:center; border-bottom:1px dashed #000; padding-bottom:4px; margin-bottom:4px;">
+          <img src="/logo.png" alt="Logo" crossorigin="anonymous" style="max-height:40px;" onerror="this.onerror=null;this.src='/logo.jpg';">
+          <h2 style="margin:0; font-size:14px; font-weight:bold;">TOLIMOLI STORE</h2>
+          <div style="font-size:9.5px;">ဖုန်း: 09-768124433 | ရန်ကုန်မြို့</div>
+        </div>
+        <div style="margin-bottom:4px; line-height:1.3; font-size:10.5px;">
+          <div>အော်ဒါအမှတ်: <b id="invOrderId"></b></div>
+          <div>ရက်စွဲ/အချိန်: <span id="invDateTime"></span></div>
+          <div>ဝယ်သူ: <b id="invCustName"></b> (<span id="invCustPhone"></span>)</div>
+          <div>လိပ်စာ: <span id="invCustAddress"></span></div>
+          <div id="invSpecialNoteRow" style="color:#b45309; font-weight:bold;"></div>
+          <div>ငွေပေးချေမှု: <b id="invPaymentMethod"></b></div>
+        </div>
+        <table style="width:100%; border-collapse:collapse; border-top:1px dashed #000; border-bottom:1px dashed #000; margin:4px 0; font-size:10px;">
+          <thead>
+            <tr style="text-align:left; border-bottom:1px solid #ddd;">
+              <th style="padding:2px 0;">ပစ္စည်း (SKU)</th>
+              <th style="text-align:center;">ခုရေ</th>
+              <th style="text-align:right;">သင့်ငွေ</th>
+            </tr>
+          </thead>
+          <tbody id="invItemsBody"></tbody>
+        </table>
+        <div style="line-height:1.3; font-size:10.5px; text-align:right;">
+          <div>ပစ္စည်းကျသင့်ငွေ: <span id="invSubTotal"></span> Ks</div>
+          <div>လျှော့ဈေး: <span id="invDiscount"></span> Ks</div>
+          <div>ပို့ဆောင်ခ (<span id="invDeliName"></span>): <b id="invDeliFee"></b> Ks</div>
+          <div style="font-size:12px; font-weight:bold; border-top:1px dashed #000; padding-top:3px; margin-top:3px;">
+            စုစုပေါင်း: <span id="invGrandTotal"></span> Ks
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:6px; margin-bottom:10px;">
+  <button type="button" onclick="printOrderWaybill(currentActiveOrderForDetail ? currentActiveOrderForDetail.id : null)" class="btn-secondary" style="flex:1.2; background:#d97706; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; font-weight:bold; cursor:pointer;">
+    <i class="fas fa-shipping-fast"></i> Waybill ထုတ်မည်
+  </button>
+  <button type="button" onclick="printThermalInvoice()" class="btn-secondary" style="flex:1; background:#059669; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">
+    <i class="fas fa-print"></i> ဘောင်ချာ Print
+  </button>
+  <button type="button" onclick="downloadInvoiceAsPNG()" class="btn-secondary" style="flex:0.9; background:#2563eb; border:none; padding:8px 4px; border-radius:6px; color:#fff; font-size:11px; cursor:pointer;">
+    <i class="fas fa-image"></i> PNG
+  </button>
+</div>
+
+      <div style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #334155; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <div style="font-size:11.5px; font-weight:bold; color:var(--gold);">
+            🔄 အော်ဒါအဆင့်နှင့် COD ငွေစာရင်း စီမံခန့်ခွဲခြင်း
+          </div>
+          <button class="action-badge" style="background:#0284c7; color:#fff;" onclick="openOrderEditModal(currentActiveOrderForDetail ? currentActiveOrderForDetail.id : '')">
+            <i class="fas fa-user-edit"></i> အော်ဒါ ပြင်ဆင်မည်
+          </button>
+        </div>
+        <div class="form-group" style="margin-bottom:6px;">
+          <label>အော်ဒါအခြေအနေ ပြောင်းရန်</label>
+          <select id="dtlOrderStatusSelect" onchange="handleOrderStatusChangePreview(this.value)">
+            <option value="အော်ဒါလက်ခံရရှိ (Pending)">အော်ဒါလက်ခံရရှိ (Pending)</option>
+            <option value="ပို့ဆောင်ရေးသို့ လွှဲပြောင်းပြီး">📦 ပို့ဆောင်ရေးသို့ လွှဲပြောင်းပြီး (In Transit)</option>
+            <option value="ဝယ်သူ ပစ္စည်းလက်ခံရရှိပြီး">✅ ဝယ်သူ ပစ္စည်းလက်ခံရရှိပြီး (Delivered)</option>
+            <option value="ငွေစာရင်းရှင်းပြီး (COD Settled)">💰 ငွေစာရင်းရှင်းပြီး (COD Settled / Paid)</option>
+            <option value="ပစ္စည်းငြင်းပယ်/Cancel (Returned)">❌ ပစ္စည်းငြင်းပယ် (Returned - Auto Restock)</option>
+          </select>
+        </div>
+        <div id="cancelRemarkBox" style="display:none; margin-bottom:6px;">
+          <label style="color:#ef4444; font-size:11px; font-weight:bold;">Cancel / ငြင်းပယ်ရသည့် အကြောင်းအရင်း (Remark):</label>
+          <input type="text" id="dtlCancelRemark" placeholder="ဥပမာ- ဖုန်းမကိုင်ပါသဖြင့်၊ ပစ္စည်းမလိုတော့ပါသဖြင့်" style="width:100%; padding:6px; background:#1e293b; border:1px solid #ef4444; color:#fff; border-radius:6px; font-size:11px; margin-top:3px;">
+        </div>
+        <div id="statusChangeNotice" style="font-size:11px; margin-bottom:6px; line-height:1.3;"></div>
+      </div>
+
+      <div style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #334155;">
+        <div style="font-size:11.5px; font-weight:bold; color:#38bdf8; margin-bottom:6px;">📦 ပို့ဆောင်ရေး၊ ကားဂိတ်/Royal ရုံးခွဲနှင့် ဘောင်ချာထည့်ရန်</div>
+        
+        <!-- AUTO-FILL SELECTOR FROM DIRECTORY -->
+        <!-- AUTO-FILL SELECTOR (စာရိုက်၍ ရှာနိုင်သော စနစ်) -->
+      <div style="margin-bottom:6px;">
+        <input 
+          type="text" 
+          list="dtlStationDataList" 
+          id="dtlStationSelect" 
+          placeholder="🔍 ကားဂိတ် / Royal / Deli ရုံးခွဲ ရိုက်ရှာပါ..." 
+          oninput="handleStationSelectAutoFill(this.value)"
+          style="width:100%; padding:7px 10px; background:#0b0f19; border:1px solid #38bdf8; border-radius:6px; color:#fff; font-size:12px; outline:none;"
+        >
+        <datalist id="dtlStationDataList">
+          <!-- JS မှ အလိုအလျောက် စာရင်းများ ထည့်ပေးမည် ဖြစ်သလို မူရင်းစာရင်းလည်း ထားနိုင်ပါသည် -->
+        </datalist>
+      </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:4px;">
+          <div>
+            <label style="font-size:10px; color:#cbd5e1; display:block; margin-bottom:1px;">ဂိတ် / ရုံးခွဲ အမည် *</label>
+            <input type="text" id="dtlBusLine" placeholder="ဥပမာ- မန္တလာမင်း (မန္တလေးဂိတ်)" style="width:100%; padding:6px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11px;">
+          </div>
+          <div>
+            <label style="font-size:10px; color:#10b981; display:block; margin-bottom:1px;">📞 ဆက်သွယ်ရန် ဖုန်းနံပါတ် *</label>
+            <input type="text" id="dtlStationPhone" placeholder="09xxxxxxxxx, 09xxxxxxxxx" style="width:100%; padding:6px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom:4px;">
+          <label style="font-size:10px; color:#38bdf8; display:block; margin-bottom:1px;">📍 ထုတ်ယူရမည့် ဂိတ်/ရုံးခွဲ လိပ်စာနေရာ *</label>
+          <textarea id="dtlStationAddress" rows="1" placeholder="ဥပမာ- မန္တလေး ကျွဲဆည်ကန် ကားကြီးဝင်း၊ အမှတ် (၃၅) ဂိတ်" style="width:100%; padding:5px 6px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11px;"></textarea>
+        </div>
+
+        <div>
+          <label style="font-size:10px; color:var(--gold); display:block; margin-bottom:1px;">ဘောင်ချာ / Tracking နံပါတ် *</label>
+          <input type="text" id="dtlVoucherNo" placeholder="ဘောင်ချာ / Tracking နံပါတ်" style="width:100%; padding:6px; margin-bottom:4px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11px;">
+        </div>
+        <input type="file" id="dtlVoucherFile" accept="image/*" style="width:100%; margin-bottom:6px; font-size:11px; color:#94a3b8;">
+        
+        <div id="dtlVoucherPreviewArea" style="text-align:center; margin-bottom:6px;"></div>
+
+        <button onclick="submitDetailVoucher()" id="btnSaveDetailVoucher" class="btn-gold" style="padding:8px; font-size:11.5px;">
+          ဘောင်ချာနှင့် အဆင့်များ သိမ်းဆည်းမည်
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. ADMIN CENTRAL DASHBOARD MODAL -->
+  <div class="modal-overlay" id="adminModal">
+    <div class="modal-content admin-modal-content">
+      <button class="modal-close" onclick="closeModal('adminModal')"><i class="fas fa-times"></i></button>
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <i class="fas fa-user-shield" style="font-size:1.3rem; color:var(--gold);"></i>
+        <h3 style="color:var(--gold); font-size:1.05rem;">Tolimoli Management Suite</h3>
+      </div>
+
+      <!-- ADMIN EXPIRY ALERT BANNER (6 MONTHS NOTIFICATION) -->
+      <div id="adminExpiryAlertBanner" style="display:none; background:rgba(239, 68, 68, 0.15); border:1.5px solid #ef4444; border-radius:8px; padding:9px 12px; margin-bottom:12px; align-items:center; justify-content:space-between; gap:8px;">
+        <div style="font-size:0.76rem; color:#fca5a5; display:flex; align-items:center; gap:8px;">
+          <i class="fas fa-exclamation-triangle" style="font-size:1.15rem; color:#ef4444;"></i>
+          <span id="adminExpiryAlertText">⚠️ သတိပေးချက်: ၆ လအတွင်း သက်တမ်းကုန်တော့မည့် ပစ္စည်းများ ရှိနေပါသည်!</span>
+        </div>
+        <button type="button" class="btn-secondary" onclick="filterExpiringStockClick()" style="background:#ef4444; color:#fff; border:none; padding:5px 12px; font-size:0.72rem; font-weight:bold; white-space:nowrap; cursor:pointer; border-radius:6px;">
+          <i class="fas fa-search"></i> စာရင်းကြည့်မည်
+        </button>
+      </div>
+      
+      <div class="admin-nav">
+        <button class="admin-nav-btn active" onclick="switchAdminTab('productsTab', this)">Items & Products</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('stockTab', this)">Stock Inventory</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('ordersTab', this)">Orders & COD</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('customersTab', this)">Customers</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('analyticsTab', this)">Sales Analytics</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('discountsTab', this)">Discounts & VIP</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('newsTab', this)">News & Sliders</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('liveChatAdminTab', this)" style="color:#00ff88;"><i class="fas fa-headset"></i> Live Chat (Inbox)</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('autoReplyTab', this)" style="color:#38bdf8;"><i class="fas fa-robot"></i> Auto Reply Bot</button>
+        <button class="admin-nav-btn" onclick="switchAdminTab('communityTab', this)">Community Mod</button>
+        <button type="button" class="admin-nav-btn" onclick="switchAdminTab('logisticsTab', this)">
+  <i class="fas fa-truck"></i> Settings & Logistics
+</button>
+        <button type="button" class="admin-nav-btn" onclick="switchAdminTab('articleTab', this)">
+      <i class="fas fa-newspaper"></i> သတင်းနှင့် ဗဟုသုတ
+    </button>
+      </div>
+
+      <!-- Tab 1: Products -->
+      <div class="admin-tab active" id="productsTab">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+          <input type="text" id="adminProductSearchInput" class="admin-filter-search" placeholder="🔍 ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="filterAdminProductList()" style="flex:2; min-width:180px; margin-bottom:0;">
+<select id="adminProductCategoryFilterSelect" onchange="filterAdminProductList()" style="flex:1; min-width:140px; padding:7px 10px; background:#0f172a; border:1.5px solid var(--gold); border-radius:6px; color:#fde047; font-size:0.75rem; font-weight:600; outline:none; cursor:pointer; margin-bottom:0;">
+  <option value="All">📂 အမျိုးအစား အားလုံး</option>
+</select>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <button type="button" class="admin-filter-pill-btn active" id="btnAdminProdAll" onclick="setAdminProductTableFilter('all')">အားလုံး (<span id="adminAllCountBadge">0</span>)</button>
+            <button type="button" class="admin-filter-pill-btn" id="btnAdminProdInStock" onclick="setAdminProductTableFilter('instock')" style="border-color:#10b981; color:#a7f3d0;">🟢 Stock ရှိ (<span id="adminInStockCountBadge">0</span>)</button>
+            <button type="button" class="admin-filter-pill-btn" id="btnAdminProdOutOfStock" onclick="setAdminProductTableFilter('outofstock')" style="border-color:#ef4444; color:#fca5a5;">❌ Stock ကုန်/ဖျောက်ထား (<span id="adminOutStockCountBadge">0</span>)</button>
+            <button type="button" class="admin-filter-pill-btn" id="btnAdminProdPromo" onclick="setAdminProductTableFilter('promo')" style="border-color:#f59e0b; color:#fde68a;">🔥 Promo (<span id="adminPromoCountBadge">0</span>)</button>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+          <h4 id="formHeaderTitle" style="color:#fff; font-size:0.9rem;">ကုန်ပစ္စည်း အသစ်ထည့်ရန် / ပြင်ဆင်ရန်</h4>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn-secondary" onclick="exportProductsExcel()"><i class="fas fa-file-excel"></i> Export Excel</button>
+            <label class="btn-secondary" style="margin:0; display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+              <i class="fas fa-file-import"></i> Import Excel
+              <input type="file" id="excelProductImportInput" accept=".xlsx, .xls, .csv" onchange="importProductsExcel(event)" style="display:none;">
+            </label>
+            <button type="button" class="btn-secondary" onclick="resetProductForm()"><i class="fas fa-redo"></i> Form ရှင်းမည်</button>
+          </div>
+        </div>
+
+        <form id="productForm" onsubmit="handleSaveProduct(event)">
+          <input type="hidden" id="editProductId" value="">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <div class="form-group">
+              <label>ပစ္စည်းအမည် *</label>
+              <input type="text" id="pName" required placeholder="ပစ္စည်းအမည်">
+            </div>
+            <div class="form-group">
+              <label>SKU (ပစ္စည်းကုဒ်) *</label>
+              <input type="text" id="pSku" placeholder="TM-VIG-01" required>
+            </div>
+          </div>
+
+          <!-- INTERACTIVE MULTI-CATEGORY CHIPS SELECTOR -->
+          <div class="form-group" style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="color:var(--gold); font-weight:600; font-size:0.75rem; margin:0;">
+                <i class="fas fa-tags"></i> အမျိုးအစားများ (Category Chips - ၂ ခု သို့မဟုတ် အများအပြား နှိပ်ရွေးနိုင်ပါသည်) *
+              </label>
+              <span id="selectedCatCountBadge" style="font-size:0.68rem; color:#38bdf8; font-weight:bold;">0 ခု ရွေးထားသည်</span>
+            </div>
+            <div id="adminCategoryChipsContainer" class="admin-category-chips-wrap"></div>
+            <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+              <input type="text" id="newCategoryQuickInput" placeholder="အမျိုးအစားအသစ် အမည်ရိုက်ထည့်ပါ (ဥပမာ- ရေစိုခံ၊ စုံတွဲသုံး)..." style="flex:1; min-width:180px; padding:6px 10px; font-size:0.75rem; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; outline:none;">
+              <button type="button" class="btn-secondary" onclick="addNewCategoryFromAdmin()" style="background:#10b981; color:#fff; font-weight:600; padding:6px 12px; white-space:nowrap; border:none; border-radius:6px; cursor:pointer;">
+                <i class="fas fa-plus"></i> Category ထည့်မည်
+              </button>
+              <button type="button" class="btn-secondary" onclick="openCategoryReorderModal()" style="background:#0284c7; color:#fff; font-weight:600; padding:6px 12px; white-space:nowrap; border:none; border-radius:6px; cursor:pointer;">
+                <i class="fas fa-arrows-alt"></i> အစီအစဉ်ရွှေ့မည် (Reorder)
+              </button>
+            </div>
+          </div>
+
+          <!-- PRICING & ORIGINAL STRIKETHROUGH PRICE SECTION -->
+          <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:8px; border:1px solid #334155; margin-bottom:8px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px;">
+              <div class="form-group" style="margin:0;">
+                <label style="color:var(--gold); font-weight:700;">ရောင်းဈေး (Sale Price) *</label>
+                <input type="number" id="pPrice" required placeholder="35000" oninput="calculateProfitMargin()" style="font-weight:bold; color:var(--gold);">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label style="color:#f87171;"><i class="fas fa-strikethrough"></i> မူရင်းဈေး (Original Price)</label>
+                <input type="number" id="pOriginalPrice" placeholder="ဥပမာ- 50000" oninput="calculateProfitMargin()" style="color:#fca5a5;">
+                <small style="color:#94a3b8; font-size:9.5px; display:block;">(မျဉ်းနီခြစ်ပြမည့်ဈေး)</small>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label>အရင်းဈေး *</label>
+                <input type="number" id="pCost" required placeholder="18000" oninput="calculateProfitMargin()">
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label>အမြတ်ငွေ / Margin</label>
+                <input type="text" id="pProfitVal" readonly style="color:#00ff88; font-weight:bold; background:#0b1329;" value="0 Ks">
+                <input type="hidden" id="pMarginVal" value="0 %">
+              </div>
+            </div>
+
+            <!-- DYNAMIC DISCOUNT REASON (စိတ်ကြိုက်တိုး/လျော့ စနစ်) -->
+            <div style="margin-top:8px; border-top:1px dashed #475569; padding-top:6px;">
+              <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:6px;">
+                <label style="display:inline-flex; align-items:center; gap:6px; color:#f87171; font-weight:700; font-size:0.76rem; cursor:pointer; background:rgba(239,68,68,0.12); border:1px solid #ef4444; padding:5px 10px; border-radius:6px;">
+                  <input type="checkbox" id="pIsPromoCheck" onchange="calculateProfitMargin()" style="accent-color:#ef4444; width:16px; height:16px; cursor:pointer;">
+                  <span>🔥 ဤပစ္စည်းကို Promotion Item အဖြစ် အထူးသတ်မှတ်မည်</span>
+                </label>
+                <label style="display:inline-flex; align-items:center; gap:6px; color:#38bdf8; font-weight:700; font-size:0.76rem; cursor:pointer; background:rgba(2,132,199,0.12); border:1px solid #0284c7; padding:5px 10px; border-radius:6px;">
+                  <input type="checkbox" id="pIsHiddenCheck" style="accent-color:#0284c7; width:16px; height:16px; cursor:pointer;">
+                  <span>👁️ ဝယ်သူမျက်နှာပြင်မှ ယာယီဖျောက်ထားမည် (Hidden)</span>
+                </label>
+                <label style="display:inline-flex; align-items:center; gap:6px; color:#f87171; font-weight:700; font-size:0.76rem; cursor:pointer; background:rgba(239,68,68,0.12); border:1px solid #ef4444; padding:5px 10px; border-radius:6px;">
+                  <input type="checkbox" id="pIsNonCodCheck" style="accent-color:#ef4444; width:16px; height:16px; cursor:pointer;">
+                  <span>🚫 COD မရပါ (ငွေကြိုလွှဲ Prepaid သီးသန့်)</span>
+                </label>
+              </div>
+
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                <label style="color:#fbbf24; font-size:0.75rem; font-weight:600; margin:0;">
+                  🏷️ လျှော့ဈေး အကြောင်းပြချက် (Discount Reason - ဥပမာ: ဗူးဖောက်ပြီးသားမို့ လျှော့ရောင်းခြင်း)
+                </label>
+                <span id="discountCalcBadge" style="font-size:0.68rem; color:#f87171; font-weight:bold;"></span>
+              </div>
+              <input type="text" id="pDiscountReason" placeholder="အကြောင်းပြချက် စာသားရိုက်ထည့်ပါ (သို့မဟုတ် အောက်ပါခလုတ်များ နှိပ်ရွေးပါ)..." style="width:100%; padding:6px 10px; font-size:0.78rem; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; outline:none; margin-bottom:6px;">
+
+              <!-- PRESET REASON CHIPS & MANAGER (စိတ်ကြိုက် တိုး/ဖျက်) -->
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span style="font-size:0.68rem; color:#94a3b8;"><i class="fas fa-tags"></i> အသုံးများသော အကြောင်းပြချက်များ:</span>
+                <div id="adminDiscountReasonChips" style="display:inline-flex; gap:4px; flex-wrap:wrap;"></div>
+              </div>
+
+              <!-- ADD NEW CUSTOM PRESET REASON INPUT -->
+              <div style="display:flex; gap:6px; margin-top:6px;">
+                <input type="text" id="newReasonPresetInput" placeholder="အကြောင်းပြချက်အသစ် (ဥပမာ- ကာလာကျန်/အထူးလျှော့)..." style="flex:1; padding:4px 8px; font-size:0.72rem; background:#0b1329; border:1px solid #334155; color:#fff; border-radius:5px; outline:none;">
+                <button type="button" class="btn-secondary" onclick="addNewDiscountReasonPreset()" style="background:#ef4444; color:#fff; font-size:0.72rem; padding:4px 10px; border:none; border-radius:5px; white-space:nowrap; cursor:pointer;">
+                  <i class="fas fa-plus"></i> အကြောင်းပြချက် ထည့်မည်
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:6px;">
+            <div class="form-group">
+              <label>Stock အရေအတွက် *</label>
+              <input type="number" id="pStock" required min="0" placeholder="10">
+            </div>
+            <div class="form-group">
+              <label>အလေးချိန် (Weight)</label>
+              <input type="text" id="pWeight" placeholder="150 g / 0.3 kg">
+            </div>
+            <div class="form-group">
+              <label style="color:#f59e0b;"><i class="fas fa-calendar-alt"></i> Expired Date (Admin သီးသန့်)</label>
+              <input type="text" id="pExpiryDate" placeholder="DD/MM/YYYY (ဥပမာ- 01/03/2029)" maxlength="10" inputmode="numeric" oninput="formatExpiryInput(this)" style="color:#fde047; font-weight:600;">
+            </div>
+          </div>
+
+          <!-- DYNAMIC MULTI-COLOR MANAGEMENT -->
+          <div class="form-group" style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="color:var(--gold); font-weight:600; margin:0;"><i class="fas fa-palette"></i> အရောင်များ (စိတ်ကြိုက် အတိုး/အလျော့)</label>
+              <button type="button" class="btn-add-dynamic" onclick="addAdminColorRow('')">
+                <i class="fas fa-plus"></i> အရောင်ထပ်တိုးမည်
+              </button>
+            </div>
+            <div id="adminColorsListContainer" class="dynamic-list-box"></div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+            <div class="form-group">
+              <label>အရှည် (Length)</label>
+              <input type="text" id="pLength" placeholder="18 cm">
+            </div>
+            <div class="form-group">
+              <label>အကျယ် (Width)</label>
+              <input type="text" id="pWidth" placeholder="3.5 cm">
+            </div>
+            <div class="form-group">
+              <label>လုံးပတ် (Girth)</label>
+              <input type="text" id="pGirth" placeholder="11 cm">
+            </div>
+          </div>
+
+          <!-- DYNAMIC MULTI-IMAGE MANAGEMENT -->
+          <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <label style="color:var(--gold); font-weight:600; margin:0;"><i class="fas fa-images"></i> ဓာတ်ပုံများ (စိတ်ကြိုက် အတိုး/အလျော့)</label>
+              <button type="button" class="btn-add-dynamic" onclick="addAdminImageRow('')">
+                <i class="fas fa-plus"></i> ဓာတ်ပုံထပ်တိုးမည်
+              </button>
+            </div>
+            <div id="adminImagesListContainer" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:8px;"></div>
+          </div>
+          <div class="form-group">
+            <label>ဗီဒီယို (Video File Upload)</label>
+            <input type="file" id="pVideoFile" accept="video/*" style="margin-top:3px;">
+            <input type="hidden" id="pVideoUrl">
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:6px;">
+            <div class="form-group"><label>YouTube</label><input type="text" id="pYtLink" placeholder="YouTube Link"></div>
+            <div class="form-group"><label>Facebook</label><input type="text" id="pFbLink" placeholder="Facebook Link"></div>
+            <div class="form-group"><label>Telegram</label><input type="text" id="pTgLink" placeholder="Telegram Link"></div>
+            <div class="form-group"><label>TikTok</label><input type="text" id="pTtLink" placeholder="TikTok Link"></div>
+          </div>
+
+          <div class="form-group">
+            <label>ပစ္စည်းအကြောင်း အသေးစိတ်ဖော်ပြချက် (Description)</label>
+            <textarea id="pDesc" rows="2" placeholder="ဖော်ပြချက် ရိုက်ထည့်ပါ..."></textarea>
+          </div>
+
+          <div style="display:flex; gap:6px;">
+            <button type="submit" id="btnSubmitProduct" class="btn-gold" style="flex:2;">
+              <i class="fas fa-save"></i> ပစ္စည်း သိမ်းဆည်းမည်
+            </button>
+            <button type="button" id="btnCancelEdit" class="btn-secondary" onclick="resetProductForm()" style="flex:1; display:none;">
+              မပြင်တော့ပါ
+            </button>
+          </div>
+        </form>
+
+        <h4 style="color:#fff; margin:14px 0 6px; font-size:0.85rem;">လက်ရှိ ကုန်ပစ္စည်းများ စာရင်း</h4>
+        <div id="adminProductTableContainer" style="overflow-x:auto;"></div>
+      </div>
+      
+      <!-- Tab: Articles & Knowledge Base -->
+  <div class="admin-tab" id="articleTab" style="display:none; padding:12px 0;">
+  <div style="background:#151821; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:18px;">
+    
+    <!-- Section Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px; flex-wrap:wrap; gap:10px;">
+      <h3 style="margin:0; font-size:15px; color:var(--gold,#d4af37); display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-newspaper"></i> ဗဟုသုတ / ဆောင်းပါး / သတင်းများ စီမံခန့်ခွဲမှု
+      </h3>
+      <button type="button" onclick="resetArticleForm()" style="background:rgba(255,255,255,0.08); color:#ccc; border:none; padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer;">
+        <i class="fas fa-plus"></i> ဆောင်းပါးအသစ်ရေးမည်
+      </button>
+    </div>
+
+    <!-- ARTICLE FORM -->
+    <form id="adminArticleForm" onsubmit="event.preventDefault(); saveArticle();" style="display:flex; flex-direction:column; gap:14px; margin-bottom:20px;">
+          <input type="hidden" id="editArticleId" value="">
+
+          <!-- ဆောင်းပါး ခေါင်းစဉ် -->
+          <div>
+            <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ဆောင်းပါး ခေါင်းစဉ် *</label>
+            <input type="text" id="artTitle" required placeholder="ဥပမာ- ပစ္စည်းအသုံးပြုနည်းနှင့် ရေရှည်ထိန်းသိမ်းနည်း အပြည့်အစုံ" style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid #334155; color:#fff; font-size:13px; box-sizing:border-box;">
+          </div>
+
+          <!-- အမျိုးအစား နှင့် ကဏ္ဍ (Mobile တွင် ၁ ကော်လံတည်း အော်တိုဆင်းမည်) -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+            <div>
+              <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">အမျိုးအစား (Type) *</label>
+              <select id="artType" style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="ဆောင်းပါးရှည် (Article)">ဆောင်းပါးရှည် (Article)</option>
+                <option value="ဗီဒီယိုလမ်းညွှန် (Video)">ဗီဒီယိုလမ်းညွှန် (Video)</option>
+                <option value="အမျိုးနွယ်သတင်း (News)">အမျိုးနွယ်သတင်း (News)</option>
+                <option value="အမေးများသောမေးခွန်း (FAQ)">အမေးများသောမေးခွန်း (FAQ)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ကဏ္ဍ (Category) *</label>
+              <input type="text" id="artCategory" required placeholder="ဥပမာ- အသုံးပြုနည်းလမ်းညွှန်၊ ကျန်းမာရေးဗဟုသုတ" style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid #334155; color:#fff; font-size:13px; box-sizing:border-box;">
+            </div>
+          </div>
+
+          <!-- အခြေအနေ နှင့် ဆက်စပ်ပစ္စည်း -->
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px;">
+            <div>
+              <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ဆောင်းပါး အခြေအနေ (Status)</label>
+              <select id="artStatus" style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid rgba(255,255,255,0.15); color:#fff; font-size:13px; box-sizing:border-box;">
+                <option value="published">တိုက်ရိုက်လွှင့်တင်မည် (Published)</option>
+                <option value="draft">မူကြမ်းအဖြစ်သိမ်းမည် (Draft)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">ချိတ်ဆက်မည့် ဆိုင်ရှိပစ္စည်း SKU / အမည် (Related Product)</label>
+              <input type="text" id="artRelatedProduct" placeholder="ဥပမာ- SKU-001 သို့မဟုတ် ပစ္စည်းအမည်" style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid #334155; color:#fff; font-size:13px; box-sizing:border-box;">
+            </div>
+          </div>
+
+          <!-- မျက်နှာဖုံးဓာတ်ပုံ (Cover Image) -->
+          <div style="background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <label style="font-size:12px; color:var(--gold,#d4af37); display:block; margin-bottom:6px;"><i class="fas fa-image"></i> မျက်နှာဖုံးဓာတ်ပုံ (ဖုန်းထဲမှ တိုက်ရိုက်တင်ရန် သို့မဟုတ် URL ထည့်ရန်)</label>
+            <input type="file" id="artCoverFileInput" accept="image/*" onchange="uploadArticleImage(this)" style="font-size:12px; color:#aaa; width:100%; margin-bottom:6px;">
+            <input type="text" id="artCover" oninput="previewArticleCover(this.value)" placeholder="သို့မဟုတ် URL တိုက်ရိုက်ထည့်ပါ: https://..." style="width:100%; padding:8px 10px; border-radius:6px; background:#171a23; border:1px solid #334155; color:#fff; font-size:12px; box-sizing:border-box;">
+            <div id="artCoverUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:4px; display:none;">ဓာတ်ပုံ တင်နေပါသည်...</div>
+            <div id="artCoverPreviewBox" style="display:none; margin-top:8px;">
+              <img id="artCoverPreviewImg" src="" style="width:100%; max-height:160px; object-fit:cover; border-radius:6px; border:1px solid #334155;">
+            </div>
+          </div>
+
+          <!-- ဗီဒီယိုဖိုင် (Video File) -->
+          <div style="background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <label style="font-size:12px; color:var(--gold,#d4af37); display:block; margin-bottom:6px;"><i class="fas fa-video"></i> ဗီဒီယိုဖိုင် (ဖုန်းထဲမှ Video File တိုက်ရိုက်တင်ရန် သို့မဟုတ် Link ထည့်ရန်)</label>
+            <input type="file" id="artVideoFileInput" accept="video/*" onchange="uploadArticleVideo(this)" style="font-size:12px; color:#aaa; width:100%; margin-bottom:6px;">
+            <input type="text" id="artDirectVideo" placeholder="သို့မဟုတ် Video Direct URL / Embed: https://..." style="width:100%; padding:8px 10px; border-radius:6px; background:#171a23; border:1px solid #334155; color:#fff; font-size:12px; box-sizing:border-box;">
+            <div id="artVideoUploadStatus" style="font-size:11px; color:var(--gold,#d4af37); margin-top:4px; display:none;">ဗီဒီယို တင်နေပါသည်...</div>
+          </div>
+
+          <!-- အကျဉ်းချုပ် (Summary) -->
+          <div>
+            <label style="font-size:12px; color:#aaa; display:block; margin-bottom:4px;">အကျဉ်းချုပ် (SEO & List View Display)</label>
+            <input type="text" id="artSummary" placeholder="စာကြောင်းရေ ၁ သို့မဟုတ် ၂ ကြောင်းဖြင့် အနှစ်ချုပ် ရေးပါ..." style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid #334155; color:#fff; font-size:13px; box-sizing:border-box;">
+          </div>
+
+          <!-- ဆောင်းပါး အပြည့်အစုံ စာသား -->
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <label style="font-size:12px; color:#aaa;">ဆောင်းပါး အပြည့်အစုံ စာသား *</label>
+              <div style="display:inline-flex; gap:6px; flex-wrap:wrap;">
+                <button type="button" onclick="insertArticleFormat('bold')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:4px; cursor:pointer;"><b>B</b></button>
+                <button type="button" onclick="insertArticleFormat('header')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:4px; cursor:pointer;">H3</button>
+                <button type="button" onclick="insertArticleFormat('bullet')" style="padding:4px 8px; font-size:11px; background:#202533; color:#fff; border:1px solid rgba(255,255,255,0.1); border-radius:4px; cursor:pointer;">Bullet</button>
+                <button type="button" onclick="insertInlineImage()" style="padding:4px 8px; font-size:11px; background:#1e3a5f; color:#38bdf8; border:1px solid #0284c7; border-radius:4px; cursor:pointer;"><i class="fas fa-image"></i> + ပုံထည့်မည်</button>
+                <button type="button" onclick="insertInlineVideoPrompt()" style="padding:4px 8px; font-size:11px; background:#3b1e5f; color:#c084fc; border:1px solid #9333ea; border-radius:4px; cursor:pointer;"><i class="fas fa-video"></i> + Video ထည့်မည်</button>
+              </div>
+            </div>
+            <textarea id="artContent" rows="8" required placeholder="အသေးစိတ် အချက်အလက်များ ရေးသားပါ..." style="width:100%; padding:10px; border-radius:6px; background:#10131a; border:1px solid #334155; color:#fff; font-size:13px; line-height:1.6; box-sizing:border-box;"></textarea>
+          </div>
+
+          <!-- Social Media & External Links (စာသား၏ အောက်ဘက်သို့ သပ်ရပ်စွာ ရောက်ရှိသည်) -->
+          <div style="background:#10131a; padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.08);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <label style="font-size:12px; color:var(--gold,#d4af37);"><i class="fas fa-link"></i> Social Media & External Links (YouTube, Facebook, TikTok, Telegram, etc.)</label>
+              <button type="button" onclick="addArticleLinkRow()" style="background:#232733; color:#fff; border:1px solid rgba(255,255,255,0.15); padding:5px 12px; border-radius:6px; font-size:11px; cursor:pointer;">
+                <i class="fas fa-plus"></i> + Link ထပ်တိုးမည်
+              </button>
+            </div>
+            <div id="articleLinksContainer" style="display:flex; flex-direction:column; gap:8px;">
+              <!-- Dynamic link rows -->
+            </div>
+          </div>
+
+          <!-- 📌 Pin to Top Checkbox -->
+              <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px; background:rgba(212,175,55,0.08); border:1px dashed var(--gold,#d4af37); padding:8px 12px; border-radius:8px;">
+                <input type="checkbox" id="articleIsPinned" style="width:18px; height:18px; accent-color:var(--gold,#d4af37); cursor:pointer;">
+                <label for="articleIsPinned" style="font-size:13px; font-weight:600; color:var(--gold,#d4af37); cursor:pointer; margin:0; display:flex; align-items:center; gap:6px;">
+                  <i class="fas fa-thumbtack"></i> ဤသတင်းကို ထိပ်ဆုံးတွင် Pin ချိတ်ထားမည်
+                </label>
+              </div>
+
+          <!-- Form Buttons -->
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button type="button" onclick="resetArticleForm()" style="padding:10px 16px; background:rgba(255,255,255,0.08); color:#ccc; border:none; border-radius:6px; font-size:12px; cursor:pointer;">မလုပ်တော့ပါ</button>
+            <button type="submit" id="saveArticleBtn" style="padding:10px 20px; background:linear-gradient(135deg, #d4af37, #aa820a); color:#000; font-weight:bold; border:none; border-radius:6px; font-size:12px; cursor:pointer;">ဆောင်းပါး သိမ်းဆည်းမည်</button>
+          </div>
+        </form>
+
+    <!-- ADMIN ARTICLE LIST WITH LIVE SEARCH & FILTER -->
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <h4 style="margin:0; font-size:14px; color:#fff;">တင်ထားသော ဗဟုသုတ / သတင်းများ စာရင်း</h4>
+        <div style="display:flex; gap:8px; width:340px; max-width:100%;">
+          <select id="adminArticleFilterType" onchange="filterAdminArticles()" style="padding:6px 8px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#aaa; font-size:12px; outline:none;">
+            <option value="all">အားလုံး</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+          </select>
+          <input type="text" id="adminArticleSearchInput" oninput="filterAdminArticles()" placeholder="🔍 ရှာဖွေရန် (ခေါင်းစဉ်/ကဏ္ဍ/SKU)..." style="flex:1; padding:6px 10px; background:#10131a; border:1px solid rgba(255,255,255,0.15); border-radius:6px; color:#fff; font-size:12px; box-sizing:border-box; outline:none;">
+        </div>
+      </div>
+      <div id="adminArticleListContainer" style="display:flex; flex-direction:column; gap:10px; max-height:500px; overflow-y:auto; width:100%; box-sizing:border-box;">
+        <!-- Loaded dynamically via JS -->
+      </div>
+    </div>
+  </div>
+  </div>
+
+      <!-- Tab 2: Stock Inventory -->
+      <div class="admin-tab" id="stockTab">
+        <!-- SMART INVENTORY & MINIMUM ORDER CONTROL PANEL -->
+        <div style="background:rgba(255,255,255,0.03); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+            <span style="color:var(--gold); font-weight:700; font-size:0.85rem;">
+              <i class="fas fa-sliders-h"></i> Stock ပြသမှုနှင့် အနည်းဆုံး မှာယူငွေ ထိန်းချုပ်စနစ်
+            </span>
+            <button type="button" class="btn-gold" onclick="saveStockAndMinOrderQuickSettings()" style="width:auto; padding:5px 14px; font-size:0.75rem;">
+              <i class="fas fa-save"></i> ပြင်ဆင်ချက် သိမ်းမည်
+            </button>
+          </div>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:10px;">
+            <!-- 1. Smart Stock Visibility Control -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px;">
+              <label style="color:#f87171; font-weight:700; font-size:0.76rem; display:block; margin-bottom:5px;">
+                🚫 Stock (၀) ပစ္စည်းများ ပြသပုံ စနစ်
+              </label>
+              <select id="cfgStockOutMode" onchange="document.getElementById('cfgAutoHideOutOfStock').checked = (this.value === 'hide')" style="width:100%; padding:6px 8px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:6px; font-size:0.76rem; margin-bottom:6px;">
+                <option value="hide">👁️‍🗨️ အလိုအလျောက် ဖျောက်ထားမည် (Auto-Hide)</option>
+                <option value="bottom">⬇️ Catalog အောက်ဆုံးသို့ ပို့ထားမည် (Show at Bottom)</option>
+                <option value="show">🏷️ ပုံမှန်အတိုင်း "ပစ္စည်းကုန်" တံဆိပ်ဖြင့် ပြမည်</option>
+              </select>
+              <input type="checkbox" id="cfgAutoHideOutOfStock" style="display:none;">
+            </div>
+
+            <!-- 2. Smart Minimum Order Amount with Custom Preset Manager -->
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:8px; padding:10px;">
+              <label style="color:var(--gold); font-weight:700; font-size:0.76rem; display:block; margin-bottom:5px;">
+                🛍 အနည်းဆုံး မှာယူမှု ပမာဏ (Minimum Order)
+              </label>
+              <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+                <input type="number" id="cfgMinOrderAmount" placeholder="20000" min="0" style="flex:1; padding:6px 8px; background:#1e293b; border:1px solid #475569; color:#00ff88; font-weight:bold; border-radius:6px; font-size:0.82rem;">
+                <span style="font-size:0.75rem; color:#cbd5e1;">Ks</span>
+              </div>
+
+              <!-- Dynamic Quick Preset Buttons Container -->
+              <div id="minOrderPresetsContainer" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:6px;"></div>
+
+              <!-- Add Custom Preset Button Input -->
+              <div style="display:flex; gap:5px; border-top:1px dashed #334155; padding-top:6px;">
+                <input type="number" id="newMinOrderPresetInput" placeholder="ခလုတ်အသစ် ပမာဏ (ဥပမာ- 15000)" min="0" style="flex:1; padding:4px 7px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:4px; font-size:0.72rem;">
+                <button type="button" onclick="addMinOrderPresetButton()" style="background:#0284c7; color:#fff; border:none; padding:4px 9px; border-radius:4px; font-size:0.7rem; font-weight:600; cursor:pointer; white-space:nowrap;">
+                  <i class="fas fa-plus"></i> ခလုတ်တိုးမည်
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+          <input type="text" id="adminStockSearchInput" class="admin-filter-search" placeholder="🔍 Stock စာရင်းတွင် ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="renderStockTable()" style="flex:2; min-width:180px; margin-bottom:0;">
+          <select id="adminStockExpiryFilterSelect" onchange="renderStockTable()" style="flex:1; min-width:160px; padding:7px 10px; background:#0f172a; border:1px solid #334155; border-radius:6px; color:#fde047; font-size:0.75rem; outline:none; cursor:pointer;">
+            <option value="all">📅 အားလုံး (All Expiry)</option>
+            <option value="expiring_6m">⚠️ ၆ လအတွင်း ကုန်မည့်ပစ္စည်းများ</option>
+            <option value="expired">❌ သက်တမ်းကုန်ပြီးသားများ</option>
+            <option value="good">✅ သက်တမ်း ၆ လကျော် ကောင်းမွန်ဆဲ</option>
+          </select>
+          <input type="date" id="adminStockCustomExpiryDate" onchange="renderStockTable()" title="သတ်မှတ်ရက် မတိုင်မီ ကုန်မည့်ပစ္စည်းများ စစ်ရန်" style="padding:6px 8px; background:#0f172a; border:1px solid #334155; border-radius:6px; color:#fff; font-size:0.75rem; outline:none; cursor:pointer;">
+          <button type="button" class="btn-secondary" onclick="resetStockExpiryFilters()" style="padding:6px 10px; font-size:0.75rem;"><i class="fas fa-redo"></i> ရှင်းမည်</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+          <h4 style="color:#fff; font-size:0.9rem;"><i class="fas fa-boxes"></i> ကုန်ပစ္စည်း၊ Stock နှင့် သက်တမ်းကုန်ရက် (Expired Date)</h4>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-secondary" onclick="exportStockExcel()"><i class="fas fa-file-excel"></i> Stock Excel</button>
+            <button class="btn-secondary" onclick="exportStockPDF()"><i class="fas fa-file-pdf"></i> Stock PDF</button>
+          </div>
+        </div>
+
+        <!-- EXPIRED DATE OVERVIEW SUMMARY CARDS -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+          <div onclick="setExpiryFilterQuick('good')" style="background:rgba(16, 185, 129, 0.1); border:1px solid #10b981; border-radius:8px; padding:7px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.68rem; color:#a7f3d0; display:block;">🟢 သက်တမ်းကောင်းမွန်ဆဲ</span>
+            <b id="summaryExpiryGood" style="font-size:0.95rem; color:#10b981;">0 မျိုး</b>
+          </div>
+          <div onclick="setExpiryFilterQuick('expiring_6m')" style="background:rgba(245, 158, 11, 0.12); border:1.5px solid #f59e0b; border-radius:8px; padding:7px; text-align:center; cursor:pointer; box-shadow:0 0 10px rgba(245, 158, 11, 0.2);">
+            <span style="font-size:0.68rem; color:#fde68a; display:block;">⚠️ ၆ လအတွင်း ကုန်မည်</span>
+            <b id="summaryExpiryWarning" style="font-size:0.95rem; color:#f59e0b;">0 မျိုး</b>
+          </div>
+          <div onclick="setExpiryFilterQuick('expired')" style="background:rgba(239, 68, 68, 0.12); border:1.5px solid #ef4444; border-radius:8px; padding:7px; text-align:center; cursor:pointer;">
+            <span style="font-size:0.68rem; color:#fecaca; display:block;">❌ သက်တမ်းကုန်ပြီး</span>
+            <b id="summaryExpiryExpired" style="font-size:0.95rem; color:#ef4444;">0 မျိုး</b>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:6px; margin-bottom:12px;">
+          <div style="background:#0f172a; border:1px solid #10b981; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">📦 ထပ်သွင်း</span>
+            <b id="summaryStockIn" style="font-size:1rem; color:#10b981;">0 ခု</b>
+          </div>
+          <div style="background:#0f172a; border:1px solid #f59e0b; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">🛍 ရောင်းထွက်</span>
+            <b id="summaryStockSold" style="font-size:1rem; color:#f59e0b;">0 ခု</b>
+          </div>
+          <div style="background:#0f172a; border:1px solid #ef4444; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">⚠️ ပျက်စီး</span>
+            <b id="summaryStockDamaged" style="font-size:1rem; color:#ef4444;">0 ခု</b>
+          </div>
+          <div style="background:#0f172a; border:1px solid #38bdf8; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">📊 လက်ကျန်</span>
+            <b id="summaryStockLeft" style="font-size:1rem; color:#38bdf8;">0 ခု</b>
+          </div>
+          <div style="background:rgba(239,68,68,0.12); border:1px solid #ef4444; border-radius:8px; padding:8px; text-align:center;">
+              <span style="font-size:0.7rem; color:#fecaca; display:block;">⚠️ ၅ ခုနှင့်အောက်</span>
+              <b id="summaryStockLow" style="font-size:1rem; color:#ef4444;">0 မျိုး</b>
+            </div>
+        </div>
+
+        <div id="adminStockTableContainer" style="overflow-x:auto;"></div>
+      </div>
+
+      <!-- Tab 3: Orders & COD Settlements -->
+      <div class="admin-tab" id="ordersTab">
+        <input type="text" id="adminOrderSearchInput" class="admin-filter-search" placeholder="🔍 အော်ဒါ ID၊ ဝယ်သူအမည် သို့မဟုတ် ဖုန်းနံပါတ်ဖြင့် ရှာပါ..." oninput="renderAdminOrders()">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="color:#fff; font-size:0.9rem;">အော်ဒါများနှင့် COD ငွေစာရင်း</h4>
+          <div style="display:flex; gap:6px;">
+            <button class="btn-secondary" onclick="exportOrdersExcel()"><i class="fas fa-file-excel"></i> Export Orders</button>
+            <button class="btn-secondary" style="background:#059669; color:#fff;" onclick="exportOrdersCSV()"><i class="fas fa-file-csv"></i> CSV Export</button>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-bottom:10px;">
+          <div style="background:#0f172a; border:1px solid #f59e0b; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.68rem; color:#fde68a; display:block;">🟡 COD ငွေရရန်ကျန်</span>
+            <b id="summaryCodPending" style="font-size:0.95rem; color:#f59e0b;">0 Ks</b>
+          </div>
+          <div style="background:#0f172a; border:1px solid #10b981; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.68rem; color:#a7f3d0; display:block;">🟢 ရရှိပြီးငွေ</span>
+            <b id="summaryCodSettled" style="font-size:0.95rem; color:#10b981;">0 Ks</b>
+          </div>
+          <div style="background:#0f172a; border:1px solid #ef4444; border-radius:8px; padding:8px; text-align:center;">
+            <span style="font-size:0.68rem; color:#fecaca; display:block;">🔴 ပစ္စည်းပြန်လှည့် (Cancel)</span>
+            <b id="summaryCodReturned" style="font-size:0.95rem; color:#ef4444;">0 Ks</b>
+          </div>
+        </div>
+
+        <div id="adminOrdersContainer"></div>
+      </div>
+
+      <!-- Tab 4: Customers -->
+      <div class="admin-tab" id="customersTab">
+        <input type="text" id="adminCustomerSearchInput" class="admin-filter-search" placeholder="🔍 Customer အမည် သို့မဟုတ် ဖုန်းနံပါတ်ဖြင့် ရှာပါ..." oninput="renderAdminCustomers()">
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+          <h4 style="color:#fff; font-size:0.9rem;">ဝယ်ယူသူများ မှတ်တမ်း (Customer Directory)</h4>
+          <button class="btn-secondary" onclick="exportCustomersExcel()"><i class="fas fa-file-excel"></i> Export Customers</button>
+        </div>
+        <div id="adminCustomerContainer"></div>
+      </div>
+
+      <!-- Tab 5: Sales Analytics (Modern Pro Dashboard) -->
+      <div class="admin-tab" id="analyticsTab">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+          <h4 style="color:#fff; font-size:0.95rem; margin:0;"><i class="fas fa-chart-line" style="color:var(--gold);"></i> ရောင်းအားနှင့် အမြတ်ငွေ အစီရင်ခံစာ (Analytics)</h4>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn-secondary" style="background:#0088cc; color:#fff; border:none;" onclick="sendDailySalesSummaryTelegram()"><i class="fab fa-telegram-plane"></i> Telegram အစီရင်ခံစာ ပို့မည်</button>
+            <button type="button" class="btn-secondary" onclick="exportAnalyticsExcel()"><i class="fas fa-file-excel"></i> Financial Report</button>
+          </div>
+        </div>
+
+        <!-- 1. Date Filter Pills & Custom Date Range -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:12px;">
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:8px;">
+            <button type="button" class="admin-filter-pill-btn active" id="anFilter_all" onclick="setAnalyticsDateFilter('all')">အားလုံး (All Time)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_today" onclick="setAnalyticsDateFilter('today')">ယနေ့ (Today)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_yesterday" onclick="setAnalyticsDateFilter('yesterday')">မနေ့က (Yesterday)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_7days" onclick="setAnalyticsDateFilter('7days')">၇ ရက်အတွင်း (7 Days)</button>
+            <button type="button" class="admin-filter-pill-btn" id="anFilter_month" onclick="setAnalyticsDateFilter('month')">ယခုလ (This Month)</button>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <span style="font-size:0.72rem; color:#94a3b8;">စိတ်ကြိုက်ရက်:</span>
+            <input type="date" id="anDateFrom" onchange="setAnalyticsDateFilter('custom')" style="padding:5px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.74rem;">
+            <span style="color:#94a3b8; font-size:0.75rem;">မှ</span>
+            <input type="date" id="anDateTo" onchange="setAnalyticsDateFilter('custom')" style="padding:5px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.74rem;">
+            <input type="text" id="adminAnalyticsSearchInput" placeholder="🔍 အော်ဒါ ID / ဝယ်သူ / ပစ္စည်း ရှာရန်..." oninput="renderAnalytics()" style="flex:1; min-width:150px; padding:6px 10px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.75rem; outline:none;">
+          </div>
+        </div>
+
+        <!-- 2. KPI Summary Cards (Gross, Net Sales, Net Profit, AOV & Margin %) -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-bottom:12px;">
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Gross Sales (စုစုပေါင်းရောင်းရငွေ)</span>
+            <b id="statGrossSales" style="font-size:0.95rem; color:#fff; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statOrderCountSub" style="font-size:0.68rem; color:#38bdf8;">အော်ဒါ 0 ခု</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid #0284c7; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Net Sales (အမှန်ရောင်းရငွေ)</span>
+            <b id="statNetSales" style="font-size:0.95rem; color:#38bdf8; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statDiscRefSub" style="font-size:0.65rem; color:#f87171;">လျှော့ငွေ/Cancel: Ks 0</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid #10b981; border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">Net Profit (အသားတင်အမြတ်)</span>
+            <b id="statNetProfit" style="font-size:0.95rem; color:#00ff88; display:block; margin-top:2px;">Ks 0</b>
+            <small id="statProfitMarginPct" style="font-size:0.68rem; color:#a7f3d0; font-weight:bold;">Margin: 0%</small>
+          </div>
+          <div style="background:#0f172a; border:1px solid var(--gold); border-radius:10px; padding:10px;">
+            <span style="font-size:0.7rem; color:#94a3b8; display:block;">ပျမ်းမျှအော်ဒါတန်ဖိုး (AOV)</span>
+            <b id="statAovVal" style="font-size:0.95rem; color:var(--gold); display:block; margin-top:2px;">Ks 0</b>
+            <small id="statDeliCostSub" style="font-size:0.65rem; color:#cbd5e1;">ပို့ခစုစုပေါင်း: Ks 0</small>
+          </div>
+        </div>
+
+        <!-- Hidden legacy spans for backward compatibility -->
+        <span id="statRefunds" style="display:none;">Ks 0</span>
+        <span id="statDiscounts" style="display:none;">Ks 0</span>
+
+        <!-- 3. Visual Charts Row (Sales Trend Line Chart & Payment Breakdown Doughnut Chart) -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:12px;">
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:var(--gold); font-weight:bold; margin-bottom:6px;">
+              <i class="fas fa-chart-area"></i> ရက်အလိုက် ရောင်းအားနှင့် အမြတ်ငွေ ပြဂရပ်
+            </div>
+            <div style="position:relative; height:190px; width:100%;">
+              <canvas id="salesTrendChartCanvas"></canvas>
+            </div>
+          </div>
+
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#38bdf8; font-weight:bold; margin-bottom:6px;">
+              <i class="fas fa-wallet"></i> ငွေပေးချေမှုအလိုက် ခွဲခြမ်းစိတ်ဖြာမှု (Payment Split)
+            </div>
+            <div style="position:relative; height:190px; width:100%;">
+              <canvas id="paymentSplitChartCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Top Selling Products & Top Locations Grid -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:12px;">
+          <!-- Top Selling Products -->
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#00ff88; font-weight:bold; margin-bottom:8px;">
+              <i class="fas fa-trophy" style="color:var(--gold);"></i> ရောင်းအားအကောင်းဆုံး ပစ္စည်းများ (Top 5 Products)
+            </div>
+            <div id="analyticsTopProductsList"></div>
+          </div>
+
+          <!-- Top Locations / Townships -->
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px;">
+            <div style="font-size:0.78rem; color:#f59e0b; font-weight:bold; margin-bottom:8px;">
+              <i class="fas fa-map-marked-alt"></i> ဝယ်လိုအားအများဆုံး မြို့နယ်များ (Top Townships)
+            </div>
+            <div id="analyticsTopLocationsList"></div>
+          </div>
+        </div>
+
+        <!-- 5. Recent Orders Breakdown -->
+        <div style="background:rgba(0,0,0,0.3); border:1px solid #334155; padding:10px; border-radius:8px;" id="analyticsOrdersBreakdown"></div>
+      </div>
+
+      <!-- Tab 6: Discounts & VIP Loyalty Management -->
+      <div class="admin-tab" id="discountsTab">
+        <!-- LOYALTY POINT SYSTEM MASTER CONTROL PANEL -->
+        <div style="background:linear-gradient(135deg, rgba(16,185,129,0.12), rgba(15,23,42,0.85)); border:1px solid rgba(16,185,129,0.4); border-radius:10px; padding:12px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+            <div>
+              <h4 style="color:#10b981; font-size:0.92rem; margin:0; display:flex; align-items:center; gap:6px;">
+                <i class="fas fa-coins" style="color:var(--gold);"></i> ဝယ်သူ Loyalty Point စနစ် ထိန်းချုပ်မှု
+              </h4>
+              <small id="loyaltyStatusHint" style="color:#a7f3d0; font-size:0.72rem;">လက်ရှိ အခြေအနေ: ဖွင့်ထားပါသည် (ON)</small>
+            </div>
+            <label style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.35); padding:6px 12px; border-radius:20px; border:1px solid rgba(255,255,255,0.15); cursor:pointer;">
+              <input type="checkbox" id="adminLoyaltyMasterToggle" checked onchange="toggleLoyaltyMasterSwitch()" style="width:16px; height:16px; accent-color:#10b981; cursor:pointer;">
+              <span id="adminLoyaltyToggleLabel" style="color:#10b981; font-weight:700; font-size:0.78rem;">စနစ် ဖွင့်ထားသည်</span>
+            </label>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.74rem; color:#cbd5e1;">Point ၁ မှတ် ရမည့် ဝယ်ယူငွေ (Ks)</label>
+              <input type="number" id="adminLoyaltyEarnRate" value="1000" min="100" step="100" placeholder="ဥပမာ - 1000" style="padding:7px; font-size:0.82rem;">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="font-size:0.74rem; color:#cbd5e1;">Point ၁ မှတ် လျှော့ပေးမည့် တန်ဖိုး (Ks)</label>
+              <input type="number" id="adminLoyaltyRedeemRate" value="10" min="1" step="1" placeholder="ဥပမာ - 10" style="padding:7px; font-size:0.82rem;">
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; gap:8px; flex-wrap:wrap;">
+            <small style="color:#94a3b8; font-size:0.7rem;">* ပိတ်ထားပါက Checkout စာမျက်နှာတွင် Point အကွက် ပေါ်မည်မဟုတ်ပါ။</small>
+            <button type="button" onclick="saveLoyaltySettingsToFirebase()" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; border:none; padding:7px 14px; border-radius:7px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+              <i class="fas fa-save"></i> စည်းမျဉ်း သိမ်းဆည်းမည်
+            </button>
+          </div>
+        </div>
+        <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">လျှော့ဈေး ကူပွန်များ စီမံခန့်ခွဲခြင်း (Promo Codes)</h4>
+        
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:12px; border-radius:8px; margin-bottom:10px;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label>ကူပွန် အမျိုးအစား (Category)</label>
+              <div style="display:flex; gap:5px; align-items:center;">
+                <select id="newDiscountCategory" style="flex:1;"></select>
+                <button type="button" onclick="addCustomCouponCategory()" title="အမျိုးအစားအသစ် ထပ်တိုးမည်" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:8px 10px; font-weight:700; cursor:pointer; flex-shrink:0;">+</button>
+                <button type="button" onclick="deleteCustomCouponCategory()" title="ရွေးထားသော အမျိုးအစားကို ဖျက်မည်" style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#fca5a5; border-radius:6px; padding:7px 9px; font-size:0.75rem; cursor:pointer; flex-shrink:0;">🗑️</button>
+              </div>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>ကူပွန်ကုဒ် (Coupon Code)</label>
+              <input type="text" id="newDiscountCode" placeholder="ဥပမာ - WELCOME10 သို့မဟုတ် DE3000">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div class="form-group" style="margin:0;">
+              <label>လျှော့ချမည့် ပုံစံ</label>
+              <select id="newDiscountType">
+                <option value="fixed">ငွေပမာဏ တိုက်ရိုက် လျှော့ချမည် (Ks)</option>
+                <option value="percent">ရာခိုင်နှုန်းဖြင့် လျှော့ချမည် (%)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>လျှော့ပေးမည့် တန်ဖိုး (Value)</label>
+              <input type="number" id="newDiscountVal" placeholder="ဥပမာ - 2000 သို့မဟုတ် 10">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+            <div class="form-group" style="margin:0;">
+              <label style="color:#38bdf8; font-size:0.72rem;">အများဆုံး အသုံးပြုနိုင်မည့် အကြိမ်ရေ (Usage Limit)</label>
+              <input type="number" id="newDiscountLimit" placeholder="ဥပမာ- 20 (ကန့်သတ်ချက်မရှိပါက အလွတ်ထားပါ)">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label style="color:#f59e0b; font-size:0.72rem;">သက်တမ်းကုန်မည့်ရက် (Expiry Date)</label>
+              <input type="text" id="newDiscountExpiry" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY (ဥပမာ- 31/12/2026)" oninput="formatDMYDateInput(this)">
+            </div>
+          </div>
+
+          <button type="button" class="btn-gold" onclick="addDiscountCode()" style="margin-top:8px;">
+            <i class="fas fa-plus"></i> ကူပွန်အသစ် ထည့်သွင်းမည်
+          </button>
+        </div>
+        <!-- Compact & Categorized Coupon List Section -->
+        <div style="background:rgba(15, 23, 42, 0.75); border:1px solid #334155; padding:12px; border-radius:10px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+            <h5 style="color:var(--gold); font-size:0.85rem; margin:0;">🎟️ လက်ရှိ အသုံးပြုနိုင်သော ကူပွန်များ စာရင်း <span id="couponTotalBadge" style="font-size:0.72rem; color:#94a3b8; font-weight:normal;"></span></h5>
+            <input type="text" id="couponSearchInput" oninput="renderDiscountsList()" placeholder="🔍 ကူပွန်ကုဒ် ရှာရန်..." style="width:150px; padding:4px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.75rem;">
+          </div>
+
+          <!-- Filter Tabs (All, Deli, Discount, VIP) -->
+          <div id="couponFilterTabs" style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px;">
+            <button type="button" onclick="setCouponFilterTab('all', this)" class="coupon-tab-btn active" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #10b981; background:rgba(16,185,129,0.2); color:#6ee7b7; font-weight:700; cursor:pointer;">အားလုံး</button>
+            <button type="button" onclick="setCouponFilterTab('deli', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">🚚 Deli လျှော့ဈေး</button>
+            <button type="button" onclick="setCouponFilterTab('discount', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">🏷️ ပစ္စည်း လျှော့ဈေး</button>
+            <button type="button" onclick="setCouponFilterTab('vip', this)" class="coupon-tab-btn" style="padding:4px 9px; font-size:0.72rem; border-radius:6px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer;">👑 VIP / အထူး</button>
+          </div>
+
+          <!-- 2-Column Compact Scrollable Grid -->
+          <div id="adminDiscountsList" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(210px, 1fr)); gap:6px; max-height:250px; overflow-y:auto; padding-right:3px;"></div>
+        </div>
+
+        <!-- ==================== Combo Deals Management Section ==================== -->
+<div class="admin-card-section" style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-top: 24px; margin-bottom: 24px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid #334155; padding-bottom: 10px; flex-wrap: wrap; gap: 10px;">
+      <h3 style="margin: 0; color: #f59e0b; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        🎟️ အထူးတွဲဖက် လျှော့စျေး စီမံခန့်ခွဲခြင်း (Combo Deals)
+      </h3>
+
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <!-- Combo Deals Master Switch -->
+        <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; border: 1px solid #374151;">
+          <span style="font-size: 11px; color: #9ca3af;">စနစ်:</span>
+          <label style="position: relative; display: inline-block; width: 38px; height: 20px; margin: 0; cursor: pointer;">
+            <input type="checkbox" id="cfgToggleComboDeals" onchange="toggleComboDealsMaster(this.checked)" style="opacity: 0; width: 0; height: 0;">
+            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4b5563; transition: .3s; border-radius: 20px;" id="cfgToggleComboDealsSlider"></span>
+          </label>
+          <span id="cfgToggleComboDealsLabel" style="font-size: 11px; font-weight: 600; color: #ef4444;">ပိတ်ထားသည်</span>
+        </div>
+
+        <button type="button" onclick="loadComboDealsFromRTDB()" style="background: #334155; color: #94a3b8; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+          🔄 Refresh
+        </button>
+      </div>
+    </div>
+
+  <!-- Combo Deal Form -->
+  <input type="hidden" id="comboEditId" value="">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 14px;">
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">အဓိက ပစ္စည်း ရွေးပါ (Main Product):</label>
+      <select id="comboMainProduct" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+        <option value="">-- အဓိက ပစ္စည်း ရွေးချယ်ပါ --</option>
+      </select>
+    </div>
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">တွဲဖက်ရောင်းမည့် ပစ္စည်း (Bundle Product):</label>
+      <select id="comboBundleProduct" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+        <option value="">-- တွဲဖက်မည့် ပစ္စည်း ရွေးချယ်ပါ --</option>
+      </select>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; align-items: flex-end; margin-bottom: 16px;">
+    <div>
+      <label style="display: block; font-size: 0.85rem; color: #cbd5e1; margin-bottom: 6px;">လျှော့ဈေး ရာခိုင်နှုန်း (% Discount):</label>
+      <input type="number" id="comboDiscountPercent" placeholder="ဥပမာ - 10" min="1" max="90" style="width: 100%; padding: 10px; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px; font-size: 0.9rem;">
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; height: 42px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #fff; font-size: 0.9rem;">
+        <input type="checkbox" id="comboIsActive" checked style="width: 18px; height: 18px; accent-color: #10b981;">
+        <span id="comboActiveLabel" style="color: #10b981; font-weight: bold;">ဖွင့်ထားမည်</span>
+      </label>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px;">
+    <button type="button" id="comboSaveBtn" onclick="saveComboDeal()" style="flex: 1; padding: 12px; background: #d97706; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s;">
+      + Combo Deal အသစ် သိမ်းဆည်းမည်
+    </button>
+    <button type="button" id="comboCancelBtn" onclick="resetComboForm()" style="display: none; padding: 12px 20px; background: #475569; color: white; border: none; border-radius: 8px; cursor: pointer;">
+      မလုပ်တော့ပါ
+    </button>
+  </div>
+
+  <!-- Combo Deals List -->
+  <div style="margin-top: 24px;">
+    <h4 style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 12px;">📋 လက်ရှိ ပြုလုပ်ထားသော Combo Deals စာရင်း</h4>
+    <div id="comboDealsListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="color: #64748b; font-size: 0.85rem; text-align: center; padding: 15px;">Combo Deal များ မရှိသေးပါ</div>
+    </div>
+  </div>
+</div>
+        <div style="background:rgba(212, 175, 55, 0.08); border:1px solid var(--gold); padding:12px; border-radius:8px; margin-bottom:14px;">
+          <h5 style="color:var(--gold); font-size:0.85rem; margin-bottom:8px;"><i class="fas fa-crown"></i> VIP & Repeat Customer အထူးလျှော့စျေး သတ်မှတ်ချက်</h5>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div class="form-group" style="margin:0;">
+              <label>အခမဲ့ ပို့ဆောင်ခ ရရှိမည့် အော်ဒါအကြိမ်ရေ</label>
+              <input type="number" id="cfgFreeDeliveryThreshold" value="3" min="1">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label>VIP စျေးနှုန်း ရရှိမည့် အော်ဒါအကြိမ်ရေ</label>
+              <input type="number" id="cfgVipThreshold" value="5" min="1">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label>VIP လျှော့စျေး ရာခိုင်နှုန်း (%)</label>
+            <input type="number" id="cfgVipDiscountPercent" value="5" min="1" max="100">
+          </div>
+          <button type="button" class="btn-secondary" style="background:#2563eb; color:#fff; width:100%; padding:7px;" onclick="saveVipConfigSettings()">
+            <i class="fas fa-save"></i> VIP စည်းမျဉ်းများ သိမ်းဆည်းမည်
+          </button>
+        </div>
+
+      <!-- ========================================== -->
+    <!-- ⚡ FLASH SALE WITH TOGGLE SWITCH -->
+    <!-- ========================================== -->
+    <div style="background:rgba(239, 68, 68, 0.08); border:1px solid #ef4444; border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <label style="color:#ef4444; font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-bolt"></i> Flash Sale & Countdown Timer စီမံခန့်ခွဲခြင်း
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgToggleFlashSale" onchange="togglePromoModule('flashSale', this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgToggleFlashSaleLabel" style="font-weight:700; color:#ef4444;">ပိတ်ထားသည်</span>
+        </label>
+      </div>
+
+      <div id="flashSaleConfigBody" style="display:none;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Flash Sale ပစ္စည်း ရွေးပါ</span>
+            <span style="font-size:0.7rem; color:#94a3b8; font-weight:normal;">(နာမည် သို့မဟုတ် SKU ရိုက်ရှာနိုင်သည်)</span>
+          </label>
+          <div style="display:flex; gap:6px; margin-bottom:6px;">
+            <input type="text" id="flashSaleSearchInput" placeholder="🔍 ပစ္စည်းအမည် သို့မဟုတ် SKU ဖြင့် ရှာပါ..." oninput="filterFlashSaleProducts(this.value)" style="flex:1; padding:6px 10px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff; font-size:0.8rem;">
+            <button type="button" onclick="clearFlashSaleSearch()" style="padding:6px 10px; background:#334155; color:#cbd5e1; border:1px solid #475569; border-radius:6px; cursor:pointer; font-size:0.75rem;">
+              <i class="fas fa-times"></i> ရှင်းမည်
+            </button>
+          </div>
+          <select id="flashSaleProdSelect" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;"></select>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>လျှော့စျေးနှုန်း (MMK)</label>
+            <input type="number" id="flashSalePriceInput" placeholder="ဥပမာ- 45000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>သက်တမ်းကုန်ဆုံးမည့် အချိန် (နာရီ)</label>
+            <input type="number" id="flashSaleHoursInput" value="12" min="1" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+        </div>
+        <button type="button" class="btn-gold" onclick="saveFlashSaleItem()" style="background:#ef4444; color:#fff; width:100%; padding:8px; border-radius:6px; font-weight:700; cursor:pointer;">
+          <i class="fas fa-fire"></i> Flash Sale သတ်မှတ်မည်
+        </button>
+        <div id="adminFlashSalesList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🎁 VIP MYSTERY BOXES WITH TOGGLE SWITCH -->
+    <!-- ========================================== -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-gift"></i> VIP Mystery Boxes စီမံခန့်ခွဲခြင်း
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgToggleMysteryBox" onchange="togglePromoModule('mysteryBox', this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgToggleMysteryBoxLabel" style="font-weight:700; color:#ef4444;">ပိတ်ထားသည်</span>
+        </label>
+      </div>
+
+      <div id="mysteryBoxConfigBody" style="display:none;">
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>သေတ္တာအမည်</label>
+          <input type="text" id="mysteryBoxNameInput" placeholder="ဥပမာ- Gold Luxury Mystery Box" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>ရောင်းစျေး (MMK)</label>
+            <input type="number" id="mysteryBoxPriceInput" placeholder="35000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+          <div class="form-group" style="margin-bottom:8px;">
+            <label>ပါဝင်မည့် ခန့်မှန်းတန်ဖိုး</label>
+            <input type="text" id="mysteryBoxWorthInput" placeholder="တန်ဖိုး ၅၀,၀၀၀ ကျပ်အထက်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label>ဖော်ပြချက်စာသား</label>
+          <input type="text" id="mysteryBoxDescInput" placeholder="အီလက်ထရောနစ် ပစ္စည်း + ချောဆီ လက်ဆောင်များ ပါဝင်မည်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <button type="button" class="btn-gold" onclick="addAdminMysteryBox()" style="width:100%; padding:8px; border-radius:6px; font-weight:700; cursor:pointer;">
+          <i class="fas fa-box-open"></i> Mystery Box အသစ် ထည့်သွင်းမည်
+        </button>
+        <div id="adminMysteryBoxesList" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🛒 ABANDONED CART RECOVERY VOUCHER -->
+    <!-- ========================================== -->
+    <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-shopping-basket"></i> Abandoned Cart Voucher Recovery စနစ်
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgAbandonedCartEnabled" style="width:16px; height:16px; accent-color:var(--gold); cursor:pointer;">
+          <span id="cfgAbandonedCartStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Voucher Code (ကူပွန်ကုဒ်)</label>
+          <input type="text" id="cfgAbandonedVoucherCode" placeholder="ဥပမာ - COMEBACK5" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">လျှော့စျေး ရာခိုင်နှုန်း (%)</label>
+          <input type="number" id="cfgAbandonedDiscountPercent" placeholder="ဥပမာ - 5" min="1" max="100" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">Popup တွင် ပြသမည့် စာသား</label>
+        <input type="text" id="cfgAbandonedVoucherMsg" placeholder="ခြင်းတောင်းထဲရှိ ပစ္စည်းများကို ယခုချက်ချင်း အော်ဒါတင်ပါက သီးသန့် လျှော့စျေး ရရှိပါမည်။" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+      </div>
+      <div style="text-align:right;">
+        <button type="button" class="btn-gold" onclick="saveAbandonedCartVoucherConfig()" style="padding:6px 14px; font-size:0.75rem; border-radius:6px; cursor:pointer;">
+          <i class="fas fa-save"></i> Voucher Setting သိမ်းမည်
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 🎁 SMART TIERED FOC & GIFTS SUITE -->
+    <!-- ========================================== -->
+    <div style="background:rgba(212, 175, 55, 0.08); border:1.5px solid var(--gold); border-radius:10px; padding:12px; margin-top:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="color:var(--gold); font-weight:700; font-size:0.85rem; display:flex; align-items:center; gap:6px; margin:0;">
+          <i class="fas fa-gift" style="color:#ef4444;"></i> FOC & လက်ဆောင်ပစ္စည်း စနစ် စီမံခန့်ခွဲမှု (Tiered & Custom Gifts)
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-size:0.75rem; color:#fff; cursor:pointer; margin:0;">
+          <input type="checkbox" id="cfgFocEnabled" onchange="toggleFocCampaignState(this.checked)" style="width:16px; height:16px; cursor:pointer;">
+          <span id="cfgFocStatusLabel" style="font-weight:700; color:#10b981;">ဖွင့်ထားသည်</span>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">FOC ပေးမည့် ပုံစံ</label>
+          <select id="cfgFocMode" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="auto">🎁 Auto Gift (အလိုအလျောက် ပေးမည်)</option>
+            <option value="choice">👉 Customer Choice (ဝယ်သူကိုယ်တိုင် ရွေးမည်)</option>
+          </select>
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">အနည်းဆုံး ဝယ်ယူငွေ (Min Spend အဆင့် ၁)</label>
+          <input type="number" id="cfgFocMinAmount" placeholder="30000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div>
+          <label style="color:#38bdf8; font-size:0.72rem; display:block; margin-bottom:3px;">အဆင့် ၂ ဝယ်ယူငွေ (Tier 2 Min Spend - Optional)</label>
+          <input type="number" id="cfgFocTier2Amount" placeholder="60000" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <div>
+          <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">ပရိုမိုးရှင်း ခေါင်းစဉ်</label>
+          <input type="text" id="cfgFocTitle" placeholder="၃ သောင်းပြည့် အထူးလက်ဆောင်" style="width:100%; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+      </div>
+
+      <!-- ဆိုင်တွင်း အရောင်းစာရင်းမှ ရွေးချယ်ခြင်း -->
+      <div style="margin-bottom:8px;">
+        <label style="color:#cbd5e1; font-size:0.72rem; display:block; margin-bottom:3px;">၁။ ဆိုင်တွင်း အရောင်းစာရင်းမှ လက်ဆောင်ပစ္စည်းရွေးချယ်သွင်းရန်:</label>
+        <div style="display:flex; gap:6px;">
+          <select id="cfgFocProductSelect" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="">-- ကုန်ပစ္စည်းစာရင်းမှ လက်ဆောင်ပစ္စည်းရွေးပါ --</option>
+          </select>
+          <button type="button" onclick="addFocGiftItem()" style="padding:6px 12px; background:var(--gold); color:#000; border-radius:6px; font-weight:700; cursor:pointer;">+ ထည့်မည်</button>
+        </div>
+      </div>
+
+      <!-- သီးသန့်လက်ဆောင် ထည့်သွင်းခြင်း -->
+      <div style="background:rgba(255,255,255,0.03); border:1px solid #38bdf8; border-radius:8px; padding:10px; margin-bottom:8px;">
+        <div style="font-size:0.75rem; color:#38bdf8; font-weight:bold; margin-bottom:6px;">
+          <i class="fas fa-plus-circle"></i> ၂။ အရောင်းထဲမရှိသော သီးသန့်လက်ဆောင် ထည့်သွင်းရန် (Custom Gift With Photo):
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+          <input type="text" id="customFocGiftName" placeholder="လက်ဆောင်အမည် (ဥပမာ- သီလီကွန်လက်ဆောင်ထုပ်)..." style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+          <select id="customFocGiftTier" style="padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+            <option value="1">အဆင့် ၁ လက်ဆောင် (Tier 1)</option>
+            <option value="2">အဆင့် ၂ လက်ဆောင် (Tier 2 - VIP Gift)</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center; margin-bottom:6px;">
+          <input type="file" id="customFocGiftFile" accept="image/*" style="font-size:11px; color:#94a3b8; flex:1;">
+          <input type="text" id="customFocGiftUrl" placeholder="သို့မဟုတ် ပုံ Link (https://...)" style="flex:1; padding:6px; background:#0f172a; border:1px solid #475569; border-radius:6px; color:#fff;">
+        </div>
+        <button type="button" id="btnAddCustomFocGift" onclick="addCustomManualFocGiftWithMedia()" style="width:100%; padding:6px; background:#38bdf8; color:#000; font-weight:bold; border-radius:6px; cursor:pointer;">
+          <i class="fas fa-gift"></i> သီးသန့်လက်ဆောင်ပစ္စည်း ထည့်သွင်းမည်
+        </button>
+      </div>
+
+      <label style="font-size:11px; color:var(--gold); font-weight:bold; display:block; margin:6px 0 3px;">လက်ရှိ ရွေးချယ်ထားသော လက်ဆောင်များ စာရင်း:</label>
+      <div id="cfgFocSelectedItemsContainer" style="display:flex; flex-direction:column; gap:6px; min-height:40px; margin-bottom:8px;"></div>
+
+      <button type="button" onclick="saveFocCampaignSettings()" style="width:100%; margin-top:8px; padding:8px; background:var(--gold); color:#000; font-weight:bold; border-radius:6px; cursor:pointer;">
+        <i class="fas fa-save"></i> FOC အချက်အလက်များ သိမ်းဆည်းမည် (Cloud Sync)
+      </button>
+    </div>
+    </div>
+
+      <!-- Tab: News & Image Sliders Manager -->
+      <div class="admin-tab" id="newsTab">
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
+          <label style="color:#38bdf8; font-weight:600; font-size:0.8rem;"><i class="fas fa-newspaper"></i> Customer News & Announcements (သတင်းလွှာ)</label>
+          <div class="form-group" style="margin-top:4px;">
+            <label>ခေါင်းစဉ်</label>
+            <input type="text" id="cfgNewsTitle" placeholder="ဥပမာ - အထူးသတိပေးချက်">
+          </div>
+          <div class="form-group">
+            <label>အသိပေးစာ အပြည့်အစုံ</label>
+            <textarea id="cfgNewsBody" rows="2" placeholder="သတင်းနှင့် အသိပေးချက်များ ရိုက်ထည့်ပါ"></textarea>
+          </div>
+          <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">
+            <input type="checkbox" id="cfgNewsEnable"> ဝက်ဘ်ဆိုက်တွင် ပြသမည်
+          </label>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
+          <label style="color:#f43f5e; font-weight:600; font-size:0.8rem;"><i class="fas fa-bullhorn"></i> Customer Promotion Banner</label>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <input type="text" id="cfgPromoText" placeholder="ပရိုမိုးရှင်းစာတန်း">
+            <label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; white-space:nowrap;">
+              <input type="checkbox" id="cfgPromoEnable"> ဖွင့်မည်
+            </label>
+          </div>
+        </div>
+        <h4 style="color:#fff; font-size:0.9rem; margin-bottom:8px;"><i class="fas fa-newspaper" style="color:#38bdf8;"></i> သတင်းလွှာနှင့် Announcement ပုံများ စီမံခန့်ခွဲခြင်း</h4>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:12px;">
+          <div class="form-group">
+            <label>သတင်းခေါင်းစဉ် *</label>
+            <input type="text" id="adminNewsTitleInput" placeholder="ဥပမာ- ရန်ကုန်/မန္တလေး အိမ်အရောက် အထူးပို့ဆောင်ခ လျှော့စျေး">
+          </div>
+          <div class="form-group">
+            <label>ဓာတ်ပုံ Link (ImgBB သို့မဟုတ် Upload)</label>
+            <input type="text" id="adminNewsImgUrlInput" placeholder="https://i.ibb.co/...">
+            <input type="file" id="adminNewsImgFileInput" accept="image/*" style="margin-top:3px; font-size:11px;">
+          </div>
+          <div class="form-group">
+            <label>အသေးစိတ် အသိပေးစာသား</label>
+            <textarea id="adminNewsDescInput" rows="2" placeholder="သတင်းအပြည့်အစုံ ရေးသားပါ..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>နှိပ်လျှင်သွားမည့် Link (Optional)</label>
+            <input type="text" id="adminNewsLinkInput" placeholder="https://...">
+          </div>
+          <button type="button" class="btn-gold" onclick="addAdminNewsArticle()">
+            <i class="fas fa-plus"></i> သတင်းအသစ် ထည့်သွင်းမည်
+          </button>
+        </div>
+        <div id="adminNewsArticlesList"></div>
+      </div>
+
+      <!-- Tab: Live Chat Admin Inbox (ဝယ်သူများနှင့် စာ/ပုံ/ဗီဒီယို တိုက်ရိုက်ပြောဆိုခန်း) -->
+      <div class="admin-tab" id="liveChatAdminTab">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="color:#00ff88; font-size:0.92rem; margin:0;"><i class="fas fa-comments"></i> Live Chat Customer Inbox</h4>
+          <button type="button" class="btn-secondary" onclick="renderAdminChatSessionsList()" style="font-size:11px; padding:4px 8px;">
+            <i class="fas fa-sync-alt"></i> စာရင်းပြန်ဆွဲမည်
+          </button>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px; height:62vh;">
+         <!-- Left: Customer Chat Sessions List -->
+        <div id="adminChatSessionsListContainer" style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:6px; overflow-y:auto;">
+          <p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">စောင့်ဆိုင်းပေးပါ...</p>
+        </div>
+
+        <!-- Right: Active Chat Conversation Box -->
+        <div id="adminChatConversationPane" style="background:#0b1329; border:1px solid #334155; border-radius:8px; display:flex; flex-direction:column; padding:8px; min-height:380px;">
+          <div id="adminActiveChatHeader" style="padding-bottom:6px; border-bottom:1px solid #334155; font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ
+          </div>
+            <div id="adminActiveChatMessages" style="flex:1; overflow-y:auto; padding:8px 4px; display:flex; flex-direction:column; gap:6px;">
+              <p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:30px;">Chat ရွေးချယ်ထားခြင်း မရှိသေးပါ</p>
+            </div>
+            <!-- Admin Reply Bar with Photo/Video -->
+            <div id="adminChatReplyBar" style="display:none; flex-direction:column; gap:4px; border-top:1px solid #334155; padding-top:6px;">
+              <div id="adminChatMediaPreviewBar" style="display:none; font-size:0.68rem; color:#38bdf8; justify-content:space-between;">
+                <span id="adminChatMediaFileName"></span>
+                <button type="button" onclick="clearAdminChatMedia()" style="background:none; border:none; color:#ef4444; cursor:pointer;">ဖျက်မည်</button>
+              </div>
+              <div style="display:flex; align-items:flex-end; gap:5px; width:100%;">
+            <label title="ပုံ/ဗီဒီယို ပို့မည်" style="cursor:pointer; width:32px; height:34px; flex-shrink:0; border-radius:8px; background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; color:#38bdf8;">
+              <i class="fas fa-paperclip"></i>
+              <input type="file" id="adminChatMediaFileInput" accept="image/*,video/*" onchange="handleAdminChatMediaChosen(this)" style="display:none;">
+            </label>
+            <textarea id="adminChatReplyInput" rows="1" placeholder="ဝယ်သူထံသို့ အဖြေစာသား ရေးပါ..." oninput="this.style.height='auto'; this.style.height=Math.min(this.scrollHeight, 90)+'px';" onkeydown="if(event.key==='Enter' && !event.shiftKey && window.innerWidth>768){ event.preventDefault(); sendAdminLiveChatReply(); }" style="flex:1; min-width:0; min-height:34px; max-height:90px; resize:none; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:8px; padding:7px 10px; font-size:0.82rem; line-height:1.35; font-family:inherit;"></textarea>
+            <button type="button" class="btn-gold" id="btnAdminSendChat" onclick="sendAdminLiveChatReply(); const inp=document.getElementById('adminChatReplyInput'); if(inp) inp.style.height='34px';" style="width:auto !important; height:34px; padding:0 10px; flex-shrink:0; border-radius:8px; font-size:0.78rem; font-weight:700; display:inline-flex; align-items:center; gap:4px; white-space:nowrap;">
+              <i class="fas fa-paper-plane"></i> ပို့မည်
+            </button>
+          </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab: Database-Driven Auto Reply Bot Manager (Admin စိတ်ကြိုက် Bot စီမံခန့်ခွဲမှု) -->
+      <div class="admin-tab" id="autoReplyTab">
+        <h4 style="color:#38bdf8; font-size:0.92rem; margin-bottom:8px;"><i class="fas fa-robot"></i> Database-Driven Auto Reply Bot စီမံခန့်ခွဲခြင်း</h4>
+        
+        <!-- 1. Add / Edit FAQ Quick Chip -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:10px;">
+          <h5 style="color:var(--gold); font-size:0.8rem; margin:0 0 6px 0;">🔘 FAQ Quick Chips စီမံခြင်း (ဝယ်သူ နှိပ်မေးမည့် ခလုတ်နှင့် အဖြေ)</h5>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px; margin-bottom:6px;">
+            <input type="text" id="newFaqBtnTitle" placeholder="ခလုတ်အမည် (ဥပမာ- 📦 ထုပ်ပိုးမှု လျှို့ဝှက်သလား?)..." style="padding:6px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:5px; font-size:11px;">
+            <input type="text" id="newFaqAnswer" placeholder="Bot ပြန်ဖြေမည့် အဖြေစာသား အပြည့်အစုံ..." style="padding:6px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:5px; font-size:11px;">
+          </div>
+          <button type="button" class="btn-gold" onclick="addNewFaqChipConfig()" style="width:auto; padding:5px 12px; font-size:11px;">
+            <i class="fas fa-plus"></i> FAQ Chip အသစ် ထည့်မည်
+          </button>
+        </div>
+        <div id="adminFaqChipsListContainer" style="margin-bottom:12px;"></div>
+
+        <!-- 2. Keyword Auto Replies -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:10px;">
+          <h5 style="color:#00ff88; font-size:0.8rem; margin:0 0 6px 0;">🔍 သော့ချက်စကားလုံးအလိုက် Auto Reply ပေးခြင်း (Keyword Rules)</h5>
+          <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px; margin-bottom:6px;">
+            <input type="text" id="newKeywordRuleKey" placeholder="သော့ချက်စကားလုံး (ဥပမာ- ဈေး, price, kpay)..." style="padding:6px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:5px; font-size:11px;">
+            <input type="text" id="newKeywordRuleAns" placeholder="Bot မှ တိုက်ရိုက်ပြန်မည့် အဖြေ..." style="padding:6px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:5px; font-size:11px;">
+          </div>
+          <button type="button" class="btn-secondary" onclick="addNewKeywordReplyRule()" style="background:#0284c7; color:#fff; font-size:11px; padding:5px 12px;">
+            <i class="fas fa-plus"></i> Keyword အဖြေ အသစ် ထည့်မည်
+          </button>
+        </div>
+        <div id="adminKeywordRulesListContainer"></div>
+        <!-- 3. Admin Saved Quick Replies Manager -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-top:10px; margin-bottom:10px;">
+      <h5 style="color:#fde047; font-size:0.8rem; margin:0 0 6px 0;">⚡ Admin Saved Quick Replies (Inbox နှင့် Telegram /r1, /r2 မှ တန်းပို့ရန်)</h5>
+      <div style="display:grid; grid-template-columns:1fr 2fr; gap:6px; margin-bottom:6px;">
+        <input type="text" id="newAdminQuickTitle" placeholder="ခေါင်းစဉ်တို (ဥပမာ- ပို့ခနှုန်း)..." style="padding:6px; background:#0f172a; border:1px solid #475569; color:#fff; border-radius:6px; font-size:0.75rem;">
+        <input type="text" id="newAdminQuickText" placeholder="ဝယ်သူထံ ပို့မည့် စာသားအပြည့်အစုံ..." style="padding:6px; background:#0f172a; border:1px solid #475569; color:#fff; border-radius:6px; font-size:0.75rem;">
+      </div>
+      <button type="button" class="btn-gold" onclick="saveAdminQuickReplyFromTab()" style="padding:6px 12px; font-size:0.74rem;">
+        <i class="fas fa-plus"></i> Saved Reply အသစ်ထည့်မည်
+      </button>
+      <div id="adminSavedQuickRepliesList" style="margin-top:8px; display:flex; flex-direction:column; gap:5px;"></div>
+    </div>
+
+    <!-- 4. Payment QR Accounts Manager -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:8px; padding:10px; margin-bottom:10px;">
+      <h5 style="color:#38bdf8; font-size:0.8rem; margin:0 0 6px 0;">💳 ငွေလွှဲ QR အကောင့်များ ပြင်ဆင်ရန် (Copy ခလုတ်ပါဝင်မည်)</h5>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <div style="background:#0f172a; padding:8px; border-radius:6px; border:1px solid #334155;">
+          <div style="font-size:0.72rem; color:#fde047; font-weight:bold; margin-bottom:4px;">KBZPay အကောင့်</div>
+          <input type="text" id="cfgChatKpayName" placeholder="အကောင့်အမည်" value="Ma Win Win Myint" style="width:100%; padding:5px; margin-bottom:4px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+          <input type="text" id="cfgChatKpayPhone" placeholder="ဖုန်းနံပါတ်" value="09768124433" style="width:100%; padding:5px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+        </div>
+        <div style="background:#0f172a; padding:8px; border-radius:6px; border:1px solid #334155;">
+          <div style="font-size:0.72rem; color:#fde047; font-weight:bold; margin-bottom:4px;">WavePay အကောင့်</div>
+          <input type="text" id="cfgChatWaveName" placeholder="အကောင့်အမည်" value="Nu Nu Htwe" style="width:100%; padding:5px; margin-bottom:4px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+          <input type="text" id="cfgChatWavePhone" placeholder="ဖုန်းနံပါတ်" value="09768124433" style="width:100%; padding:5px; background:#1e293b; border:1px solid #475569; color:#fff; border-radius:4px; font-size:0.73rem;">
+        </div>
+      </div>
+      <button type="button" class="btn-secondary" onclick="saveChatQrAccountsConfig()" style="background:#16a34a; color:#fff; border:none; padding:6px 12px; border-radius:6px; font-size:0.74rem; cursor:pointer;">
+        <i class="fas fa-save"></i> ငွေလွှဲအကောင့်များ သိမ်းဆည်းမည်
+      </button>
+    </div>
+      </div>
+
+      <!-- Tab: Community Moderation & Replies -->
+      <div class="admin-tab" id="communityTab">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h4 style="color:#8b5cf6; font-size:0.92rem; margin:0;"><i class="fas fa-comments"></i> Community Forum Moderation & Admin Answers</h4>
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.74rem; color:var(--gold); cursor:pointer;">
+            <input type="checkbox" id="cfgAutoApproveCommunity" onchange="toggleAutoApproveCommunity(this.checked)"> Auto-Approve (စစ်စရာမလိုဘဲ တန်းပြမည်)
+          </label>
+        </div>
+        <div id="adminCommunityPostsList"></div>
+      </div>
+
+      <!-- Tab: Logistics & Delivery Management -->
+      <div class="admin-tab" id="logisticsTab">
+        <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">စနစ်ဆိုင်ရာ ပြင်ဆင်ချက်များ & Delivery Settings</h4>
+        <!-- LOGISTICS & DELIVERY FEATURE TOGGLE SYSTEM -->
+  <div style="background: rgba(255, 255, 255, 0.03); border: 1.5px solid var(--gold, #d4af37); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 14px;">
+      <span style="color: var(--gold, #d4af37); font-weight: bold; font-size: 0.95rem;">
+        <i class="fas fa-truck-moving" style="margin-right: 6px;"></i>ပို့ဆောင်ရေး စနစ်များ စီမံခန့်ခွဲမှု (Logistics Controls)
+      </span>
+      <span style="font-size: 0.72rem; color: #888;">Multi-City Feature Rules</span>
+    </div>
+
+    <!-- Toggle 1: Multi-City Delivery Rules -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၁။ Multi-City Delivery စနစ် (မြို့အလိုက် ပို့ခ)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">ရန်ကုန်/မန္တလေး COD နှင့် နယ်မြို့များအတွက် ကားဂိတ်ချခ သီးခြားခွဲထုတ်ခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleMultiCity" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">ရန်ကုန် COD ပို့ခ (ကျပ်)</label>
+          <input type="number" id="cfgFeeYangonCOD" placeholder="3000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">မန္တလေး COD ပို့ခ (ကျပ်)</label>
+          <input type="number" id="cfgFeeMandalayCOD" placeholder="3500" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="font-size: 0.7rem; color: #ccc;">နယ်မြို့များအတွက် ကားဂိတ်ချခ (ပုံသေကျပ်)</label>
+          <input type="number" id="cfgFeeGateBase" placeholder="2000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle 2: Free Delivery Threshold -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၂။ အခမဲ့ ပို့ဆောင်ခ စနစ် (Free Delivery)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">သတ်မှတ်ငွေပမာဏပြည့်ပါက ပို့ခ အခမဲ့ပေးခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleFreeDelivery" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px;">
+        <label style="font-size: 0.7rem; color: #ccc;">အနည်းဆုံး ဝယ်ယူရမည့် ငွေပမာဏ (ကျပ်)</label>
+        <input type="number" id="cfgFreeDeliveryMinAmount" placeholder="50000" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+      </div>
+    </div>
+
+    <!-- Toggle 3: Smart Bus Gate Selector -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၃။ Smart Bus Gate Selector (ကားဂိတ် အကြံပြုချက်)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">နယ်မြို့အလိုက် အောင်မင်္ဂလာ/ဒဂုံဧရာ ဂိတ်နှင့် ကားလိုင်းများ ရွေးချယ်စေခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleSmartGate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px;">
+        <label style="font-size: 0.7rem; color: #ccc;">အကြံပြုလိုသော ပင်မကားဂိတ်များ (ကော်မာခံ၍ ရိုက်ပါ)</label>
+        <input type="text" id="cfgSmartGateNames" placeholder="အောင်မင်္ဂလာအဝေးပြေးဂိတ်၊ ဒဂုံဧရာအဝေးပြေးဂိတ်" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+      </div>
+    </div>
+
+    <!-- Toggle 4: Estimated Delivery Date -->
+    <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 10px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <b style="font-size: 0.85rem; color: #fff; display: block;">၄။ ရောက်ရှိမည့်ရက် ခန့်မှန်းချက် (Estimated Delivery Date)</b>
+          <span style="font-size: 0.72rem; color: #aaa;">မြို့အလိုက် ပစ္စည်းရောက်မည့် ကြာချိန်ကို စိတ်ကြိုက်သတ်မှတ်ခြင်း</span>
+        </div>
+        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+          <input type="checkbox" id="cfgToggleEstimatedDate" style="width: 18px; height: 18px; accent-color: var(--gold, #d4af37);">
+        </label>
+      </div>
+      <div style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">ရန်ကုန်/မန္တလေး ခန့်မှန်းကြာချိန်</label>
+          <input type="text" id="cfgEtaCity" placeholder="၁ ရက် မှ ၂ ရက်အတွင်း" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+        <div>
+          <label style="font-size: 0.7rem; color: #ccc;">နယ်မြို့များ ခန့်မှန်းကြာချိန်</label>
+          <input type="text" id="cfgEtaGate" placeholder="၂ ရက် မှ ၃ ရက်အတွင်း" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid #444; background: #1a1a1a; color: #fff; font-size: 0.8rem;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Save Button for Logistics Settings -->
+    <button type="button" onclick="saveLogisticsSettingsToCloud()" class="btn-gold" style="width: 100%; padding: 9px; font-weight: bold; font-size: 0.9rem; border-radius: 6px; cursor: pointer;">
+      <i class="fas fa-save" style="margin-right: 6px;"></i>ပို့ဆောင်ရေး သတ်မှတ်ချက်များ သိမ်းဆည်းမည်
+    </button>
+  </div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--gold); padding:12px; border-radius:8px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <h5 style="color:var(--gold); font-size:0.88rem; margin:0;"><i class="fas fa-truck-moving"></i> ပို့ဆောင်ခနှင့် Deli ကုမ္ပဏီများ စီမံခန့်ခွဲမှု</h5>
+            <button type="button" class="btn-secondary" onclick="addDeliveryCompany()" style="background:#10b981; color:#fff; font-weight:600; padding:5px 10px; font-size:0.75rem; border:none; border-radius:6px; cursor:pointer;">
+              <i class="fas fa-plus"></i> Deli ကုမ္ပဏီအသစ် ထည့်မည်
+            </button>
+          </div>
+          <div id="adminDeliveryCompaniesContainer"></div>
+        </div>
+
+        <!-- MASTER DELIVERY STATIONS & GATES DIRECTORY (ကားဂိတ်နှင့် ROYAL EXPRESS ရုံးခွဲများ စီမံခန့်ခွဲမှု) -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #0284c7; padding:12px; border-radius:8px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div>
+              <h5 style="color:#38bdf8; font-size:0.88rem; margin:0;"><i class="fas fa-warehouse"></i> ကားဂိတ်၊ Royal Express နှင့် အခြား Deli ကုမ္ပဏီရုံးခွဲများ စာရင်း (Stations Directory)</h5>
+              <small style="color:var(--text-muted); font-size:10px;">ဤနေရာတွင် ကြိုတင်မှတ်ထားပါက အော်ဒါဘောင်ချာတင်ချိန်တွင် 1-Click Auto-Fill ဖြင့် လွယ်ကူစွာ သုံးနိုင်ပါသည်</small>
+            </div>
+          </div>
+
+          <!-- DYNAMIC DELIVERY TYPES MANAGER (အမျိုးအစားများကို ADMIN စိတ်ကြိုက် အတိုး/အလျော့ လုပ်သည့်အပိုင်း) -->
+          <div style="background:rgba(2, 132, 199, 0.08); border:1px dashed #0284c7; border-radius:10px; padding:10px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:11.5px; font-weight:700; color:var(--gold);"><i class="fas fa-tags"></i> ပို့ဆောင်ရေး အမျိုးအစားများ (စိတ်ကြိုက် အတိုး/အလျော့)</span>
+              <span style="font-size:10px; color:#38bdf8;">အောက်ပါ Dropdown တွင် တန်းပေါ်မည်</span>
+            </div>
+            
+            <!-- Current Types Chips (Wrap neatly) -->
+            <div id="adminStationTypesChipsContainer" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"></div>
+            
+            <!-- Add New Type Inputs (Stacked neatly for Mobile) -->
+            <div style="background:#0b1329; border:1px solid #1e293b; border-radius:8px; padding:8px; display:flex; flex-direction:column; gap:6px;">
+              <div style="font-size:10.5px; color:#cbd5e1; font-weight:600;"><i class="fas fa-plus-circle"></i> အမျိုးအစားအသစ် ထည့်သွင်းရန်:</div>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                <input type="text" id="newCustomTypeTitle" placeholder="အမျိုးအစားအမည် (ဥပမာ- 🚚 MGL Express, ✈️ လေကြောင်းလိုင်း)..." style="width:100%; padding:7px 10px; font-size:11.5px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; outline:none;">
+                <div style="display:flex; gap:6px;">
+                  <input type="text" id="newCustomTypePrefix" placeholder="ဘောက်ချာ Tag (ဥပမာ- MGL, Air)..." style="flex:1; padding:7px 10px; font-size:11.5px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; outline:none;">
+                  <button type="button" class="btn-secondary" onclick="addNewStationTypeConfig()" style="background:#059669; color:#fff; border:none; padding:7px 14px; font-size:11.5px; font-weight:bold; white-space:nowrap; border-radius:6px; cursor:pointer;">
+                    <i class="fas fa-plus"></i> ထည့်မည်
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Add / Edit Station Inline Form (Mobile-Friendly Stacked Clean Layout) -->
+          <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:10px; margin-bottom:10px; display:flex; flex-direction:column; gap:6px;">
+            <div style="font-size:11.5px; font-weight:bold; color:#38bdf8; margin-bottom:2px;">
+              <i class="fas fa-edit"></i> ဂိတ် / ရုံးခွဲ အချက်အလက် အသစ်ထည့်ရန်:
+            </div>
+            
+            <div>
+              <label style="font-size:10.5px; color:#fde047; display:block; margin-bottom:2px; font-weight:600;">၁။ ပို့ဆောင်ရေး အမျိုးအစား ရွေးချယ်ပါ *</label>
+              <select id="newStationTypeSelect" style="width:100%; padding:8px 10px; background:#1e293b; border:1.5px solid #0284c7; color:#fde047; border-radius:6px; font-size:12px; font-weight:bold; cursor:pointer; outline:none;">
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size:10.5px; color:#cbd5e1; display:block; margin-bottom:2px;">၂။ ဂိတ် / ရုံးခွဲ အမည် *</label>
+              <input type="text" id="newStationNameInput" placeholder="ဥပမာ- ရွှေမန္တလာ (နေပြည်တော်ဂိတ်) သို့မဟုတ် MGL ရုံးခွဲ..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none;">
+            </div>
+
+            <!-- ရောက်ရှိမည့် မြို့နယ် နှင့် ခရီးကြာချိန် အသစ်ဖြည့်စွက်ချက် -->
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+  <div>
+   <label style="color:#38bdf8; font-size:10.5px; display:block; margin-bottom:2px; font-weight:600;">ရောက်ရှိနိုင်သော မြို့များ (ကော်မာခြား၍ ရိုက်ထည့်ပါ - ဥပမာ: ပဲခူး, စစ်ကိုင်း, မန္တလေး) *</label>
+<input type="text" id="newStationTownship" placeholder="ဥပမာ - ပဲခူး, စစ်ကိုင်း, မန္တလေး" style="width:100%; padding:8px; background:rgba(255,255,255,0.06); border:1px solid #334155; border-radius:6px; color:#fff; font-size:11px;" />
+  </div>
+  <div>
+    <label style="color:#cbd5e1; font-size:10.5px; display:block; margin-bottom:2px;">ခရီးကြာချိန် (Est. Delivery Days)</label>
+    <input type="text" id="newStationDuration" placeholder="ဥပမာ - ၁ မှ ၂ ရက်အတွင်း" style="width:100%; padding:8px; background:#1e293b; border:1.5px solid #334155; border-radius:6px; color:#fff; font-size:11px;">
+  </div>
+</div>
+            <!-- DYNAMIC PHONE NUMBERS SECTION -->
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px dashed #10b981; border-radius: 8px; padding: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 10.5px; color: #10b981; margin: 0; font-weight: 700;">
+                  <i class="fas fa-phone-alt"></i> ၃။ ဆက်သွယ်ရန် ဖုန်းနံပါတ်များ *
+                </label>
+                <button type="button" onclick="addStationPhoneField()" style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #a7f3d0; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 5px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="fas fa-plus"></i> ဖုန်းနံပါတ် တိုးမည်
+                </button>
+              </div>
+              
+              <div id="stationPhoneInputsContainer" style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <input type="text" class="station-phone-input" placeholder="09xxxxxxxxx" style="flex: 1; padding: 7px 10px; background: #1e293b; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 11.5px; outline: none;">
+                </div>
+              </div>
+              </div>
+
+            <div>
+              <label style="font-size:10.5px; color:#38bdf8; display:block; margin-bottom:2px; font-weight:600;">၄။ 📍 ထုတ်ယူရမည့် လိပ်စာ / နေရာ *</label>
+              <textarea id="newStationAddressInput" rows="2" placeholder="ဥပမာ- တောင်ကြီး မြို့မကားကြီးဝင်း၊ အမှတ် ၂၀ ဂိတ်..." style="width:100%; padding:7px 10px; background:#1e293b; border:1px solid #334155; color:#fff; border-radius:6px; font-size:11.5px; outline:none; line-height:1.4;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 2px;">
+              <button type="button" id="btnSaveStationSubmit" class="btn-gold" onclick="saveNewDeliveryStationFromAdmin()" style="flex: 2; padding: 9px; font-size: 12px;">
+                <i class="fas fa-save"></i> ဂိတ် / ရုံးခွဲ စာရင်း သိမ်းဆည်းမည်
+              </button>
+              <button type="button" id="btnCancelStationEdit" class="btn-secondary" onclick="cancelStationEdit()" style="flex: 1; display: none; background: #64748b; color: #fff; font-size: 11px;">
+                မပြင်တော့ပါ
+              </button>
+            </div>
+          </div>
+
+          <!-- ကားဂိတ်နှင့် ရုံးခွဲများ ရှာဖွေရေးဘား -->
+          <div style="margin: 8px 0 4px 0;">
+            <input 
+              type="text" 
+              id="adminStationSearchInput" 
+              placeholder="🔍 ရုံးခွဲ / ဂိတ်အမည် / မြို့နယ် / ဖုန်းနံပါတ် ဖြင့် ရှာပါ..." 
+              oninput="renderAdminStationsDirectory()" 
+              style="width: 100%; padding: 7px 10px; background: #0f172a; border: 1px solid #0284c7; color: #fff; border-radius: 6px; font-size: 11px; outline: none;"
+            >
+          </div>
+
+          <!-- Existing Stations Directory List -->
+          <div id="adminStationsDirectoryListContainer" style="display: block !important; width: 100% !important; max-height: 280px !important; height: 280px !important; overflow-y: scroll !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; padding-right: 4px; box-sizing: border-box !important;"></div>
+        </div>
+          <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
+          <label style="color:var(--gold); font-weight:600; font-size:0.82rem;"><i class="fas fa-wallet"></i> Kpay & WavePay အကောင့်များ</label>
+          <div class="form-group" style="margin-top:6px;">
+            <label>KBZPay ဖုန်းနံပါတ်</label><input type="text" id="cfgKpayPhone" value="09768124433">
+          </div>
+          <div class="form-group">
+            <label>KBZPay အကောင့်အမည်</label><input type="text" id="cfgKpayName" value="Ma Win Win Myint">
+          </div>
+          <div class="form-group" style="margin-top:6px;">
+            <label>WavePay ဖုန်းနံပါတ်</label><input type="text" id="cfgWavePhone" value="09768124433">
+          </div>
+          <div class="form-group">
+            <label>WavePay အကောင့်အမည်</label><input type="text" id="cfgWaveName" value="Nu Nu Htwe">
+          </div>
+        </div>
+
+        <div class="form-group"><label>Telegram Bot Token</label><input type="text" id="cfgTgBotToken"></div>
+        <div class="form-group"><label>Telegram Chat ID</label><input type="text" id="cfgTgChatId"></div>
+        <div class="form-group"><label>ImgBB API Key</label><input type="text" id="cfgImgbbApiKey"></div>
+        <div class="form-group"><label>ဆိုင်ရှင် လက်ခံမည့် ဖုန်းနံပါတ် (SMS/Call)</label><input type="text" id="cfgOwnerPhone"></div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--card-border); padding:10px; border-radius:8px; margin-bottom:10px;">
+          <label style="color:var(--gold); font-size:0.8rem; font-weight:bold;">Admin PIN ပြောင်းလဲခြင်း (ဖုန်းအားလုံး Sync ဖြစ်မည်)</label>
+          <div class="form-group" style="margin-top:6px;">
+            <label>လက်ရှိ PIN</label><input type="password" id="cfgOldPin" placeholder="လက်ရှိ PIN">
+          </div>
+          <div class="form-group">
+            <label>PIN အသစ်</label><input type="password" id="cfgNewPin" placeholder="PIN အသစ်">
+          </div>
+          <button type="button" class="btn-secondary" onclick="changeAdminPinWithVerification()" style="width:100%; padding:8px;">PIN အတည်ပြုပြောင်းမည်</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03); border:1px solid #334155; padding:10px; border-radius:8px; margin-bottom:10px;">
+          <label style="color:#00ff88; font-weight:600; font-size:0.82rem;"><i class="fas fa-database"></i> Database One-Click Full Backup (ဒေတာအားလုံး သိမ်းဆည်းရန်)</label>
+          <p style="font-size:0.7rem; color:var(--text-muted); margin:4px 0 6px;">ပစ္စည်းများ၊ အော်ဒါများနှင့် Settings အားလုံးကို JSON ဖိုင်ဖြင့် ဒေါင်းလုဒ်သိမ်းဆည်းပါမည်။</p>
+          <button type="button" class="btn-secondary" style="background:#059669; color:#fff; width:100%; padding:8px; font-weight:600;" onclick="downloadFullDatabaseBackup()">
+            <i class="fas fa-download"></i> ဒေတာအားလုံး ကွန်ပျူတာထဲ Backup သိမ်းမည်
+          </button>
+        </div>
+
+        <button class="btn-gold" onclick="saveCentralSettings()"><i class="fas fa-save"></i> Settings အားလုံး သိမ်းဆည်းမည်</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- 9. CUSTOM LUXURY ADMIN PIN PAD MODAL -->
+  <div class="modal-overlay" id="customAdminPinModal" style="z-index: 10009;">
+    <div class="modal-content" style="max-width:320px; text-align:center; padding:20px 16px;">
+      <button class="modal-close" onclick="closeModal('customAdminPinModal')"><i class="fas fa-times"></i></button>
+      <div style="font-size:1.8rem; color:var(--gold); margin-bottom:4px;">👑</div>
+      <h3 style="color:var(--gold); font-size:1.05rem; margin-bottom:2px;">Admin Management</h3>
+      <p style="font-size:0.72rem; color:var(--text-muted); margin-bottom:6px;">လုံခြုံရေး PIN နံပါတ် ၄ လုံး ရိုက်ထည့်ပါ</p>
+      
+      <div class="pin-circle-display">
+        <div class="pin-circle-item" id="pDot_0"></div>
+        <div class="pin-circle-item" id="pDot_1"></div>
+        <div class="pin-circle-item" id="pDot_2"></div>
+        <div class="pin-circle-item" id="pDot_3"></div>
+      </div>
+
+      <div class="pin-pad-grid">
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('1')">1</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('2')">2</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('3')">3</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('4')">4</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('5')">5</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('6')">6</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('7')">7</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('8')">8</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('9')">9</button>
+        <button type="button" class="pin-pad-btn" onclick="clearPinDigits()" style="font-size:0.85rem; color:#f87171;">CLR</button>
+        <button type="button" class="pin-pad-btn" onclick="pressPinDigit('0')">0</button>
+        <button type="button" class="pin-pad-btn" onclick="deleteLastPinDigit()" style="font-size:1rem; color:#38bdf8;"><i class="fas fa-backspace"></i></button>
+      </div>
     </div>
   </div>
 
@@ -3339,7 +5067,26 @@ function updateCheckoutGrandTotal(deliFee) {
     var orders = [];
 try { orders = JSON.parse(localStorage.getItem('tm_orders')) || []; } catch(e) {}
 
-// Storefront does not pull all shop_orders (Admin-only via /admin.html Firebase Auth)
+// Firebase Realtime Cloud Sync ဖြင့် အော်ဒါများနှင့် Customer စာရင်း အမြဲတမ်း ဆွဲတင်ခြင်း (Safe Delayed Sync)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var db = (typeof fbDb !== 'undefined' ? fbDb : (typeof firebase !== 'undefined' && firebase.database ? firebase.database() : null));
+    if (db) {
+      db.ref('shop_orders').on('value', function(snap) {
+        var val = snap.val();
+        if (val) {
+          var fbOrders = Array.isArray(val) ? val : Object.values(val);
+          if (fbOrders.length > 0) {
+            orders = fbOrders;
+            try { localStorage.setItem('tm_orders', JSON.stringify(orders)); } catch(e) {}
+            if (typeof renderOrdersList === 'function') renderOrdersList();
+            if (typeof renderCustomerDirectory === 'function') renderCustomerDirectory();
+          }
+        }
+      });
+    }
+  }, 1000);
+});
 
     var cart = [];
     try { cart = JSON.parse(localStorage.getItem('tm_cart')) || []; } catch(e) {}
@@ -3403,7 +5150,7 @@ try { orders = JSON.parse(localStorage.getItem('tm_orders')) || []; } catch(e) {
     var adminProductImages = [''];
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDu_fj1xYQ2Kg6zh59Ldiaxl0GyMDg-CTA",
+      apiKey: "AIzaSyDu_fj1xyQ2Kg6zh59Ldiaxl0GyMdg-CTA",
       authDomain: "tolimoli-myanmar.firebaseapp.com",
       databaseURL: "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "tolimoli-myanmar",
@@ -3520,8 +5267,8 @@ fetchArticles();
       localStorage.setItem('tm_orders', JSON.stringify(latestOnly));
     } catch (_) {}
   }
-  if (typeof fbDb !== 'undefined' && Array.isArray(orders) && orders.length > 0 && orders[0] && orders[0].id) {
-    fbDb.ref('shop_orders/' + orders[0].id).set(orders[0]).catch(() => {});
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_orders').set(orders);
   }
 }
     function saveCart() {
@@ -6509,7 +8256,7 @@ window.addEventListener('DOMContentLoaded', () => {
 function checkAndTriggerLowStockAlert(purchasedItems) {
   if (!Array.isArray(purchasedItems) || typeof products === 'undefined') return;
 
-  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId && botConfig.tgChatId.trim()) ? botConfig.tgChatId.trim() : null;
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
   const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
 
   purchasedItems.forEach(item => {
@@ -6525,7 +8272,7 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         `──────────────────\n` +
         `📦 <b>ပစ္စည်းအမည်:</b> ${prod.name}\n` +
         `🏷️ <b>SKU:</b> <code>${prod.sku || item.sku || '-'}</code>\n` +
-        `🚨 <b>လက်ကျန်အရေအတွက်:</b> <b>${remainingStock} ခုသာ ကျန်ပါတော့သည်</b>\n` +
+        `🚨 <b>လက်ကျန်အရေအတွက်:</b> <b style="color:red;">${remainingStock} ခုသာ ကျန်ပါတော့သည်</b>\n` +
         `──────────────────\n` +
         `💡 <i>ပစ္စည်းပြတ်လပ်မှု မဖြစ်စေရန် ကျေးဇူးပြု၍ Stock ပြန်လည်ဖြည့်တင်းပေးပါခင်ဗျာ။</i>`;
 
@@ -6544,43 +8291,46 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
   });
 }
     function sendTelegramNotificationWithExactTime(o) {
-  if (!o) return;
-  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId && botConfig.tgChatId.trim()) ? botConfig.tgChatId.trim() : null;
+  const targetChatId = (typeof botConfig !== 'undefined' && botConfig.tgChatId) ? botConfig.tgChatId.trim() : '-1002446700080';
   const targetTopicId = (typeof botConfig !== 'undefined' && botConfig.tgTopicId) ? botConfig.tgTopicId : null;
 
-  // Backend Webhook API (/api/telegram-webhook) မှ Vercel ORDER_CHAT_ID နှင့် escapeTgHtml ဖြင့် လုံခြုံစွာ ပေးပို့ခြင်း
-  const payload = {
-    action: 'sendOrderNotification',
-    orderData: {
-      id: o.id || '',
-      customer: o.customer || '',
-      phone: o.phone || '',
-      address: o.address || '',
-      township: o.township || '',
-      deliveryService: o.deliveryService || o.deliveryType || 'ရန်ကုန်မြို့တွင်း Deli',
-      deliveryType: o.deliveryType || o.deliveryService || 'ရန်ကုန်မြို့တွင်း Deli',
-      busGate: o.busGate || o.busGateDetails || '',
-      busGateDetails: o.busGateDetails || o.busGate || '',
-      subTotal: Number(o.subTotal || o.subtotal || 0),
-      discount: Number(o.discount || o.discountAmount || 0),
-      discountAmount: Number(o.discountAmount || o.discount || 0),
-      deliveryFee: Number(o.deliveryFee || o.deliFee || 0),
-      deliFee: Number(o.deliFee || o.deliveryFee || 0),
-      total: Number(o.total || 0),
-      payment: o.payment || 'COD',
-      specialNote: o.specialNote || '',
-      slipUrl: o.slipUrl || '',
-      items: o.items || []
-    },
-    slipUrl: o.slipUrl || null
-  };
-  if (targetChatId) payload.chatId = targetChatId;
-  if (targetTopicId) payload.topicId = targetTopicId;
+  let itemsTxt = (o.items || []).map(i => `  • <b>${i.name}</b> ${i.color ? `[🎨 ${i.color}]` : ''} (SKU: ${i.sku || '-'}) x${i.qty} = ${Number(i.price * i.qty).toLocaleString()} Ks`).join('\n');
 
+  const msg = `⚡ <b>အော်ဒါသစ် ရောက်ရှိပါပြီ!</b> ⚡\n` +
+    `🆔 <b>Order ID:</b> <code>${o.id}</code>\n` +
+    `📅 <b>ရက်စွဲနှင့် အချိန်:</b> ${o.createdAtFormatted || formatExactDateTime(o.date)}\n` +
+    `──────────────────\n` +
+    `👤 <b>ဝယ်သူ:</b> ${o.customer}\n` +
+    `📞 <b>ဖုန်း:</b> ${o.phone}\n` +
+    `📍 <b>လိပ်စာ:</b> ${o.address} (${o.township})\n` +
+    (o.busGate || o.busGateDetails ? `🚍 <b>ကားဂိတ်:</b> ${o.busGate || o.busGateDetails}\n` : '') +
+    (o.specialNote ? `📝 <b>အထူးမှာကြားချက်:</b> <mark>${o.specialNote}</mark>\n` : '') +
+    `🚚 <b>ပို့ဆောင်ရေး:</b> ${o.deliveryService}\n` +
+    `💳 <b>ငွေပေးချေမှု:</b> ${o.payment}\n` +
+    `──────────────────\n` +
+    `📦 <b>မှာယူထားသော ပစ္စည်းများ:</b>\n${itemsTxt}\n` +
+    `──────────────────\n` +
+    `💰 <b>ပစ္စည်းကျသင့်ငွေ:</b> ${(o.subTotal || o.total).toLocaleString()} Ks\n` +
+    (o.discountAmount ? `🏷️ <b>လျှော့ဈေး:</b> -${Number(o.discountAmount).toLocaleString()} Ks\n` : '') +
+    `🛵 <b>ပို့ဆောင်ခ:</b> ${(o.deliveryFee || 0).toLocaleString()} Ks\n` +
+    `💵 <b>စုစုပေါင်းကျသင့်ငွေ:</b> <b>${Number(o.total).toLocaleString()} MMK</b>\n`  ;
+    const isHttpSlip = o.slipUrl && String(o.slipUrl).startsWith('http');
+  const slipLine = o.slipUrl 
+    ? (isHttpSlip ? `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <a href="${o.slipUrl}">ပြေစာကြည့်ရန် နှိပ်ပါ</a>` : `\n🧾 <b>ငွေလွှဲပြေစာ:</b> <i>(Admin Dashboard နှင့် ပုံတွင် စစ်ဆေးပါ)</i>`)
+    : '';
+  const finalMsg = msg + slipLine;
+
+  // Backend Webhook API သို့ လုံခြုံစွာ လွှဲပြောင်းပေးပို့ခြင်း
   fetch('/api/telegram-webhook', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({
+      action: 'sendOrderNotification',
+      chatId: targetChatId,
+      topicId: targetTopicId,
+      messageText: finalMsg,
+      slipUrl: o.slipUrl || null
+    })
   })
   .then(res => res.json())
   .then(data => {
@@ -13305,7 +15055,7 @@ applyDiscountCoupon = function() {
 
     // ၆။ Account-Free Auto OTP & Tracking
     var currentTrackPhone = '';
-    async function trackOrderAccountFree() {
+    function trackOrderAccountFree() {
   const val = document.getElementById('trackOrderIdInput')?.value.trim();
   const otpBox = document.getElementById('trackOtpVerificationBox');
   if (otpBox) otpBox.style.display = 'none';
@@ -13317,13 +15067,7 @@ applyDiscountCoupon = function() {
     const matched = orders.filter(o => o && o.phone && String(o.phone).replace(/[^0-9]/g, '') === cleanDigits);
     renderTrackedOrdersList(matched);
   } else {
-    let matched = orders.filter(o => o && o.id && String(o.id).toLowerCase().includes(val.toLowerCase()));
-    if (matched.length === 0 && typeof fbDb !== 'undefined' && /^ORD-/i.test(val)) {
-      try {
-        const snap = await fbDb.ref('shop_orders/' + val.toUpperCase()).once('value');
-        if (snap && snap.val()) matched = [snap.val()];
-      } catch (e) {}
-    }
+    const matched = orders.filter(o => o && o.id && String(o.id).toLowerCase().includes(val.toLowerCase()));
     renderTrackedOrdersList(matched);
   }
 }
@@ -15532,21 +17276,168 @@ window.resetDeliverySelection = function() {
 /* ========================================================
    👑 SECURE BACKEND-VERIFIED ADMIN CONTROLLER
    ======================================================== */
+var currentEnteredPin = "";
 var adminLogoClickCount = 0;
 var adminLogoClickTimer = null;
 
 window.openAdminPrompt = function() {
   adminLogoClickCount++;
   clearTimeout(adminLogoClickTimer);
-  adminLogoClickTimer = setTimeout(function() {
-    adminLogoClickCount = 0;
+  adminLogoClickTimer = setTimeout(function() { 
+    adminLogoClickCount = 0; 
   }, 1200);
+
   if (adminLogoClickCount >= 3) {
     adminLogoClickCount = 0;
-    window.location.href = '/admin.html';
+    openAdminPinModalDirect();
   }
 };
 
+function openAdminPinModalDirect() {
+  currentEnteredPin = "";
+  updatePinDotsUI();
+  
+  var pinModal = document.getElementById('customAdminPinModal');
+  if (pinModal) {
+    document.body.appendChild(pinModal);
+    pinModal.classList.add('active');
+    pinModal.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.88) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
+  }
+}
+
+function closeAdminPinModalDirect() {
+  var pinModal = document.getElementById('customAdminPinModal');
+  if (pinModal) {
+    pinModal.classList.remove('active');
+    pinModal.style.setProperty('display', 'none', 'important');
+  }
+}
+
+window.pressPinDigit = function(digit) {
+  if (currentEnteredPin.length < 4) {
+    currentEnteredPin += digit;
+    updatePinDotsUI();
+    if (currentEnteredPin.length === 4) {
+      setTimeout(verifyAdminPinNow, 200);
+    }
+  }
+};
+
+window.deleteLastPinDigit = function() {
+  if (currentEnteredPin.length > 0) {
+    currentEnteredPin = currentEnteredPin.slice(0, -1);
+    updatePinDotsUI();
+  }
+};
+
+window.clearPinDigits = function() {
+  currentEnteredPin = "";
+  updatePinDotsUI();
+};
+
+function updatePinDotsUI() {
+  for (var i = 0; i < 4; i++) {
+    var dot = document.getElementById('pDot_' + i);
+    if (dot) {
+      if (i < currentEnteredPin.length) {
+        dot.style.background = "#d4af37";
+        dot.style.boxShadow = "0 0 10px #d4af37";
+      } else {
+        dot.style.background = "transparent";
+        dot.style.boxShadow = "none";
+      }
+    }
+  }
+}
+// Admin PIN Modal ပွင့်နေစဉ် Keyboard မှ တိုက်ရိုက်ရိုက်ထည့်နိုင်ရန်
+document.addEventListener('keydown', function(e) {
+  const pinModal = document.getElementById('customAdminPinModal');
+  if (!pinModal) return;
+  const isOpen = pinModal.classList.contains('active') || getComputedStyle(pinModal).display !== 'none';
+  if (!isOpen) return;
+
+  if (e.key >= '0' && e.key <= '9') {
+    e.preventDefault();
+    if (typeof pressPinDigit === 'function') pressPinDigit(e.key);
+  } else if (e.key === 'Backspace') {
+    e.preventDefault();
+    if (typeof deleteLastPinDigit === 'function') deleteLastPinDigit();
+  } else if (e.key === 'Delete' || e.key === 'c' || e.key === 'C') {
+    e.preventDefault();
+    if (typeof clearPinDigits === 'function') clearPinDigits();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    if (typeof closeModal === 'function') closeModal('customAdminPinModal');
+  }
+});
+
+// 🛡️ PIN ကို Browser တွင် မစစ်တော့ဘဲ Backend API သို့ ပို့၍ စစ်ဆေးခြင်း
+async function verifyAdminPinNow() {
+  var entered = String(currentEnteredPin).trim();
+  
+  try {
+    const res = await fetch('/api/admin-auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pin: entered })
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      sessionStorage.setItem('admin_auth_token', result.token);
+      localStorage.setItem('tm_admin_pin', entered);
+      closeAdminPinModalDirect();
+      clearPinDigits();
+      forceOpenAdminDashboard();
+    } else {
+      alert("⚠️ PIN နံပါတ် မှားယွင်းနေပါသည်!");
+      clearPinDigits();
+    }
+  } catch (err) {
+    alert("စစ်ဆေးမှု မအောင်မြင်ပါ- " + err.message);
+    clearPinDigits();
+  }
+}
+
+function forceOpenAdminDashboard() {
+  // စကားဝှက် မှန်မှသာ Dashboard ဖွင့်ခွင့်ပြုခြင်း
+  if (!sessionStorage.getItem('admin_auth_token')) {
+    alert("Admin အဖြစ် ဝင်ရောက်ခွင့် မရှိပါ");
+    return;
+  }
+
+  var adminEl = document.getElementById('adminModal');
+  if (adminEl) {
+    document.body.appendChild(adminEl);
+    adminEl.classList.add('active');
+    adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
+    
+    var content = adminEl.querySelector('.modal-content') || adminEl.querySelector('.admin-modal-content');
+    if (content) {
+      content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important; background: #18132d !important;";
+    }
+
+    document.querySelectorAll('.admin-tab').forEach(function(t) {
+      t.classList.remove('active');
+      t.style.setProperty('display', 'none', 'important');
+    });
+    var prodTab = document.getElementById('productsTab');
+    if (prodTab) {
+      prodTab.classList.add('active');
+      prodTab.style.cssText = "display: flex !important; flex-direction: column !important;";
+    }
+    document.querySelectorAll('.admin-nav-btn').forEach(function(b) {
+      b.classList.remove('active');
+    });
+    var firstBtn = document.querySelector('.admin-nav-btn');
+    if (firstBtn) firstBtn.classList.add('active');
+
+    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
+    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
+    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
+    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
+  }
+}
 // ============================================================
 // MASTER CHECKOUT SYNC & AUTO-CLEAR GUARD (100% EXACT TOTAL)
 // ============================================================
