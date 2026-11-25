@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
   let title = "Tolimoli Myanmar Adult Toys Shop";
   let description = "၁၀၀% လျှို့ဝှက်လုံခြုံစွာဖြင့် မှာယူရရှိနိုင်ပါသည်။";
-  let image = "https://www.tolimolimyanmar.com/logo.png";
+  let image = "https://www.tolimolimyanmar.com/logo.jpg";
 
   const CATEGORY_MAP = {
     'promotion': { myName: 'Promotion', title: '🔥 Promotion အထူးလျှော့ဈေး - Tolimoli Myanmar', desc: 'အထူးလျှော့ဈေး ပရိုမိုးရှင်း ပစ္စည်းများကို စုံလင်စွာ ကြည့်ရှုဝယ်ယူနိုင်ပါသည်။' },

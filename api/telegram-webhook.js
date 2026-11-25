@@ -565,7 +565,7 @@ export default async function handler(req, res) {
           const prodList = prodVal ? Object.values(prodVal) : [];
           const found = prodList.find(p => p && ((p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw))));
           if (found) {
-            const imgUrl = (Array.isArray(found.images) && found.images[0]) || found.image || 'logo.png';
+            const imgUrl = (Array.isArray(found.images) && found.images[0]) || found.image || 'logo.jpg';
             const priceNum = Number(found.price || 0);
             await pushChat({
               text: found.name,
@@ -711,7 +711,7 @@ export default async function handler(req, res) {
               sku: p.sku || '-',
               price: Number(p.price || 0),
               name: p.name,
-              image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.png'
+              image: (Array.isArray(p.images) && p.images[0]) || p.image || 'logo.jpg'
             }));
             await pushChat({
               text: `📂 ${catTitle} အမျိုးအစား ပစ္စည်းများ (${items.length} မျိုး)`,
