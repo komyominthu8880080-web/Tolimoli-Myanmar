@@ -5206,6 +5206,39 @@ window.addEventListener('load', function() {
     });
   }
 
+  let _adminChatsCache = null;
+  let _adminChatsCacheAt = 0;
+
+  async function fetchAdminChatsCached(forceRefresh = false) {
+    const now = Date.now();
+    if (!forceRefresh && _adminChatsCache && (now - _adminChatsCacheAt) < 8000) {
+      return _adminChatsCache;
+    }
+    const pin = localStorage.getItem('tm_admin_pin') || '';
+    const res = await fetch('/api/admin-db?path=support_chats', {
+      headers: { 'x-admin-pin': pin }
+    });
+    const data = res.ok ? await res.json() : null;
+    _adminChatsCache = data;
+    _adminChatsCacheAt = Date.now();
+    return data;
+  }
+
+  function resolveChatPathFromCache(allChats, cleanPath) {
+    if (!allChats || typeof allChats !== 'object') return null;
+    if (cleanPath === 'support_chats') return allChats;
+    const parts = cleanPath.split('/').filter(Boolean);
+    let cur = allChats;
+    for (let i = 1; i < parts.length; i++) {
+      if (cur && typeof cur === 'object' && parts[i] in cur) {
+        cur = cur[parts[i]];
+      } else {
+        return null;
+      }
+    }
+    return cur;
+  }
+
   const fbDb = new Proxy(_rawFbDb, {
     get(target, prop) {
       if (prop === 'ref') {
@@ -5214,16 +5247,20 @@ window.addEventListener('load', function() {
           const baseRef = wrapDbRef(target.ref(path), path);
           const isAdminPinActive = Boolean(localStorage.getItem('tm_admin_pin'));
 
-          if (isAdminPinActive && (cleanPath === 'support_chats' || cleanPath === 'shop_orders' || cleanPath === 'orders')) {
+          if (isAdminPinActive && (cleanPath.startsWith('support_chats') || cleanPath === 'shop_orders' || cleanPath === 'orders')) {
             return new Proxy(baseRef, {
               get(rTarget, rProp) {
+                if (rProp === 'set' || rProp === 'update' || rProp === 'push' || rProp === 'remove') {
+                  return async (...args) => {
+                    _adminChatsCache = null;
+                    return await baseRef[rProp](...args);
+                  };
+                }
                 if (rProp === 'once') {
                   return async () => {
-                    if (cleanPath === 'support_chats') {
-                      const res = await fetch('/api/admin-db?path=support_chats', {
-                        headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
-                      });
-                      const data = res.ok ? await res.json() : null;
+                    if (cleanPath.startsWith('support_chats')) {
+                      const allChats = await fetchAdminChatsCached();
+                      const data = resolveChatPathFromCache(allChats, cleanPath);
                       return { val: () => data, exists: () => Boolean(data) };
                     }
                     const res = await fetch('/api/orders', {
@@ -5235,14 +5272,16 @@ window.addEventListener('load', function() {
                 }
                 if (rProp === 'on') {
                   return (eventType, cb) => {
-                    const runSync = async () => {
+                    const runSync = async (force = false) => {
                       try {
-                        if (cleanPath === 'support_chats') {
-                          const res = await fetch('/api/admin-db?path=support_chats', {
-                            headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
-                          });
-                          const data = res.ok ? await res.json() : null;
-                          cb({ val: () => data, exists: () => Boolean(data) });
+                        if (cleanPath.startsWith('support_chats')) {
+                          if (!force && _adminChatsCache) {
+                            const cachedData = resolveChatPathFromCache(_adminChatsCache, cleanPath);
+                            cb({ val: () => cachedData, exists: () => Boolean(cachedData) });
+                          }
+                          const allChats = await fetchAdminChatsCached(force);
+                          const freshData = resolveChatPathFromCache(allChats, cleanPath);
+                          cb({ val: () => freshData, exists: () => Boolean(freshData) });
                         } else {
                           const res = await fetch('/api/orders', {
                             headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
@@ -5252,7 +5291,7 @@ window.addEventListener('load', function() {
                         }
                       } catch (_) {}
                     };
-                    runSync();
+                    runSync(false);
                     return cb;
                   };
                 }
