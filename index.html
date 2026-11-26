@@ -5209,7 +5209,60 @@ window.addEventListener('load', function() {
   const fbDb = new Proxy(_rawFbDb, {
     get(target, prop) {
       if (prop === 'ref') {
-        return (path) => wrapDbRef(target.ref(path), path);
+        return (path) => {
+          const cleanPath = String(path || '').replace(/^\/+|\/+$/g, '');
+          const baseRef = wrapDbRef(target.ref(path), path);
+          const isAdminPinActive = Boolean(localStorage.getItem('tm_admin_pin'));
+
+          if (isAdminPinActive && (cleanPath === 'support_chats' || cleanPath === 'shop_orders' || cleanPath === 'orders')) {
+            return new Proxy(baseRef, {
+              get(rTarget, rProp) {
+                if (rProp === 'once') {
+                  return async () => {
+                    if (cleanPath === 'support_chats') {
+                      const res = await fetch('/api/admin-db?path=support_chats', {
+                        headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
+                      });
+                      const data = res.ok ? await res.json() : null;
+                      return { val: () => data, exists: () => Boolean(data) };
+                    }
+                    const res = await fetch('/api/orders', {
+                      headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
+                    });
+                    const data = res.ok ? await res.json() : null;
+                    return { val: () => data, exists: () => Boolean(data) };
+                  };
+                }
+                if (rProp === 'on') {
+                  return (eventType, cb) => {
+                    const runSync = async () => {
+                      try {
+                        if (cleanPath === 'support_chats') {
+                          const res = await fetch('/api/admin-db?path=support_chats', {
+                            headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
+                          });
+                          const data = res.ok ? await res.json() : null;
+                          cb({ val: () => data, exists: () => Boolean(data) });
+                        } else {
+                          const res = await fetch('/api/orders', {
+                            headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
+                          });
+                          const data = res.ok ? await res.json() : null;
+                          cb({ val: () => data, exists: () => Boolean(data) });
+                        }
+                      } catch (_) {}
+                    };
+                    runSync();
+                    return cb;
+                  };
+                }
+                const orig = rTarget[rProp];
+                return typeof orig === 'function' ? orig.bind(rTarget) : orig;
+              }
+            });
+          }
+          return baseRef;
+        };
       }
       const orig = target[prop];
       return typeof orig === 'function' ? orig.bind(target) : orig;
