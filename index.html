@@ -4993,52 +4993,50 @@ function selectDeliSmartCard(idx) {
 }
 
 // ၄။ ပို့ခနှင့် စုစုပေါင်းငွေကို တိုက်ရိုက်တွက်ချက်ပေးသည့် Function
+function getCheckoutAmounts() {
+  const subTotal = Array.isArray(cart)
+    ? cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0)
+    : 0;
+
+  const promoDisc = Number(currentAppliedDiscount) || 0;
+  const vipDisc = (typeof currentVipStatus !== 'undefined' && currentVipStatus && currentVipStatus.discountAmount)
+    ? Number(currentVipStatus.discountAmount) || 0
+    : 0;
+  const ptsDisc = Number(currentRedeemedPointsDiscount) || 0;
+  const totalDiscount = promoDisc + vipDisc + ptsDisc;
+
+  let deliFee = Number(currentDeliveryFee) || 0;
+  if (typeof currentVipStatus !== 'undefined' && currentVipStatus && currentVipStatus.isFreeDelivery) {
+    deliFee = 0;
+  }
+
+  const grandTotal = Math.max(0, subTotal - totalDiscount) + deliFee;
+  return { subTotal, totalDiscount, deliFee, grandTotal };
+}
+
 function updateCheckoutGrandTotal(deliFee) {
-  const effectiveFee = Number(deliFee !== undefined ? deliFee : currentDeliveryFee) || 0;
+  if (deliFee !== undefined && deliFee !== null) {
+    currentDeliveryFee = Number(deliFee) || 0;
+  }
+
+  const { subTotal, totalDiscount, deliFee: actualDeli, grandTotal } = getCheckoutAmounts();
+
+  const subTotalEl = document.getElementById('cartSubTotal');
+  if (subTotalEl) subTotalEl.innerText = subTotal.toLocaleString() + ' Ks';
+
+  const discEl = document.getElementById('cartDiscountText');
+  if (discEl) discEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
 
   const feeText = document.getElementById('cartDeliveryFeeText');
   if (feeText) {
-    feeText.innerText = effectiveFee.toLocaleString() + ' Ks';
+    const isFree = (typeof currentVipStatus !== 'undefined' && currentVipStatus && currentVipStatus.isFreeDelivery);
+    feeText.innerText = actualDeli.toLocaleString() + ' Ks' + (isFree ? ' (Free)' : '');
   }
 
-  let subTotal = 0;
-  if (Array.isArray(cart)) {
-    subTotal = cart.reduce((sum, item) => sum + ((Number(item.price) || 0) * (Number(item.qty) || 1)), 0);
-  }
-
-  const subTotalEl = document.getElementById('cartSubTotal');
-  if (subTotalEl) {
-    subTotalEl.innerText = subTotal.toLocaleString() + ' Ks';
-  }
-
-  let totalDiscount = 0;
-  if (typeof currentAppliedDiscount !== 'undefined') totalDiscount += Number(currentAppliedDiscount) || 0;
-  if (typeof currentVipStatus !== 'undefined' && currentVipStatus.discountAmount) totalDiscount += Number(currentVipStatus.discountAmount) || 0;
-  if (typeof currentRedeemedPointsDiscount !== 'undefined') totalDiscount += Number(currentRedeemedPointsDiscount) || 0;
-
-  const discEl = document.getElementById('cartDiscountText');
-  if (discEl) {
-    discEl.innerText = '- ' + totalDiscount.toLocaleString() + ' Ks';
-  }
-
-  // မျက်နှာပြင်ပေါ်ရှိ SubTotal, Discount နှင့် Delivery Fee တို့မှ တိုက်ရိုက် အတိအကျ တွက်ချက်ခြင်း
-  const subEl = document.getElementById('cartSubTotal');
-  const discEl2 = document.getElementById('cartDiscountText');
-  const feeEl2 = document.getElementById('cartDeliveryFeeText');
-
-  const currentSub = subEl ? (Number(subEl.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
-  let discVal = discEl2 ? (Number(discEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0;
-  if (discVal === 0 && typeof currentAppliedDiscount !== 'undefined') {
-    discVal = Number(currentAppliedDiscount) || 0;
-  }
-  const actualDeli = deliFee !== undefined ? (Number(deliFee) || 0) : (feeEl2 ? (Number(feeEl2.innerText.replace(/[^0-9]/g, '')) || 0) : 0);
-
-  const finalGrandTotal = Math.max(0, currentSub - discVal) + actualDeli;
   const totalEl = document.getElementById('cartTotalPrice');
-  if (totalEl) {
-    totalEl.innerText = finalGrandTotal.toLocaleString() + ' MMK';
-  }
-  window.currentCheckoutTotalAmount = finalGrandTotal;
+  if (totalEl) totalEl.innerText = grandTotal.toLocaleString() + ' MMK';
+
+  window.currentCheckoutTotalAmount = grandTotal;
   if (typeof renderQrBoxContent === 'function') renderQrBoxContent();
 }
 
@@ -9360,62 +9358,6 @@ function exportOrdersCSV() {
         a.href = cvs.toDataURL('image/png');
         a.click();
       });
-    }
-
-    function renderAdminCustomers() {
-      const container = document.getElementById('adminCustomerContainer');
-      if (!container) return;
-
-      const searchVal = (document.getElementById('adminCustomerSearchInput')?.value || '').toLowerCase().trim();
-
-      const custMap = {};
-      orders.forEach(o => {
-        if (!o || !o.phone) return;
-        const p = String(o.phone).trim();
-        if (!custMap[p]) {
-          custMap[p] = { name: o.customer || 'အမည်မသိ', phone: p, address: o.address || '-', orders: [], cancels: [] };
-        }
-        custMap[p].orders.push(o);
-        if (String(o.status).includes('Returned') || String(o.status).includes('Cancel')) {
-          if (o.cancelRemark) custMap[p].cancels.push(o.cancelRemark);
-        }
-      });
-
-      const custList = Object.values(custMap).filter(c => {
-        return c.name.toLowerCase().includes(searchVal) || c.phone.includes(searchVal);
-      });
-
-      if (custList.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-muted); text-align:center; padding:10px; font-size:0.8rem;">ဝယ်ယူသူ မှတ်တမ်း မရှိသေးပါ</p>';
-        return;
-      }
-
-      container.innerHTML = custList.map(c => {
-        const count = c.orders.length;
-        const totalSpent = c.orders.reduce((acc, o) => acc + Number(o.total || 0), 0);
-        const lastOrder = c.orders[0];
-        const exactTime = formatExactDateTime(lastOrder?.date);
-        const cancelHtml = c.cancels.length > 0 ? `<div style="color:#ef4444; font-size:0.72rem; margin-top:2px;">⚠️ ငြင်းပယ်/Cancel မှတ်တမ်း: ${c.cancels.join(', ')}</div>` : '';
-
-        const isVip = count >= (vipConfig.vipThreshold || 5);
-
-        return `
-          <div style="background:rgba(255,255,255,0.05); border-radius:6px; padding:8px; margin-bottom:6px; border:1px solid ${isVip ? '#0284c7' : '#334155'};">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <h4 style="color:#fff; font-size:0.85rem;">${c.name} ${isVip ? '<span style="font-size:0.68rem; background:#0284c7; padding:1px 5px; border-radius:8px; color:#fff;">VIP</span>' : ''}</h4>
-              <span style="font-size:0.75rem; color:${isVip ? '#38bdf8' : '#4ade80'}; font-weight:bold;">${count} ကြိမ်</span>
-            </div>
-            <p style="font-size:0.75rem; color:var(--text-muted); margin:2px 0;">ဖုန်း: ${c.phone} | လိပ်စာ: ${c.address}</p>
-            <p style="font-size:0.75rem; color:var(--gold); margin:2px 0;">ဝယ်ယူချိန်: <b>${exactTime}</b> | စုစုပေါင်း: ${totalSpent.toLocaleString()} MMK</p>
-            ${cancelHtml}
-            <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-              <button class="action-badge" style="background:#2563eb; color:#fff;" onclick="openCustomerOrderHistory('${c.phone}')">
-                <i class="fas fa-search"></i> မှတ်တမ်းကြည့်မည်
-              </button>
-            </div>
-          </div>
-        `;
-      }).join('');
     }
 
     function openCustomerOrderHistory(phone) {
