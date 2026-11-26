@@ -5188,10 +5188,9 @@ window.addEventListener('load', function() {
     const cleanPath = String(pathStr || '').replace(/^\/+|\/+$/g, '');
     const rootNode = cleanPath.split('/')[0];
     const isAdminPinActive = Boolean(localStorage.getItem('tm_admin_pin'));
-    const shouldProxyWrite = ADMIN_PROTECTED_ROOTS.includes(rootNode) ||
-      (rootNode === 'support_chats' && isAdminPinActive && !cleanPath.endsWith('/messages'));
+    const shouldProxyWrite = ADMIN_PROTECTED_ROOMS.includes(rootNode);
 
-    if (!shouldProxyWrite) return refObj;
+  if (!shouldProxyWrite) return refObj;
 
     return new Proxy(refObj, {
       get(target, prop) {
