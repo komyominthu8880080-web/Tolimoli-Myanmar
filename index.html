@@ -5159,8 +5159,14 @@ window.addEventListener('load', function() {
     firebase.initializeApp(firebaseConfig);
     const _rawFbDb = firebase.database();
   const ADMIN_PROTECTED_ROOTS = [
-    'shop_discounts', 'shop_vip_config', 'foc_campaign_settings',
-    'shop_news', 'articles', 'chat_qr_accounts', 'chat_quick_replies',
+    'shop_stock_config', 'shop_min_order_presets', 'shop_products', 'products',
+    'shop_vip_config', 'shop_categories', 'shop_delivery_config', 'shop_delivery_stations',
+    'shop_discounts', 'foc_campaign_settings', 'articles', 'lucky_draws',
+    'chat_quick_replies', 'chat_qr_accounts', 'shop_coupon_categories',
+    'shop_community_threads', 'shop_bot_faq_chips', 'shop_bot_keyword_rules',
+    'order_updates', 'loyalty_settings', 'customer_points_adjustments',
+    'combo_deals', 'shop_promo_status', 'shop_station_types',
+    'shop_discount_reason_presets', 'shop_auto_approve_comm', 'shop_news',
     'shop_settings', 'delivery_rates'
   ];
 
