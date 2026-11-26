@@ -11,7 +11,8 @@ export default async function handler(req, res) {
       .replace(/'/g, '&#39;');
   }
 
-  const canonicalUrl = `https://www.tolimolimyanmar.com${req.url}`;
+  const safePath = String(req.url || '/').startsWith('/') ? String(req.url) : '/';
+const canonicalUrl = `https://www.tolimolimyanmar.com${safePath}`;
 
   const targetUrl = article
     ? `https://www.tolimolimyanmar.com/?article=${encodeURIComponent(article)}`
@@ -89,7 +90,10 @@ export default async function handler(req, res) {
         }
       }
     } else if (cat) {
-      const rawCat = decodeURIComponent(String(cat)).trim();
+      let rawCat = String(cat).trim();
+      try {
+        rawCat = decodeURIComponent(rawCat).trim();
+      } catch (_) {}
       const slugKey = rawCat.toLowerCase();
       const mapped = CATEGORY_MAP[slugKey];
       const targetMyName = mapped ? mapped.myName : rawCat;

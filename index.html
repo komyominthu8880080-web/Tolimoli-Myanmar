@@ -13821,7 +13821,10 @@ applySoundToggleUI(isAudioMuted);
       if (threadId) {
         await fetch('/api/telegram-webhook', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+  'Content-Type': 'application/json',
+  'x-admin-pin': localStorage.getItem('tm_admin_pin') || ''
+},
           body: JSON.stringify({ action: 'deleteForumTopic', topicId: threadId })
         }).catch(() => {});
       }

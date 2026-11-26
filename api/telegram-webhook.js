@@ -1,9 +1,34 @@
 // api/telegram-webhook.js
-export default async function handler(req, res) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+const ALLOWED_ORIGINS = [
+  'https://www.tolimolimyanmar.com',
+  'https://tolimolimyanmar.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
+
+function applyCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.tolimolimyanmar.com');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-pin');
+}
+
+function withFbAuth(url) {
+  const secret = process.env.FIREBASE_DB_SECRET;
+  if (!secret) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}auth=${encodeURIComponent(secret)}`;
+}
+
+export default async function handler(req, res) {
+  applyCors(req);
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -13,14 +38,20 @@ export default async function handler(req, res) {
   const ADMIN_CHAT_ID = process.env.ORDER_CHAT_ID;
   const LIVECHAT_BOT_TOKEN = process.env.CHAT_BOT_TOKEN;
   const CHAT_GROUP_ID = process.env.CHAT_GROUP_ID;
+  const SERVER_ADMIN_PIN = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN;
   const FIREBASE_URL = process.env.FIREBASE_DB_URL || "https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-  // Telegram HTML parse_mode အတွက် အထူးသင်္ကေတ (&, <, >) များကို Escape လုပ်ပေးမည့် Helper
   function escapeTgHtml(str) {
     return String(str || '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
+  }
+
+  function isAdminAuthorized() {
+    if (!SERVER_ADMIN_PIN) return false;
+    const clientPin = req.headers['x-admin-pin'];
+    return Boolean(clientPin && String(clientPin).trim() === String(SERVER_ADMIN_PIN).trim());
   }
 
   // GET Request ဖြင့် Telegram Media (Photo/Video/Audio) ကို Bot Token မပေါက်ကြားဘဲ Proxy Stream ပြုလုပ်ခြင်း
@@ -43,12 +74,11 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(200).send('Method Not Allowed');
+    return res.status(405).send('Method Not Allowed');
   }
 
   const body = req.body || {};
 
-  // မြန်မာစံတော်ချိန် (Asia/Yangon) ရက်စွဲနှင့် အချိန် တွက်ချက်ပေးမည့် Helper Function
   function getMyanmarDateTime() {
     const now = new Date();
     const mmDateStr = new Intl.DateTimeFormat('en-GB', {
@@ -69,7 +99,6 @@ export default async function handler(req, res) {
     return `${mmDateStr} | ${mmTimeStr}`;
   }
 
-  // စာသားနှင့် ငွေလွှဲပြေစာပုံ တစ်ဆက်တည်း (သို့မဟုတ်) 1024 လုံးကျော်ပါက Message ခွဲပို့ပေးမည့် Helper Function
   async function sendOrderToTelegram(targetChat, targetTopic, textMsg, slipUrl) {
     const hasSlip = slipUrl && typeof slipUrl === 'string' && slipUrl.trim() !== '';
     const isLongMessage = textMsg.length > 1000;
@@ -167,17 +196,18 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၁။ FRONTEND မှ အော်ဒါသစ် / Alert ပို့ဆောင်ခြင်း (ORDER BOT သီးသန့်)
+  // ၁။ FRONTEND မှ အော်ဒါသစ် / Alert ပို့ဆောင်ခြင်း (ADMIN_CHAT_ID သို့သာ ပို့ခွင့်ပြုသည်)
   // -------------------------------------------------------------
   if (body.action === 'sendOrderNotification') {
-    const { orderData, messageText, chatId, topicId, slipUrl } = body;
+    const { orderData, messageText, topicId, slipUrl } = body;
+    const safeTargetChat = ADMIN_CHAT_ID;
 
     if (messageText) {
       try {
         const tgData = await sendOrderToTelegram(
-          chatId || ADMIN_CHAT_ID,
+          safeTargetChat,
           topicId,
-          messageText,
+          String(messageText).slice(0, 4000),
           slipUrl || (orderData && orderData.slipUrl)
         );
         return res.status(200).json({ success: true, tgResponse: tgData });
@@ -227,7 +257,7 @@ export default async function handler(req, res) {
         (isHttpSlip ? '\n\n🧾 <b>ငွေလွှဲပြေစာ:</b> ' + escapeTgHtml(orderData.slipUrl) : '');
 
       const tgData = await sendOrderToTelegram(
-        chatId || ADMIN_CHAT_ID,
+        safeTargetChat,
         topicId,
         orderMessageText,
         slipUrl || orderData.slipUrl
@@ -344,7 +374,7 @@ export default async function handler(req, res) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: CHAT_GROUP_ID,
-          name: body.sessionName || 'Guest User'
+          name: String(body.sessionName || 'Guest User').slice(0, 120)
         })
       });
       const tgData = await tgRes.json();
@@ -354,9 +384,12 @@ export default async function handler(req, res) {
     }
   }
 
-  // ဝယ်သူ စကားဝိုင်း ဖျက်သည့်အခါ Telegram Forum Topic ကိုပါ တစ်ခါတည်း ဖျက်ပေးခြင်း
+  // ဝယ်သူ စကားဝိုင်း ဖျက်သည့်အခါ Telegram Forum Topic ကိုပါ တစ်ခါတည်း ဖျက်ပေးခြင်း (Admin PIN မဖြစ်မနေ လိုအပ်သည်)
   if (body.action === 'deleteForumTopic') {
     try {
+      if (!isAdminAuthorized()) {
+        return res.status(401).json({ error: 'Unauthorized: Admin PIN မှားယွင်းနေပါသည်' });
+      }
       if (!body.topicId) return res.status(200).json({ ok: true, skipped: 'No topicId' });
       const tgRes = await fetch(`https://api.telegram.org/bot${LIVECHAT_BOT_TOKEN}/deleteForumTopic`, {
         method: 'POST',
@@ -374,17 +407,34 @@ export default async function handler(req, res) {
   }
 
   // -------------------------------------------------------------
-  // ၂။ TELEGRAM INLINE CALLBACK BUTTON HANDLER (message မစစ်မီ အပေါ်တွင် အရင်စစ်ရမည်)
+  // Telegram Webhook Secret Header စစ်ဆေးခြင်း (သတ်မှတ်ထားပါက)
+  // -------------------------------------------------------------
+  const TG_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (TG_WEBHOOK_SECRET) {
+    const incomingSecret = req.headers['x-telegram-bot-api-secret-token'];
+    if (incomingSecret !== TG_WEBHOOK_SECRET) {
+      return res.status(401).send('Unauthorized Webhook');
+    }
+  }
+
+  // -------------------------------------------------------------
+  // ၂။ TELEGRAM INLINE CALLBACK BUTTON HANDLER
   // -------------------------------------------------------------
   if (body.callback_query) {
     try {
       const cb = body.callback_query;
+      const cbChatId = cb.message?.chat?.id ? String(cb.message.chat.id) : '';
+      const allowedChats = [String(CHAT_GROUP_ID || ''), String(ADMIN_CHAT_ID || '')].filter(Boolean);
+      if (cbChatId && allowedChats.length > 0 && !allowedChats.includes(cbChatId)) {
+        return res.status(200).send('OK');
+      }
+
       const cbData = cb.data || '';
       if (cbData.startsWith('verify_slip:')) {
         const targetSessionId = cbData.split(':')[1];
         const now = new Date();
         const timeStr = now.toLocaleTimeString('en-US', { timeZone: 'Asia/Yangon', hour: '2-digit', minute: '2-digit' });
-        await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
+        await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -427,6 +477,13 @@ export default async function handler(req, res) {
   const msg = update.message;
   if (msg.from && msg.from.is_bot) return res.status(200).send('OK');
 
+  // Admin Group / Chat အစစ်မှ ဝင်လာသော Message ဟုတ်မဟုတ် စစ်ဆေးခြင်း
+  const incomingChatId = msg.chat && msg.chat.id ? String(msg.chat.id) : '';
+  const allowedGroupIds = [String(CHAT_GROUP_ID || ''), String(ADMIN_CHAT_ID || '')].filter(Boolean);
+  if (allowedGroupIds.length > 0 && !allowedGroupIds.includes(incomingChatId)) {
+    return res.status(200).send('OK');
+  }
+
   const threadId = msg.message_thread_id;
   let text = msg.text || msg.caption || '';
   let replyToText = '';
@@ -434,12 +491,12 @@ export default async function handler(req, res) {
   // Telegram Topic ထဲတွင် /del ဟု ရိုက်ပို့ပါက Firebase Database နှင့် Telegram Topic နှစ်ခုလုံးကို အပြီးဖျက်ခြင်း
   if (threadId && text.trim().toLowerCase() === '/del') {
     try {
-      const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
+      const sessionsRes = await fetch(withFbAuth(`${FIREBASE_URL}/support_chats.json`));
       const sessions = await sessionsRes.json();
       if (sessions) {
         for (const [sId, sVal] of Object.entries(sessions)) {
           if (sVal && String(sVal.telegramThreadId) === String(threadId)) {
-            await fetch(`${FIREBASE_URL}/support_chats/${sId}.json`, { method: 'DELETE' });
+            await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${sId}.json`), { method: 'DELETE' });
           }
         }
       }
@@ -454,12 +511,12 @@ export default async function handler(req, res) {
     }
   }
 
-  // Telegram Topic Commands: /kpay, /wave, /cbpay, /ayapay, /uabpay, /coupon, /list, /r1.., /p, /c, /cart, /track, /cat, /news, /done, /active
+  // Telegram Topic Commands
   const rawCmd = text.trim();
   const lowerCmd = rawCmd.toLowerCase();
   if (threadId && rawCmd.startsWith('/')) {
     try {
-      const sessionsRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
+      const sessionsRes = await fetch(withFbAuth(`${FIREBASE_URL}/support_chats.json`));
       const sessions = await sessionsRes.json();
       let targetSessionId = null;
       if (sessions) {
@@ -486,7 +543,7 @@ export default async function handler(req, res) {
           });
         };
         const pushChat = async (msgObj) => {
-          await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
+          await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...msgObj, sender: 'admin', timeStr, timestamp: Date.now() })
@@ -496,7 +553,7 @@ export default async function handler(req, res) {
         // 0. /done & /active
         if (lowerCmd === '/done' || lowerCmd === '/active') {
           const newSt = lowerCmd === '/done' ? 'done' : 'active';
-          await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/status.json`, {
+          await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}/status.json`), {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newSt)
@@ -509,7 +566,7 @@ export default async function handler(req, res) {
 
         // 1. /kpay, /wave, /cbpay, /ayapay, /uabpay
         if (['/kpay', '/wave', '/cbpay', '/ayapay', '/uabpay'].includes(lowerCmd)) {
-          const qrRes = await fetch(`${FIREBASE_URL}/chat_qr_accounts.json`);
+          const qrRes = await fetch(withFbAuth(`${FIREBASE_URL}/chat_qr_accounts.json`));
           const qrDb = (await qrRes.json()) || {};
           const bankKey = lowerCmd.slice(1);
           const defaults = {
@@ -535,7 +592,7 @@ export default async function handler(req, res) {
 
         // 3. /list နှင့် /r1, /r2...
         if (lowerCmd === '/list' || /^\/r\d+$/.test(lowerCmd)) {
-          const qrListRes = await fetch(`${FIREBASE_URL}/chat_quick_replies.json`);
+          const qrListRes = await fetch(withFbAuth(`${FIREBASE_URL}/chat_quick_replies.json`));
           const qrListVal = await qrListRes.json();
           const items = qrListVal ? Object.values(qrListVal) : [];
           if (lowerCmd === '/list') {
@@ -560,7 +617,7 @@ export default async function handler(req, res) {
         // 4. /p [ပစ္စည်းအမည်] -> Product Card ပို့ခြင်း
         if (lowerCmd.startsWith('/p ')) {
           const kw = rawCmd.slice(3).trim().toLowerCase();
-          const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
+          const prodRes = await fetch(withFbAuth(`${FIREBASE_URL}/shop_products.json`));
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal) : [];
           const found = prodList.find(p => p && ((p.name && p.name.toLowerCase().includes(kw)) || (p.sku && p.sku.toLowerCase().includes(kw))));
@@ -587,7 +644,7 @@ export default async function handler(req, res) {
             await replyTg('ℹ️ <b>ကူပွန်ပို့နည်း:</b>\n• ရှိပြီးသား ကုဒ်ပို့ရန်: <code>/c VIP2000</code>\n• ၁ ကြိမ်သုံး ကုဒ်အသစ်ဖန်တီးပို့ရန်: <code>/c 2000</code> (သို့) <code>/c 10%</code>');
             return res.status(200).send('OK');
           }
-          const discRes = await fetch(`${FIREBASE_URL}/shop_discounts.json`);
+          const discRes = await fetch(withFbAuth(`${FIREBASE_URL}/shop_discounts.json`));
           const discVal = await discRes.json();
           const discList = Array.isArray(discVal) ? discVal.filter(Boolean) : (discVal ? Object.values(discVal) : []);
           const upperArg = arg.toUpperCase();
@@ -615,7 +672,7 @@ export default async function handler(req, res) {
               active: true
             };
             discList.unshift(targetCoupon);
-            await fetch(`${FIREBASE_URL}/shop_discounts.json`, {
+            await fetch(withFbAuth(`${FIREBASE_URL}/shop_discounts.json`), {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(discList)
@@ -642,7 +699,7 @@ export default async function handler(req, res) {
 
         // 6. /cart
         if (lowerCmd === '/cart') {
-          const sSnap = await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`);
+          const sSnap = await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`));
           const sData = await sSnap.json() || {};
           const cartItems = Array.isArray(sData.liveCart) ? sData.liveCart : [];
           let msgOut = `🛒 <b>ဝယ်သူ (${escapeTgHtml(targetSessionId)}) ၏ လက်ရှိ ခြင်းတောင်း:</b>\n`;
@@ -664,7 +721,7 @@ export default async function handler(req, res) {
         // 7. /track [Order ID]
         if (lowerCmd.startsWith('/track ')) {
           const oid = rawCmd.slice(7).trim().toUpperCase();
-          const ordRes = await fetch(`${FIREBASE_URL}/shop_orders.json`);
+          const ordRes = await fetch(withFbAuth(`${FIREBASE_URL}/shop_orders.json`));
           const ordVal = await ordRes.json();
           const ordList = ordVal ? Object.values(ordVal) : [];
           const foundOrd = ordList.find(o => o && String(o.orderId || o.id || '').toUpperCase().includes(oid));
@@ -683,7 +740,7 @@ export default async function handler(req, res) {
         // 8. /cat [Category]
         if (lowerCmd === '/cat' || lowerCmd.startsWith('/cat ')) {
           const catKw = rawCmd.slice(4).trim().toLowerCase();
-          const prodRes = await fetch(`${FIREBASE_URL}/shop_products.json`);
+          const prodRes = await fetch(withFbAuth(`${FIREBASE_URL}/shop_products.json`));
           const prodVal = await prodRes.json();
           const prodList = prodVal ? Object.values(prodVal).filter(Boolean) : [];
 
@@ -728,7 +785,7 @@ export default async function handler(req, res) {
         // 9. /news
         if (lowerCmd === '/news' || lowerCmd.startsWith('/news ')) {
           const newsKw = rawCmd.slice(5).trim().toLowerCase();
-          const newsRes = await fetch(`${FIREBASE_URL}/shop_news.json`);
+          const newsRes = await fetch(withFbAuth(`${FIREBASE_URL}/shop_news.json`));
           const newsVal = await newsRes.json();
           const newsList = newsVal ? Object.values(newsVal).reverse() : [];
           const foundNews = newsKw
@@ -793,14 +850,13 @@ export default async function handler(req, res) {
     mediaType = 'audio';
   }
 
-  // Bot Token မပေါက်ကြားစေရန် Proxy URL ကိုသာ Firebase ထဲ သိမ်းဆည်းခြင်း
   if (fileId) {
     mediaUrl = `/api/telegram-webhook?file_id=${encodeURIComponent(fileId)}`;
   }
 
   if (threadId && (text || mediaUrl)) {
     try {
-      const searchRes = await fetch(`${FIREBASE_URL}/support_chats.json`);
+      const searchRes = await fetch(withFbAuth(`${FIREBASE_URL}/support_chats.json`));
       const allChats = await searchRes.json();
       let targetSessionId = null;
       if (allChats) {
@@ -815,7 +871,7 @@ export default async function handler(req, res) {
       if (targetSessionId) {
         const timeFormatted = getMyanmarDateTime();
 
-        await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`, {
+        await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}/messages.json`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -829,7 +885,7 @@ export default async function handler(req, res) {
           })
         });
 
-        await fetch(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`, {
+        await fetch(withFbAuth(`${FIREBASE_URL}/support_chats/${targetSessionId}.json`), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

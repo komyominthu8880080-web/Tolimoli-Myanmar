@@ -20,6 +20,13 @@ function applyCors(req, res, methods, headers = 'Content-Type') {
   res.setHeader('Access-Control-Allow-Headers', headers);
 }
 
+function withFbAuth(url) {
+  const secret = process.env.FIREBASE_DB_SECRET;
+  if (!secret) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}auth=${encodeURIComponent(secret)}`;
+}
+
 export default async function handler(req, res) {
   applyCors(req, res, 'GET, PUT, OPTIONS', 'Content-Type, x-admin-pin');
 
@@ -28,7 +35,7 @@ export default async function handler(req, res) {
   }
 
   const FIREBASE_BASE = process.env.FIREBASE_DB_URL || 'https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app';
-  const FIREBASE_URL = `${FIREBASE_BASE}/shop_products.json`;
+  const FIREBASE_URL = withFbAuth(`${FIREBASE_BASE}/shop_products.json`);
 
   // ၁။ ပစ္စည်းစာရင်း ဆွဲယူခြင်း (GET)
   if (req.method === 'GET') {
