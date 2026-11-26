@@ -5157,8 +5157,59 @@ window.addEventListener('load', function() {
       appId: "1:735927568202:web:df9ca669990aaa16ebe3b3"
     };
     firebase.initializeApp(firebaseConfig);
-    const fbDb = firebase.database();
-    const database = fbDb;
+    const _rawFbDb = firebase.database();
+  const ADMIN_PROTECTED_ROOTS = [
+    'shop_discounts', 'shop_vip_config', 'foc_campaign_settings',
+    'shop_news', 'articles', 'chat_qr_accounts', 'chat_quick_replies',
+    'shop_settings', 'delivery_rates'
+  ];
+
+  async function callAdminDbProxy(path, op, value) {
+    const pin = localStorage.getItem('tm_admin_pin') || '';
+    const res = await fetch('/api/admin-db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-pin': pin },
+      body: JSON.stringify({ path, op, value })
+    });
+    const json = await res.json();
+    if (!res.ok || !json.success) {
+      throw new Error(json.error || 'Admin DB Write Failed');
+    }
+    return json.data;
+  }
+
+  function wrapDbRef(refObj, pathStr) {
+    const cleanPath = String(pathStr || '').replace(/^\/+|\/+$/g, '');
+    const rootNode = cleanPath.split('/')[0];
+    const isAdminPinActive = Boolean(localStorage.getItem('tm_admin_pin'));
+    const shouldProxyWrite = ADMIN_PROTECTED_ROOTS.includes(rootNode) ||
+      (rootNode === 'support_chats' && isAdminPinActive && !cleanPath.endsWith('/messages'));
+
+    if (!shouldProxyWrite) return refObj;
+
+    return new Proxy(refObj, {
+      get(target, prop) {
+        if (prop === 'set') return (val) => callAdminDbProxy(cleanPath, 'set', val);
+        if (prop === 'update') return (val) => callAdminDbProxy(cleanPath, 'update', val);
+        if (prop === 'push') return (val) => callAdminDbProxy(cleanPath, 'push', val);
+        if (prop === 'remove') return () => callAdminDbProxy(cleanPath, 'remove');
+        if (prop === 'child') return (sub) => wrapDbRef(target.child(sub), `${cleanPath}/${sub}`);
+        const orig = target[prop];
+        return typeof orig === 'function' ? orig.bind(target) : orig;
+      }
+    });
+  }
+
+  const fbDb = new Proxy(_rawFbDb, {
+    get(target, prop) {
+      if (prop === 'ref') {
+        return (path) => wrapDbRef(target.ref(path), path);
+      }
+      const orig = target[prop];
+      return typeof orig === 'function' ? orig.bind(target) : orig;
+    }
+  });
+  const database = fbDb;
     // Fetch Articles from Firebase
 function fetchArticles() {
   if (typeof database === 'undefined') return;

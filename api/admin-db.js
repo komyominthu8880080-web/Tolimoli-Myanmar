@@ -1,0 +1,115 @@
+// api/admin-db.js
+const ALLOWED_ORIGINS = [
+  'https://www.tolimolimyanmar.com',
+  'https://tolimolimyanmar.com',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
+
+// Admin မှ ပြင်ဆင်သိမ်းဆည်းခွင့်ရှိသော Firebase Root Paths များ
+const ALLOWED_ROOT_PATHS = [
+  'shop_discounts',
+  'shop_vip_config',
+  'foc_campaign_settings',
+  'shop_news',
+  'articles',
+  'chat_qr_accounts',
+  'chat_quick_replies',
+  'support_chats',
+  'shop_settings',
+  'delivery_rates'
+];
+
+function applyCors(req, res) {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.tolimolimyanmar.com');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-admin-pin');
+}
+
+function withFbAuth(url) {
+  const secret = process.env.FIREBASE_DB_SECRET;
+  if (!secret) return url;
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}auth=${encodeURIComponent(secret)}`;
+}
+
+export default async function handler(req, res) {
+  applyCors(req);
+
+  if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const SERVER_ADMIN_PIN = process.env.ADMIN_SECRET_PIN || process.env.ADMIN_PIN;
+  if (!SERVER_ADMIN_PIN) {
+    return res.status(500).json({ error: 'Server Admin PIN is not configured' });
+  }
+
+  const clientPin = req.headers['x-admin-pin'];
+  if (!clientPin || String(clientPin).trim() !== String(SERVER_ADMIN_PIN).trim()) {
+    return res.status(401).json({ error: 'Unauthorized: Admin PIN မှားယွင်းနေပါသည်' });
+  }
+
+  const FIREBASE_BASE = process.env.FIREBASE_DB_URL || 'https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+  // Admin မှ support_chats အားလုံး ဖတ်ယူရန် (GET ?path=support_chats)
+  if (req.method === 'GET') {
+    const rawPath = String(req.query?.path || '').replace(/^\/+|\/+$/g, '');
+    const rootNode = rawPath.split('/')[0];
+    if (!ALLOWED_ROOT_PATHS.includes(rootNode)) {
+      return res.status(403).json({ error: 'Path not allowed' });
+    }
+    try {
+      const fbRes = await fetch(withFbAuth(`${FIREBASE_BASE}/${rawPath}.json`));
+      const data = await fbRes.json();
+      return res.status(200).json(data);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // Admin မှ Firebase သို့ ရေးသား/ပြင်ဆင်/ဖျက်သိမ်းရန် (POST)
+  if (req.method === 'POST') {
+    try {
+      const { path, op, value } = req.body || {};
+      const cleanPath = String(path || '').replace(/^\/+|\/+$/g, '');
+      const rootNode = cleanPath.split('/')[0];
+
+      if (!cleanPath || !ALLOWED_ROOT_PATHS.includes(rootNode)) {
+        return res.status(403).json({ error: `Path "${cleanPath}" is not allowed` });
+      }
+
+      const methodMap = { set: 'PUT', update: 'PATCH', push: 'POST', remove: 'DELETE' };
+      const httpMethod = methodMap[op];
+      if (!httpMethod) {
+        return res.status(400).json({ error: 'Invalid operation' });
+      }
+
+      const fetchOpts = {
+        method: httpMethod,
+        headers: { 'Content-Type': 'application/json' }
+      };
+      if (httpMethod !== 'DELETE') {
+        fetchOpts.body = JSON.stringify(value === undefined ? null : value);
+      }
+
+      const fbRes = await fetch(withFbAuth(`${FIREBASE_BASE}/${cleanPath}.json`), fetchOpts);
+      if (!fbRes.ok) {
+        const errTxt = await fbRes.text();
+        throw new Error(errTxt || 'Firebase Admin Write Failed');
+      }
+      const data = await fbRes.json();
+      return res.status(200).json({ success: true, data });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  return res.status(405).json({ error: 'Method Not Allowed' });
+}
