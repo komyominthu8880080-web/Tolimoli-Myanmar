@@ -17397,7 +17397,6 @@ async function verifyAdminPinNow() {
 }
 
 function forceOpenAdminDashboard() {
-  // စကားဝှက် မှန်မှသာ Dashboard ဖွင့်ခွင့်ပြုခြင်း
   if (!sessionStorage.getItem('admin_auth_token')) {
     alert("Admin အဖြစ် ဝင်ရောက်ခွင့် မရှိပါ");
     return;
@@ -17408,7 +17407,7 @@ function forceOpenAdminDashboard() {
     document.body.appendChild(adminEl);
     adminEl.classList.add('active');
     adminEl.style.cssText = "display: flex !important; position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; background: rgba(0,0,0,0.92) !important; align-items: center !important; justify-content: center !important; opacity: 1 !important; visibility: visible !important;";
-    
+
     var content = adminEl.querySelector('.modal-content') || adminEl.querySelector('.admin-modal-content');
     if (content) {
       content.style.cssText = "display: block !important; width: 95% !important; max-width: 950px !important; max-height: 90vh !important; overflow-y: auto !important; z-index: 2147483647 !important; background: #18132d !important;";
@@ -17429,10 +17428,10 @@ function forceOpenAdminDashboard() {
     var firstBtn = document.querySelector('.admin-nav-btn');
     if (firstBtn) firstBtn.classList.add('active');
 
-    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch(e){}
-    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch(e){}
-    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch(e){}
-    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch(e){}
+    try { if (typeof renderAdminProducts === 'function') renderAdminProducts(); } catch (e) {}
+    try { if (typeof renderAdminOrders === 'function') renderAdminOrders(); } catch (e) {}
+    try { if (typeof renderStockTable === 'function') renderStockTable(); } catch (e) {}
+    try { if (typeof renderAdminCategoryChips === 'function') renderAdminCategoryChips(); } catch (e) {}
   }
 }
 // ============================================================
