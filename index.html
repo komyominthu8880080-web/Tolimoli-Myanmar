@@ -5211,7 +5211,7 @@ window.addEventListener('load', function() {
 
   async function fetchAdminChatsCached(forceRefresh = false) {
     const now = Date.now();
-    if (!forceRefresh && _adminChatsCache && (now - _adminChatsCacheAt) < 8000) {
+    if (!forceRefresh && _adminChatsCache && (now - _adminChatsCacheAt) < 30000) {
       return _adminChatsCache;
     }
     const pin = localStorage.getItem('tm_admin_pin') || '';
@@ -5275,14 +5275,16 @@ window.addEventListener('load', function() {
                     const runSync = async (force = false) => {
                       try {
                         if (cleanPath.startsWith('support_chats')) {
-                          if (!force && _adminChatsCache) {
+                          if (_adminChatsCache) {
                             const cachedData = resolveChatPathFromCache(_adminChatsCache, cleanPath);
                             cb({ val: () => cachedData, exists: () => Boolean(cachedData) });
                           }
-                          const allChats = await fetchAdminChatsCached(force);
-                          const freshData = resolveChatPathFromCache(allChats, cleanPath);
-                          cb({ val: () => freshData, exists: () => Boolean(freshData) });
-                        } else {
+                          fetchAdminChatsCached(force).then((allChats) => {
+                            const freshData = resolveChatPathFromCache(allChats, cleanPath);
+                            cb({ val: () => freshData, exists: () => Boolean(freshData) });
+                          }).catch(() => {});
+                        }
+                        if (cleanPath === 'shop_orders' || cleanPath === 'orders') {
                           const res = await fetch('/api/orders', {
                             headers: { 'x-admin-pin': localStorage.getItem('tm_admin_pin') || '' }
                           });
