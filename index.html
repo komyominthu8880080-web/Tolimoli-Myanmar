@@ -7994,7 +7994,7 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
     const activeDiscount = Number((typeof totalDiscount !== 'undefined' ? totalDiscount : 0) || (typeof currentAppliedDiscount !== 'undefined' ? currentAppliedDiscount : 0) || (document.getElementById('cartDiscountText') ? document.getElementById('cartDiscountText').innerText.replace(/[^0-9]/g, '') : 0)) || 0;
     
     const newOrder = {
-      id: 'ORD-' + Date.now().toString().slice(-8),
+      id: orderId,
       customer: name,
       phone: phone,
       address: address,
