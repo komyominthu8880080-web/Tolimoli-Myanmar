@@ -8,7 +8,6 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5500'
 ];
 
-// Admin မှ ပြင်ဆင်သိမ်းဆည်းခွင့်ရှိသော Firebase Root Paths များ
 const ALLOWED_ROOT_PATHS = [
   'shop_stock_config', 'shop_min_order_presets', 'shop_products', 'products',
   'shop_vip_config', 'shop_categories', 'shop_delivery_config', 'shop_delivery_stations',
@@ -41,7 +40,7 @@ function withFbAuth(url) {
 }
 
 export default async function handler(req, res) {
-  applyCors(req);
+  applyCors(req, res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -57,7 +56,6 @@ export default async function handler(req, res) {
 
   const FIREBASE_BASE = process.env.FIREBASE_DB_URL || 'https://tolimoli-myanmar-default-rtdb.asia-southeast1.firebasedatabase.app';
 
-  // Admin မှ support_chats အားလုံး ဖတ်ယူရန် (GET ?path=support_chats)
   if (req.method === 'GET') {
     const rawPath = String(req.query?.path || '').replace(/^\/+|\/+$/g, '');
     const rootNode = rawPath.split('/')[0];
@@ -73,7 +71,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // Admin မှ Firebase သို့ ရေးသား/ပြင်ဆင်/ဖျက်သိမ်းရန် (POST)
   if (req.method === 'POST') {
     try {
       const { path, op, value } = req.body || {};
