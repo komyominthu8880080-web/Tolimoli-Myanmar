@@ -13785,7 +13785,7 @@ applySoundToggleUI(isAudioMuted);
 
   function selectAdminChatSession(sessionId) {
     adminActiveSelectedSession = sessionId;
-    if (typeof renderAdminChatSessionsList === 'function') renderAdminChatSessionsList();
+  const cachedSession = (typeof _adminChatsCache === 'object' && _adminChatsCache && _adminChatsCache[sessionId]) ? _adminChatsCache[sessionId] : null;
     const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
     const gridWrap = listPane ? listPane.parentElement : null;
@@ -13819,22 +13819,20 @@ applySoundToggleUI(isAudioMuted);
       if (convPane) convPane.style.display = 'flex';
     }
 
-    if (header && typeof fbDb !== 'undefined') {
-      fbDb.ref(`support_chats/${sessionId}/status`).once('value').then(stSnap => {
-        const isDone = stSnap.val() === 'done';
-        const backBtn = isMobileView
-          ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#f8fafc; border:1px solid #475569; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:700; cursor:pointer;">← စာရင်းသို့</button>`
-          : '';
-        const toggleBtn = isDone
-          ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">🟢 Active ပြန်လုပ်မည်</button>`
-          : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#0ea5e9; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:700; cursor:pointer; margin-left:auto;">✅ Done မှတ်မည်</button>`;
-        header.style.display = 'flex';
-        header.style.alignItems = 'center';
-        header.style.gap = '6px';
-        header.style.flexWrap = 'wrap';
-        header.innerHTML = `${backBtn}<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-comments" style="color:var(--gold);"></i> <strong style="color:#00ff88;">${sessionId}</strong></span>${toggleBtn}`;
-      });
-    }
+    if (header) {
+    const isDone = cachedSession ? cachedSession.status === 'done' : false;
+    const backBtn = isMobileView
+      ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;"><i class="fas fa-arrow-left"></i></button>`
+      : '';
+    const toggleBtn = isDone
+      ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:10.5px; font-weight:600; cursor:pointer;">Active ပြန်လုပ်မည်</button>`
+      : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#ea580c; color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:10.5px; font-weight:600; cursor:pointer;">Done ပြီးစီး</button>`;
+    header.style.display = 'flex';
+    header.style.alignItems = 'center';
+    header.style.gap = '6px';
+    header.style.flexWrap = 'wrap';
+    header.innerHTML = `${backBtn}<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user-circle"></i> <b>${sessionId}</b></span><span style="margin-left:auto;">${toggleBtn}</span>`;
+  }
     if (replyBar) {
       replyBar.style.display = 'flex';
       replyBar.style.marginTop = 'auto';
@@ -13852,32 +13850,30 @@ applySoundToggleUI(isAudioMuted);
   fbDb.ref(`support_chats/${sessionId}/messages`).off();
   fbDb.ref(`support_chats/${sessionId}/messages`).on('value', snap => {
     const val = snap.val();
-    if (!msgsBox) return;
     if (!val) {
-      msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">စာတို မရှိသေးပါ</p>';
+      msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:20px;">စာတို မရှိသေးပါ။</p>';
       return;
     }
-    const list = Object.values(val);
+    const allMsgs = Object.values(val);
+    const list = allMsgs.length > 60 ? allMsgs.slice(-60) : allMsgs;
     msgsBox.innerHTML = list.map(m => {
       const isAdmin = m.sender === 'admin';
       let media = '';
       if (m.mediaUrl) {
         if (m.mediaType === 'audio' || String(m.mediaUrl).includes('file_id=') || String(m.mediaUrl).startsWith('data:audio')) {
-          media = `<div style="margin-top:6px;"><audio controls src="${m.mediaUrl}" style="height:36px; max-width:220px;"></audio></div>`;
+          media = `<div style="margin-top:6px;"><audio controls preload="none" src="${m.mediaUrl}" style="height:36px; max-width:220px;"></audio></div>`;
         } else if (m.mediaType === 'video') {
-          media = `<video controls src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></video>`;
+          media = `<video controls preload="metadata" src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:6px;"></video>`;
         } else {
-          media = `<img src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px; cursor:pointer; display:block;" title="ပုံအကြီးချဲ့ကြည့်ရန်">`;
+          media = `<img loading="lazy" src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:6px; cursor:pointer;">`;
         }
       }
-      return `
-        <div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#7c3aed,#6d28d9)' : '#1e293b'}; color:#fff; padding:8px 11px; border-radius:10px; max-width:75%; font-size:0.78rem; margin-bottom:6px; border:1px solid rgba(255,255,255,0.08);">
-          <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'};">${isAdmin ? 'Admin (You)' : 'Customer'}</b><br>
-          ${m.text ? `<span>${m.text}</span>` : ''}
-          ${media}
-          <span style="font-size:9px; opacity:0.6; display:block; text-align:right; margin-top:3px;">${m.timeStr || ''}</span>
-        </div>
-      `;
+      return `<div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#7c3aed,#5b21b6)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:8px 11px; border-radius:10px; max-width:78%; margin-bottom:6px; font-size:0.8rem;">
+        <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdmin ? 'Admin (You)' : 'Customer'}</b>
+        ${m.text ? `<span>${m.text}</span>` : ''}
+        ${media}
+        <span style="font-size:9px; opacity:0.6; display:block; text-align:right; margin-top:3px;">${m.timeStr || ''}</span>
+      </div>`;
     }).join('');
     msgsBox.scrollTop = msgsBox.scrollHeight;
   });
