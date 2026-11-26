@@ -13753,20 +13753,13 @@ applySoundToggleUI(isAudioMuted);
       }
 
       container.innerHTML = entries.map(([sId, data]) => {
-        const isAct = adminActiveSelectedSession === sId;
-        const lastMsg = data.lastMessage || 'မေးမြန်းမှု';
-        return `
-          <div onclick="selectAdminChatSession('${sId}')" style="background:${isAct ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isAct ? '#00ff88' : 'rgba(255,255,255,0.08)'}; border-radius:8px; padding:8px 10px; cursor:pointer; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="color:${isAct ? '#00ff88' : 'var(--gold)'}; font-size:11.5px;">${sId}</b>
-              <button onclick="event.stopPropagation(); deleteAdminChatSession('${sId}')" style="background:none; border:none; color:#f87171; cursor:pointer; font-size:12px;">×</button>
-            </div>
-            <div style="color:#cbd5e1; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px;">
-              ${lastMsg}
-            </div>
-          </div>
-        `;
-      }).join('');
+          const isAct = adminActiveSelectedSession === sId;
+          const lastMsg = data.lastMessage || 'မေးမြန်းမှု';
+          const rowBg = isAct ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)';
+          const rowBorder = isAct ? '#00ff88' : '#334155';
+          const titleColor = isAct ? '#00ff88' : 'var(--gold)';
+          return `<div data-chat-session="${sId}" onclick="selectAdminChatSession('${sId}')" style="background:${rowBg}; border:1px solid ${rowBorder}; border-radius:8px; padding:8px; margin-bottom:6px; cursor:pointer;"><div style="display:flex; justify-content:space-between; align-items:center;"><b data-chat-title style="color:${titleColor}; font-size:11.5px;">${sId}</b><button onclick="event.stopPropagation(); deleteAdminChatSession('${sId}')" style="background:none; border:none; color:#f87171; font-size:11px; cursor:pointer; padding:0 2px;">×</button></div><div style="color:#cbd5e1; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px;">${lastMsg}</div></div>`;
+        }).join('');
     });
   }
 
@@ -13786,7 +13779,17 @@ applySoundToggleUI(isAudioMuted);
   function selectAdminChatSession(sessionId) {
     adminActiveSelectedSession = sessionId;
   const cachedSession = (typeof _adminChatsCache === 'object' && _adminChatsCache && _adminChatsCache[sessionId]) ? _adminChatsCache[sessionId] : null;
-    const listPane = document.getElementById('adminChatSessionsListContainer');
+  const listWrap = document.getElementById('adminChatSessionsListContainer');
+  if (listWrap) {
+    listWrap.querySelectorAll('[data-chat-session]').forEach(el => {
+      const active = el.getAttribute('data-chat-session') === sessionId;
+      el.style.background = active ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)';
+      el.style.borderColor = active ? '#00ff88' : '#334155';
+      const titleEl = el.querySelector('[data-chat-title]');
+      if (titleEl) titleEl.style.color = active ? '#00ff88' : 'var(--gold)';
+    });
+  }  
+  const listPane = document.getElementById('adminChatSessionsListContainer');
     const convPane = document.getElementById('adminChatConversationPane');
     const gridWrap = listPane ? listPane.parentElement : null;
     const header = document.getElementById('adminActiveChatHeader');
@@ -13825,8 +13828,8 @@ applySoundToggleUI(isAudioMuted);
       ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;"><i class="fas fa-arrow-left"></i></button>`
       : '';
     const toggleBtn = isDone
-      ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:10.5px; font-weight:600; cursor:pointer;">Active ပြန်လုပ်မည်</button>`
-      : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#ea580c; color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:10.5px; font-weight:600; cursor:pointer;">Done ပြီးစီး</button>`;
+      ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Active ပြန်လုပ်မည်</button>`
+      : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#ea580c; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Done ပြီးစီး</button>`;
     header.style.display = 'flex';
     header.style.alignItems = 'center';
     header.style.gap = '6px';
