@@ -5245,6 +5245,7 @@ fetchArticles();
 }
 
     function saveOrders() {
+      if (typeof deduplicateOrders === 'function') orders = deduplicateOrders(orders);
   try {
     const lightOrders = (Array.isArray(orders) ? orders : []).slice(-30).map(o => {
       if (!o || typeof o !== 'object') return o;
@@ -7705,58 +7706,6 @@ function handleTownshipSelectionIntegration(townshipInputVal) {
       saveCart();
       renderCartUI();
     }
-
-    function applyDiscountCoupon() {
-      const inputEl = document.getElementById('couponCodeInput');
-      const notice = document.getElementById('couponNotice');
-      if (!inputEl) return;
-      const code = inputEl.value.trim().toUpperCase();
-
-      if (!code) {
-        currentAppliedDiscount = 0;
-        if (notice) notice.innerHTML = '<span style="color:#ef4444;">ကျေးဇူးပြု၍ ကူပွန်ကုဒ် ရိုက်ထည့်ပါ</span>';
-        renderCartUI();
-        return;
-      }
-
-      // ၁။ Firebase Cloud (သို့မဟုတ် LocalStorage) မှ ကူပွန်စာရင်း ရယူခြင်း
-      let allCoupons = window.cloudPromoCodes || {};
-      if (Object.keys(allCoupons).length === 0) {
-        try {
-          allCoupons = JSON.parse(localStorage.getItem('tm_promo_codes') || '{}');
-        } catch(e) {}
-      }
-
-      // ၂။ ကူပွန် စစ်ဆေးခြင်း (Default DII000 အပါအဝင်)
-      let dObj = allCoupons[code] || null;
-      if (!dObj && code === 'DII000') {
-        dObj = { type: 'fixed', val: 1000 };
-      }
-
-      // ၃။ ကူပွန် မမှန်ကန်ပါက
-      if (!dObj) {
-        currentAppliedDiscount = 0;
-        if (notice) notice.innerHTML = '<span style="color:#ef4444;">ကူပွန်ကုဒ် မှားယွင်းနေပါသည်</span>';
-        renderCartUI();
-        return;
-      }
-
-      // ၄။ ကူပွန် မှန်ကန်ပါက လျှော့စျေး တွက်ချက်ခြင်း
-      let subTotal = cart.reduce((acc, c) => acc + (c.price * c.qty), 0);
-  const calcDisc = (dObj.type === 'percent')
-    ? Math.round((subTotal * Number(dObj.val)) / 100)
-    : (Number(dObj.val) || 0);
-  currentAppliedDiscount = calcDisc;
-  window.currentAppliedDiscount = calcDisc;
-
-  if (notice) {
-    notice.innerHTML = `<span style="color:#00ff88;">Promo Code '${code}' အောင်မြင်ပါသည် (- ${calcDisc.toLocaleString()} Ks)</span>`;
-  }
-  renderCartUI();
-  if (typeof updateCheckoutGrandTotal === 'function') {
-    updateCheckoutGrandTotal(typeof currentDeliveryFee !== 'undefined' ? currentDeliveryFee : 0);
-  }
-}
 
     function updateCartBadge() {
       const cnt = cart.reduce((acc, c) => acc + c.qty, 0);
