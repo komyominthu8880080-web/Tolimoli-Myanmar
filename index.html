@@ -5188,7 +5188,7 @@ window.addEventListener('load', function() {
     const cleanPath = String(pathStr || '').replace(/^\/+|\/+$/g, '');
     const rootNode = cleanPath.split('/')[0];
     const isAdminPinActive = Boolean(localStorage.getItem('tm_admin_pin'));
-    const shouldProxyWrite = ADMIN_PROTECTED_ROOMS.includes(rootNode);
+    const shouldProxyWrite = ADMIN_PROTECTED_ROOTS.includes(rootNode);
 
   if (!shouldProxyWrite) return refObj;
 
