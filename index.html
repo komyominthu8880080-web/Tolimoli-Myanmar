@@ -13699,7 +13699,10 @@ applySoundToggleUI(isAudioMuted);
 
       const parentBox = container.parentElement;
       if (parentBox) {
-        parentBox.style.alignItems = 'start';
+        parentBox.style.display = 'flex';
+        parentBox.style.flexDirection = 'column';
+        parentBox.style.justifyContent = 'flex-start';
+        parentBox.style.gap = '8px';
         if (!parentBox.dataset.tabWired) {
           parentBox.dataset.tabWired = '1';
           parentBox.querySelectorAll('button').forEach(b => {
@@ -13717,7 +13720,15 @@ applySoundToggleUI(isAudioMuted);
         btnDone.style.opacity = adminChatFilterMode === 'done' ? '1' : '0.55';
         btnAct.style.height = '32px';
         btnDone.style.height = '32px';
+        if (btnAct.parentElement) {
+          btnAct.parentElement.style.flexShrink = '0';
+          btnAct.parentElement.style.marginBottom = '0';
+        }
       }
+
+      container.style.flex = '1';
+      container.style.overflowY = 'auto';
+      container.style.marginTop = '0';
 
       if (!val || typeof val !== 'object') {
         container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ။</p>';
