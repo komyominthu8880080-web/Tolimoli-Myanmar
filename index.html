@@ -13702,10 +13702,12 @@ applySoundToggleUI(isAudioMuted);
         parentBox.style.display = 'flex';
         parentBox.style.flexDirection = 'column';
         parentBox.style.justifyContent = 'flex-start';
-        parentBox.style.alignContent = 'flex-start';
+        parentBox.style.alignSelf = 'stretch';
+        parentBox.style.height = '100%';
+        parentBox.style.minHeight = '0';
         parentBox.style.gap = '8px';
-        if (parentBox.parentElement) {
-          parentBox.parentElement.style.alignItems = 'start';
+        if (parentBox.parentElement && window.innerWidth > 768) {
+          parentBox.parentElement.style.alignItems = 'stretch';
         }
         if (!parentBox.dataset.tabWired) {
           parentBox.dataset.tabWired = '1';
@@ -13731,6 +13733,7 @@ applySoundToggleUI(isAudioMuted);
       }
 
       container.style.flex = '1';
+      container.style.height = '100%';
       container.style.overflowY = 'auto';
       container.style.marginTop = '0';
 
