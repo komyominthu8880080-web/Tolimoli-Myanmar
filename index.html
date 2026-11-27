@@ -13856,8 +13856,24 @@ applySoundToggleUI(isAudioMuted);
 
       const renderChatMsgsFromObj = (val) => {
         if (adminActiveSelectedSession !== sessionId) return;
-        if (!val || (typeof val === 'object' && !Object.keys(val).length)) {
-          const fallbackText = cachedSession && cachedSession.lastMessage ? cachedSession.lastMessage : '';
+        let msgItems = [];
+        if (Array.isArray(val)) {
+          msgItems = val.filter(Boolean);
+        } else if (val && typeof val === 'object') {
+          msgItems = Object.entries(val)
+            .sort((a, b) => {
+              const ta = Number(a[1]?.timestamp || a[1]?.createdAt || a[1]?.ts || 0);
+              const tb = Number(b[1]?.timestamp || b[1]?.createdAt || b[1]?.ts || 0);
+              if (ta && tb && ta !== tb) return ta - tb;
+              return String(a[0]).localeCompare(String(b[0]));
+            })
+            .map(([, m]) => m)
+            .filter(m => m && typeof m === 'object');
+        }
+
+        if (!msgItems.length) {
+          const liveSess = (_adminChatsCache && _adminChatsCache[sessionId]) || cachedSession;
+          const fallbackText = liveSess && liveSess.lastMessage ? String(liveSess.lastMessage) : '';
           if (fallbackText) {
             const isAdm = fallbackText.startsWith('Admin:');
             msgsBox.innerHTML = `<div style="align-self:${isAdm ? 'flex-end' : 'flex-start'}; background:${isAdm ? 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:7px 10px; border-radius:10px; max-width:82%; font-size:12px; line-height:1.45;">
@@ -13869,15 +13885,8 @@ applySoundToggleUI(isAudioMuted);
           }
           return;
         }
-        const allMsgs = Object.entries(val)
-          .sort((a, b) => {
-            const ta = Number(a[1]?.timestamp || a[1]?.createdAt || a[1]?.ts || 0);
-            const tb = Number(b[1]?.timestamp || b[1]?.createdAt || b[1]?.ts || 0);
-            if (ta && tb && ta !== tb) return ta - tb;
-            return a[0].localeCompare(b[0]);
-          })
-          .map(([, m]) => m);
-        const list = allMsgs.length > 60 ? allMsgs.slice(-60) : allMsgs;
+
+        const list = msgItems.length > 60 ? msgItems.slice(-60) : msgItems;
         msgsBox.innerHTML = list.map(m => {
           const isAdmin = m.sender === 'admin';
           let media = '';
@@ -13901,15 +13910,16 @@ applySoundToggleUI(isAudioMuted);
       };
 
       window._renderActiveChatMsgs = renderChatMsgsFromObj;
-      const initialMsgs = (cachedSession && cachedSession.messages) || _adminChatMsgsBySession[sessionId] || null;
+      const latestSess = (_adminChatsCache && _adminChatsCache[sessionId]) || cachedSession;
+      const initialMsgs = (latestSess && latestSess.messages) || _adminChatMsgsBySession[sessionId] || null;
       renderChatMsgsFromObj(initialMsgs);
 
       if (!initialMsgs) {
-        fbDb.ref(`chat_messages/${sessionId}`).once('value', snap => {
-          const altVal = snap.val();
-          if (altVal) {
-            _adminChatMsgsBySession[sessionId] = altVal;
-            renderChatMsgsFromObj(altVal);
+        fbDb.ref(`support_chats/${sessionId}/messages`).once('value', snap => {
+          const fbVal = snap.val();
+          if (fbVal) {
+            _adminChatMsgsBySession[sessionId] = fbVal;
+            renderChatMsgsFromObj(fbVal);
           }
         });
       }
