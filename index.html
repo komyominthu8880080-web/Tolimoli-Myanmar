@@ -13687,75 +13687,79 @@ applySoundToggleUI(isAudioMuted);
   }
 }
 
-    // =========================================================================
+  // =========================================================================
     // 3. ADMIN LIVE CHAT INBOX CONTROLLER
     // =========================================================================
     let adminChatFilterMode = 'active'; // 'active' or 'done'
-  function setAdminChatFilter(mode) {
-    adminChatFilterMode = mode;
-    const btnAct = document.getElementById('adminChatTabActive');
-    const btnDone = document.getElementById('adminChatTabDone');
-    if (btnAct && btnDone) {
-      btnAct.style.opacity = mode === 'active' ? '1' : '0.55';
-      btnDone.style.opacity = mode === 'done' ? '1' : '0.55';
-    }
-    renderAdminChatSessionsList();
-  }
+    const _adminChatMsgsBySession = {};
 
-  function toggleAdminChatStatus(sessionId, newStatus) {
-    if (typeof fbDb === 'undefined' || !sessionId) return;
-    fbDb.ref(`support_chats/${sessionId}/status`).set(newStatus);
-    selectAdminChatSession(sessionId);
-  }
-
-  function renderAdminChatSessionsList() {
-    const container = document.getElementById('adminChatSessionsListContainer');
-    if (!container || typeof fbDb === 'undefined') return;
-
-    // Active / Done Tab ခလုတ် ၂ ခုကို နှိပ်၍ စစ်ထုတ်နိုင်ရန် ချိတ်ဆက်ခြင်း
-    const parentBox = container.parentElement;
-    if (parentBox && !parentBox.dataset.tabWired) {
-      parentBox.dataset.tabWired = '1';
-      parentBox.querySelectorAll('button').forEach(b => {
-        const txt = (b.textContent || '').trim();
-        if (txt.includes('Active')) { b.id = 'adminChatTabActive'; b.onclick = () => setAdminChatFilter('active'); }
-        if (txt.includes('Done')) { b.id = 'adminChatTabDone'; b.onclick = () => setAdminChatFilter('done'); }
-      });
+    function setAdminChatFilter(mode) {
+      adminChatFilterMode = mode;
+      const btnAct = document.getElementById('adminChatTabActive');
+      const btnDone = document.getElementById('adminChatTabDone');
+      if (btnAct && btnDone) {
+        btnAct.style.opacity = mode === 'active' ? '1' : '0.55';
+        btnDone.style.opacity = mode === 'done' ? '1' : '0.55';
+      }
+      renderAdminChatSessionsList();
     }
 
-    fbDb.ref('support_chats').off('value');
-    fbDb.ref('support_chats').on('value', snap => {
-      const val = snap.val();
-      _adminChatsCache = val;
-      if (adminActiveSelectedSession && typeof window._renderActiveChatMsgs === 'function') {
-      window._renderActiveChatMsgs((_adminChatsCache[adminActiveSelectedSession] || {}).messages);
+    function toggleAdminChatStatus(sessionId, newStatus) {
+      if (typeof fbDb === 'undefined' || !sessionId) return;
+      fbDb.ref(`support_chats/${sessionId}/status`).set(newStatus);
+      selectAdminChatSession(sessionId);
     }
-      if (!val) {
-        container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ။</p>';
-        return;
+
+    function renderAdminChatSessionsList() {
+      const container = document.getElementById('adminChatSessionsListContainer');
+      if (!container || typeof fbDb === 'undefined') return;
+
+      const parentBox = container.parentElement;
+      if (parentBox && !parentBox.dataset.tabWired) {
+        parentBox.dataset.tabWired = '1';
+        parentBox.querySelectorAll('button').forEach(b => {
+          const txt = (b.textContent || '').trim();
+          if (txt.includes('Active')) { b.id = 'adminChatTabActive'; b.onclick = () => setAdminChatFilter('active'); }
+          if (txt.includes('Done')) { b.id = 'adminChatTabDone'; b.onclick = () => setAdminChatFilter('done'); }
+        });
       }
 
-      // Live Chat Customer Inbox (support_chats) တစ်ခုတည်းကိုသာ ရက်ပေါင်း ၉၀ (၃ လ) ကျော်ပါက Auto ဖျက်ခြင်း
-      const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
-      const nowTs = Date.now();
-      Object.entries(val).forEach(([k, d]) => {
-        if (d && d.lastUpdate && (nowTs - Number(d.lastUpdate) > NINETY_DAYS_MS)) {
-          fbDb.ref(`support_chats/${k}`).remove().catch(() => {});
+      fbDb.ref('support_chats').off('value');
+      fbDb.ref('support_chats').on('value', snap => {
+        const val = snap.val();
+        _adminChatsCache = val || {};
+
+        if (adminActiveSelectedSession && typeof window._renderActiveChatMsgs === 'function') {
+          const activeData = _adminChatsCache[adminActiveSelectedSession] || {};
+          const msgs = activeData.messages || _adminChatMsgsBySession[adminActiveSelectedSession] || null;
+          window._renderActiveChatMsgs(msgs);
         }
-      });
 
-      const entries = Object.entries(val).filter(([k, d]) => {
-        if (!d || !(d.messages || d.lastMessage)) return false;
-        const st = d.status || 'active';
-        return adminChatFilterMode === 'done' ? st === 'done' : st !== 'done';
-      }).sort((a, b) => (b[1].lastUpdate || 0) - (a[1].lastUpdate || 0));
+        if (!val) {
+          container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ။</p>';
+          return;
+        }
 
-      if (!entries.length) {
-        container.innerHTML = `<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; padding:12px 0;">${adminChatFilterMode === 'done' ? 'ပြီးစီးပြီးသော (Done) စကားဝိုင်း မရှိသေးပါ။' : 'လက်ရှိ (Active) စကားဝိုင်း မရှိသေးပါ။'}</p>`;
-        return;
-      }
+        const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+        const nowTs = Date.now();
+        Object.entries(val).forEach(([k, d]) => {
+          if (d && d.lastUpdate && (nowTs - Number(d.lastUpdate) > NINETY_DAYS_MS)) {
+            fbDb.ref(`support_chats/${k}`).remove().catch(() => {});
+          }
+        });
 
-      container.innerHTML = entries.map(([sId, data]) => {
+        const entries = Object.entries(val).filter(([k, d]) => {
+          if (!d || !(d.messages || d.lastMessage)) return false;
+          const st = d.status || 'active';
+          return adminChatFilterMode === 'done' ? st === 'done' : st !== 'done';
+        }).sort((a, b) => (b[1].lastUpdate || 0) - (a[1].lastUpdate || 0));
+
+        if (!entries.length) {
+          container.innerHTML = `<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; padding:12px 0;">${adminChatFilterMode === 'done' ? 'ပြီးစီးပြီးသော (Done) စကားဝိုင်း မရှိသေးပါ။' : 'လက်ရှိ (Active) စကားဝိုင်း မရှိသေးပါ။'}</p>`;
+          return;
+        }
+
+        container.innerHTML = entries.map(([sId, data]) => {
           const isAct = adminActiveSelectedSession === sId;
           const lastMsg = data.lastMessage || 'မေးမြန်းမှု';
           const rowBg = isAct ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)';
@@ -13763,156 +13767,175 @@ applySoundToggleUI(isAudioMuted);
           const titleColor = isAct ? '#00ff88' : 'var(--gold)';
           return `<div data-chat-session="${sId}" onclick="selectAdminChatSession('${sId}')" style="background:${rowBg}; border:1px solid ${rowBorder}; border-radius:8px; padding:8px; margin-bottom:6px; cursor:pointer;"><div style="display:flex; justify-content:space-between; align-items:center;"><b data-chat-title style="color:${titleColor}; font-size:11.5px;">${sId}</b><button onclick="event.stopPropagation(); deleteAdminChatSession('${sId}')" style="background:none; border:none; color:#f87171; font-size:11px; cursor:pointer; padding:0 2px;">×</button></div><div style="color:#cbd5e1; font-size:10.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:3px;">${lastMsg}</div></div>`;
         }).join('');
-    });
-  }
-
-  function backToAdminChatListMobile() {
-    adminActiveSelectedSession = null;
-    const listPane = document.getElementById('adminChatSessionsListContainer');
-    const convPane = document.getElementById('adminChatConversationPane');
-    const gridWrap = listPane ? listPane.parentElement : null;
-    if (gridWrap && window.innerWidth <= 768) {
-      gridWrap.style.display = 'block';
-      gridWrap.style.height = 'auto';
+      });
     }
-    if (listPane) listPane.style.display = 'block';
-    if (convPane && window.innerWidth <= 768) convPane.style.display = 'none';
-  }
 
-  function selectAdminChatSession(sessionId) {
-    adminActiveSelectedSession = sessionId;
-  const cachedSession = (typeof _adminChatsCache === 'object' && _adminChatsCache && _adminChatsCache[sessionId]) ? _adminChatsCache[sessionId] : null;
-  const listWrap = document.getElementById('adminChatSessionsListContainer');
-  if (listWrap) {
-    listWrap.querySelectorAll('[data-chat-session]').forEach(el => {
-      const active = el.getAttribute('data-chat-session') === sessionId;
-      el.style.background = active ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)';
-      el.style.borderColor = active ? '#00ff88' : '#334155';
-      const titleEl = el.querySelector('[data-chat-title]');
-      if (titleEl) titleEl.style.color = active ? '#00ff88' : 'var(--gold)';
-    });
-  }  
-  const listPane = document.getElementById('adminChatSessionsListContainer');
-    const convPane = document.getElementById('adminChatConversationPane');
-    const gridWrap = listPane ? listPane.parentElement : null;
-    const header = document.getElementById('adminActiveChatHeader');
-    const replyBar = document.getElementById('adminChatReplyBar');
-    const msgsBox = document.getElementById('adminActiveChatMessages');
-
-    // Mobile ဖုန်း Screen ဖြစ်ပါက Grid ကို Block ပြောင်းပြီး ဘောင်အတွင်း ကွက်တိ အပြည့်ပြသခြင်း
-    const isMobileView = window.innerWidth <= 768;
-    if (isMobileView) {
-      if (gridWrap) {
+    function backToAdminChatListMobile() {
+      adminActiveSelectedSession = null;
+      const listPane = document.getElementById('adminChatSessionsListContainer');
+      const convPane = document.getElementById('adminChatConversationPane');
+      const gridWrap = listPane ? listPane.parentElement : null;
+      if (gridWrap && window.innerWidth <= 768) {
         gridWrap.style.display = 'block';
         gridWrap.style.height = 'auto';
       }
-      if (listPane) listPane.style.display = 'none';
-      if (convPane) {
-        convPane.style.display = 'flex';
-        convPane.style.width = '100%';
-        convPane.style.maxWidth = '100%';
-        convPane.style.boxSizing = 'border-box';
-        convPane.style.minHeight = '440px';
-        convPane.style.maxHeight = '72vh';
-        convPane.style.overflowX = 'hidden';
-      }
-    } else {
-      if (gridWrap) {
-        gridWrap.style.display = 'grid';
-        gridWrap.style.height = '62vh';
-      }
       if (listPane) listPane.style.display = 'block';
-      if (convPane) convPane.style.display = 'flex';
+      if (convPane && window.innerWidth <= 768) convPane.style.display = 'none';
     }
 
-    if (header) {
-    const isDone = cachedSession ? cachedSession.status === 'done' : false;
-    const backBtn = isMobileView
-      ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;"><i class="fas fa-arrow-left"></i></button>`
-      : '';
-    const toggleBtn = isDone
-      ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Active ပြန်လုပ်မည်</button>`
-      : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#ea580c; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Done ပြီးစီး</button>`;
-    header.style.display = 'flex';
-    header.style.alignItems = 'center';
-    header.style.gap = '6px';
-    header.style.flexWrap = 'wrap';
-    header.innerHTML = `${backBtn}<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user-circle"></i> <b>${sessionId}</b></span><span style="margin-left:auto;">${toggleBtn}</span>`;
-  }
-    if (replyBar) {
-      replyBar.style.display = 'flex';
-      replyBar.style.marginTop = 'auto';
-      replyBar.style.paddingTop = '6px';
-    }
-    if (msgsBox) {
-      msgsBox.style.minHeight = isMobileView ? '230px' : '220px';
-      msgsBox.style.maxHeight = isMobileView ? '44vh' : '340px';
-    }
-    if (!msgsBox || typeof fbDb === 'undefined') return;
-  if (typeof updateMessageReadStatus === 'function') {
-    updateMessageReadStatus(sessionId, 'admin');
-  }
-
-  const renderChatMsgsFromObj = (val) => {
-    if (!val) {
-      msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:20px;">စကားပြောထားခြင်း မရှိသေးပါ</p>';
-      return;
-    }
-    const allMsgs = Object.entries(val)
-      .sort((a, b) => {
-        const ta = Number(a[1]?.timestamp || a[1]?.createdAt || a[1]?.ts || 0);
-        const tb = Number(b[1]?.timestamp || b[1]?.createdAt || b[1]?.ts || 0);
-        if (ta && tb && ta !== tb) return ta - tb;
-        return a[0].localeCompare(b[0]);
-      })
-      .map(([, m]) => m);
-    const list = allMsgs.length > 60 ? allMsgs.slice(-60) : allMsgs;
-    msgsBox.innerHTML = list.map(m => {
-      const isAdmin = m.sender === 'admin';
-      let media = '';
-      if (m.mediaUrl) {
-        if (m.mediaType === 'audio' || String(m.mediaUrl).includes('file_id=') || String(m.mediaUrl).startsWith('data:audio')) {
-          media = `<div style="margin-top:6px;"><audio controls preload="none" src="${m.mediaUrl}" style="height:36px; max-width:210px;"></audio></div>`;
-        } else if (m.mediaType === 'video') {
-          media = `<video controls preload="metadata" src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></video>`;
-        } else {
-          media = `<img loading="lazy" src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px; cursor:zoom-in;">`;
-        }
+    function selectAdminChatSession(sessionId) {
+      adminActiveSelectedSession = sessionId;
+      const cachedSession = (typeof _adminChatsCache === 'object' && _adminChatsCache && _adminChatsCache[sessionId]) ? _adminChatsCache[sessionId] : null;
+      const listWrap = document.getElementById('adminChatSessionsListContainer');
+      if (listWrap) {
+        listWrap.querySelectorAll('[data-chat-session]').forEach(el => {
+          const active = el.getAttribute('data-chat-session') === sessionId;
+          el.style.background = active ? 'rgba(0,255,136,0.15)' : 'rgba(255,255,255,0.04)';
+          el.style.borderColor = active ? '#00ff88' : '#334155';
+          const titleEl = el.querySelector('[data-chat-title]');
+          if (titleEl) titleEl.style.color = active ? '#00ff88' : 'var(--gold)';
+        });
       }
-      return `<div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:7px 10px; border-radius:10px; max-width:82%; font-size:12px; line-height:1.45;">
-        <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdmin ? 'Admin' : 'Customer'}</b>
-        ${m.text ? `<span>${m.text}</span>` : ''}
-        ${media}
-        <span style="font-size:9px; opacity:0.6; display:block; text-align:right; margin-top:3px;">${m.timeStr || ''}</span>
-      </div>`;
-    }).join('');
-    msgsBox.scrollTop = msgsBox.scrollHeight;
-  };
 
-  window._renderActiveChatMsgs = renderChatMsgsFromObj;
-  renderChatMsgsFromObj(cachedSession ? cachedSession.messages : null);
-}
-  function openAdminChatPhotoZoom(src) {
-  let ov = document.getElementById('adminChatPhotoZoomOverlay');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.id = 'adminChatPhotoZoomOverlay';
-    ov.onclick = (e) => { if (e.target === ov) ov.style.display = 'none'; };
-    ov.innerHTML = `<div style="background:#0f172a; border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:12px; max-width:92vw; max-height:90vh; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:20px;">
-        <span style="color:#fff; font-weight:600; font-size:14px;">🖼️ ဝယ်သူပို့ထားသော ဓာတ်ပုံ</span>
-        <button type="button" onclick="document.getElementById('adminChatPhotoZoomOverlay').style.display='none'" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:5px 12px; cursor:pointer; font-weight:bold;">✕ ပိတ်မည်</button>
-      </div>
-      <div style="display:flex; justify-content:center; align-items:center; overflow:auto;">
-        <img id="adminChatPhotoZoomImg" src="" style="max-width:86vw; max-height:76vh; object-fit:contain; border-radius:8px;">
-      </div>
-    </div>`;
-    document.body.appendChild(ov);
-  }
-  const imgEl = document.getElementById('adminChatPhotoZoomImg');
-  if (imgEl) imgEl.src = src;
-  ov.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2147483647; padding:16px;';
-}
+      const listPane = document.getElementById('adminChatSessionsListContainer');
+      const convPane = document.getElementById('adminChatConversationPane');
+      const gridWrap = listPane ? listPane.parentElement : null;
+      const header = document.getElementById('adminActiveChatHeader');
+      const replyBar = document.getElementById('adminChatReplyBar');
+      const msgsBox = document.getElementById('adminActiveChatMessages');
+
+      const isMobileView = window.innerWidth <= 768;
+      if (isMobileView) {
+        if (gridWrap) {
+          gridWrap.style.display = 'block';
+          gridWrap.style.height = 'auto';
+        }
+        if (listPane) listPane.style.display = 'none';
+        if (convPane) {
+          convPane.style.display = 'flex';
+          convPane.style.width = '100%';
+          convPane.style.maxWidth = '100%';
+          convPane.style.boxSizing = 'border-box';
+          convPane.style.minHeight = '440px';
+          convPane.style.maxHeight = '72vh';
+          convPane.style.overflowX = 'hidden';
+        }
+      } else {
+        if (gridWrap) {
+          gridWrap.style.display = 'grid';
+          gridWrap.style.height = '62vh';
+        }
+        if (listPane) listPane.style.display = 'block';
+        if (convPane) convPane.style.display = 'flex';
+      }
+
+      if (header) {
+        const isDone = cachedSession ? cachedSession.status === 'done' : false;
+        const backBtn = isMobileView
+          ? `<button type="button" onclick="backToAdminChatListMobile()" style="background:rgba(255,255,255,0.1); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer;"><i class="fas fa-arrow-left"></i></button>`
+          : '';
+        const toggleBtn = isDone
+          ? `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'active')" style="background:#10b981; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Active ပြန်လုပ်မည်</button>`
+          : `<button type="button" onclick="toggleAdminChatStatus('${sessionId}', 'done')" style="background:#ea580c; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:10.5px; font-weight:600; cursor:pointer; white-space:nowrap; flex-shrink:0;">Done ပြီးစီး</button>`;
+        header.style.display = 'flex';
+        header.style.alignItems = 'center';
+        header.style.gap = '6px';
+        header.style.flexWrap = 'wrap';
+        header.innerHTML = `${backBtn}<span style="display:inline-flex; align-items:center; gap:4px;"><i class="fas fa-user-circle"></i> <b>${sessionId}</b></span><span style="margin-left:auto;">${toggleBtn}</span>`;
+      }
+      if (replyBar) {
+        replyBar.style.display = 'flex';
+        replyBar.style.marginTop = 'auto';
+        replyBar.style.paddingTop = '6px';
+      }
+      if (msgsBox) {
+        msgsBox.style.minHeight = isMobileView ? '230px' : '220px';
+        msgsBox.style.maxHeight = isMobileView ? '44vh' : '340px';
+      }
+      if (!msgsBox || typeof fbDb === 'undefined') return;
+
+      const renderChatMsgsFromObj = (val) => {
+        if (adminActiveSelectedSession !== sessionId) return;
+        if (!val || (typeof val === 'object' && !Object.keys(val).length)) {
+          const fallbackText = cachedSession && cachedSession.lastMessage ? cachedSession.lastMessage : '';
+          if (fallbackText) {
+            const isAdm = fallbackText.startsWith('Admin:');
+            msgsBox.innerHTML = `<div style="align-self:${isAdm ? 'flex-end' : 'flex-start'}; background:${isAdm ? 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:7px 10px; border-radius:10px; max-width:82%; font-size:12px; line-height:1.45;">
+              <b style="font-size:9.5px; color:${isAdm ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdm ? 'Admin' : 'Customer'}</b>
+              <span>${fallbackText.replace(/^Admin:\s*/, '')}</span>
+            </div>`;
+          } else {
+            msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:20px;">စကားပြောထားခြင်း မရှိသေးပါ</p>';
+          }
+          return;
+        }
+        const allMsgs = Object.entries(val)
+          .sort((a, b) => {
+            const ta = Number(a[1]?.timestamp || a[1]?.createdAt || a[1]?.ts || 0);
+            const tb = Number(b[1]?.timestamp || b[1]?.createdAt || b[1]?.ts || 0);
+            if (ta && tb && ta !== tb) return ta - tb;
+            return a[0].localeCompare(b[0]);
+          })
+          .map(([, m]) => m);
+        const list = allMsgs.length > 60 ? allMsgs.slice(-60) : allMsgs;
+        msgsBox.innerHTML = list.map(m => {
+          const isAdmin = m.sender === 'admin';
+          let media = '';
+          if (m.mediaUrl) {
+            if (m.mediaType === 'audio' || String(m.mediaUrl).includes('file_id=') || String(m.mediaUrl).startsWith('data:audio')) {
+              media = `<div style="margin-top:6px;"><audio controls preload="none" src="${m.mediaUrl}" style="height:36px; max-width:210px;"></audio></div>`;
+            } else if (m.mediaType === 'video') {
+              media = `<video controls preload="metadata" src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></video>`;
+            } else {
+              media = `<img loading="lazy" src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px; cursor:zoom-in;">`;
+            }
+          }
+          return `<div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:7px 10px; border-radius:10px; max-width:82%; font-size:12px; line-height:1.45;">
+            <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdmin ? 'Admin' : 'Customer'}</b>
+            ${m.text ? `<span>${m.text}</span>` : ''}
+            ${media}
+            <span style="font-size:9px; opacity:0.6; display:block; text-align:right; margin-top:3px;">${m.timeStr || ''}</span>
+          </div>`;
+        }).join('');
+        msgsBox.scrollTop = msgsBox.scrollHeight;
+      };
+
+      window._renderActiveChatMsgs = renderChatMsgsFromObj;
+      const initialMsgs = (cachedSession && cachedSession.messages) || _adminChatMsgsBySession[sessionId] || null;
+      renderChatMsgsFromObj(initialMsgs);
+
+      if (!initialMsgs) {
+        fbDb.ref(`chat_messages/${sessionId}`).once('value', snap => {
+          const altVal = snap.val();
+          if (altVal) {
+            _adminChatMsgsBySession[sessionId] = altVal;
+            renderChatMsgsFromObj(altVal);
+          }
+        });
+      }
+    }
+    function openAdminChatPhotoZoom(src) {
+      let ov = document.getElementById('adminChatPhotoZoomOverlay');
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'adminChatPhotoZoomOverlay';
+        ov.onclick = (e) => { if (e.target === ov) ov.style.display = 'none'; };
+        ov.innerHTML = `<div style="background:#0f172a; border:1px solid rgba(255,255,255,0.2); border-radius:12px; padding:12px; max-width:92vw; max-height:90vh; display:flex; flex-direction:column; gap:10px; box-shadow:0 20px 60px rgba(0,0,0,0.9);">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:20px;">
+            <span style="color:#fff; font-weight:600; font-size:14px;">🖼️ ဝယ်သူပို့ထားသော ဓာတ်ပုံ</span>
+            <button type="button" onclick="document.getElementById('adminChatPhotoZoomOverlay').style.display='none'" style="background:#ef4444; color:#fff; border:none; border-radius:6px; padding:5px 12px; cursor:pointer; font-weight:bold;">✕ ပိတ်မည်</button>
+          </div>
+          <div style="display:flex; justify-content:center; align-items:center; overflow:auto;">
+            <img id="adminChatPhotoZoomImg" src="" style="max-width:86vw; max-height:76vh; object-fit:contain; border-radius:8px;">
+          </div>
+        </div>`;
+        document.body.appendChild(ov);
+      }
+      const imgEl = document.getElementById('adminChatPhotoZoomImg');
+      if (imgEl) imgEl.src = src;
+      ov.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2147483647; padding:16px;';
+    }
+
     function handleAdminChatMediaChosen(e) {
       const file = e.target.files[0];
       if (!file) return;
