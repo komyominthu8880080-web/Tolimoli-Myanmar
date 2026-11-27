@@ -13889,10 +13889,6 @@ applySoundToggleUI(isAudioMuted);
     msgsBox.scrollTop = msgsBox.scrollHeight;
   };
 
-  if (cachedSession && cachedSession.messages) {
-    renderChatMsgsFromObj(cachedSession.messages);
-  }
-
   window._renderActiveChatMsgs = renderChatMsgsFromObj;
   renderChatMsgsFromObj(cachedSession ? cachedSession.messages : null);
 }
