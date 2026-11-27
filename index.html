@@ -13726,6 +13726,7 @@ applySoundToggleUI(isAudioMuted);
     fbDb.ref('support_chats').off('value');
     fbDb.ref('support_chats').on('value', snap => {
       const val = snap.val();
+      _adminChatsCache = val;
       if (!val) {
         container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ။</p>';
         return;
@@ -13849,11 +13850,9 @@ applySoundToggleUI(isAudioMuted);
     updateMessageReadStatus(sessionId, 'admin');
   }
 
-  fbDb.ref(`support_chats/${sessionId}/messages`).off();
-  fbDb.ref(`support_chats/${sessionId}/messages`).on('value', snap => {
-    const val = snap.val();
+  const renderChatMsgsFromObj = (val) => {
     if (!val) {
-      msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:20px;">စာတို မရှိသေးပါ။</p>';
+      msgsBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:20px;">စကားပြောထားခြင်း မရှိသေးပါ</p>';
       return;
     }
     const allMsgs = Object.entries(val)
@@ -13870,21 +13869,30 @@ applySoundToggleUI(isAudioMuted);
       let media = '';
       if (m.mediaUrl) {
         if (m.mediaType === 'audio' || String(m.mediaUrl).includes('file_id=') || String(m.mediaUrl).startsWith('data:audio')) {
-          media = `<div style="margin-top:6px;"><audio controls preload="none" src="${m.mediaUrl}" style="height:36px; max-width:220px;"></audio></div>`;
+          media = `<div style="margin-top:6px;"><audio controls preload="none" src="${m.mediaUrl}" style="height:36px; max-width:210px;"></audio></div>`;
         } else if (m.mediaType === 'video') {
-          media = `<video controls preload="metadata" src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:6px;"></video>`;
+          media = `<video controls preload="metadata" src="${m.mediaUrl}" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px;"></video>`;
         } else {
-          media = `<img loading="lazy" src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:6px; cursor:pointer;">`;
+          media = `<img loading="lazy" src="${m.mediaUrl}" onclick="openAdminChatPhotoZoom(this.src)" style="max-width:180px; max-height:180px; border-radius:6px; margin-top:4px; cursor:zoom-in;">`;
         }
       }
-      return `<div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#7c3aed,#5b21b6)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:8px 11px; border-radius:10px; max-width:78%; margin-bottom:6px; font-size:0.8rem;">
-        <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdmin ? 'Admin (You)' : 'Customer'}</b>
+      return `<div style="align-self:${isAdmin ? 'flex-end' : 'flex-start'}; background:${isAdmin ? 'linear-gradient(135deg,#1e3a8a,#1d4ed8)' : 'rgba(255,255,255,0.08)'}; color:#fff; padding:7px 10px; border-radius:10px; max-width:82%; font-size:12px; line-height:1.45;">
+        <b style="font-size:9.5px; color:${isAdmin ? '#fde047' : '#38bdf8'}; display:block; margin-bottom:2px;">${isAdmin ? 'Admin' : 'Customer'}</b>
         ${m.text ? `<span>${m.text}</span>` : ''}
         ${media}
         <span style="font-size:9px; opacity:0.6; display:block; text-align:right; margin-top:3px;">${m.timeStr || ''}</span>
       </div>`;
     }).join('');
     msgsBox.scrollTop = msgsBox.scrollHeight;
+  };
+
+  if (cachedSession && cachedSession.messages) {
+    renderChatMsgsFromObj(cachedSession.messages);
+  }
+
+  fbDb.ref(`support_chats/${sessionId}/messages`).off();
+  fbDb.ref(`support_chats/${sessionId}/messages`).on('value', snap => {
+    renderChatMsgsFromObj(snap.val());
   });
 }
   function openAdminChatPhotoZoom(src) {
