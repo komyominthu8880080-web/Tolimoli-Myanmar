@@ -13702,7 +13702,11 @@ applySoundToggleUI(isAudioMuted);
         parentBox.style.display = 'flex';
         parentBox.style.flexDirection = 'column';
         parentBox.style.justifyContent = 'flex-start';
+        parentBox.style.alignContent = 'flex-start';
         parentBox.style.gap = '8px';
+        if (parentBox.parentElement) {
+          parentBox.parentElement.style.alignItems = 'start';
+        }
         if (!parentBox.dataset.tabWired) {
           parentBox.dataset.tabWired = '1';
           parentBox.querySelectorAll('button').forEach(b => {
