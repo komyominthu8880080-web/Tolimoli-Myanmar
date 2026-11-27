@@ -13726,6 +13726,7 @@ applySoundToggleUI(isAudioMuted);
 
       fbDb.ref('support_chats').off('value');
       fbDb.ref('support_chats').on('value', snap => {
+        const val = snap.val();
        if (val && typeof val === 'object') {
           _adminChatsCache = val;
           Object.entries(val).forEach(([sid, sdata]) => {
