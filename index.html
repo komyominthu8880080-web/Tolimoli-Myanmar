@@ -13726,8 +13726,12 @@ applySoundToggleUI(isAudioMuted);
 
       fbDb.ref('support_chats').off('value');
       fbDb.ref('support_chats').on('value', snap => {
-        const val = snap.val();
-        _adminChatsCache = val || {};
+       if (val && typeof val === 'object') {
+          _adminChatsCache = val;
+          Object.entries(val).forEach(([sid, sdata]) => {
+            if (sdata && sdata.messages) _adminChatMsgsBySession[sid] = sdata.messages;
+          });
+        }
 
         if (adminActiveSelectedSession && typeof window._renderActiveChatMsgs === 'function') {
           const activeData = _adminChatsCache[adminActiveSelectedSession] || {};
@@ -13915,11 +13919,15 @@ applySoundToggleUI(isAudioMuted);
       renderChatMsgsFromObj(initialMsgs);
 
       if (!initialMsgs) {
-        fbDb.ref(`support_chats/${sessionId}/messages`).once('value', snap => {
-          const fbVal = snap.val();
-          if (fbVal) {
-            _adminChatMsgsBySession[sessionId] = fbVal;
-            renderChatMsgsFromObj(fbVal);
+        fbDb.ref(`support_chats/${sessionId}`).once('value', snap => {
+          const sVal = snap.val();
+          if (sVal) {
+            if (!_adminChatsCache || typeof _adminChatsCache !== 'object') _adminChatsCache = {};
+            _adminChatsCache[sessionId] = sVal;
+            if (sVal.messages) {
+              _adminChatMsgsBySession[sessionId] = sVal.messages;
+              renderChatMsgsFromObj(sVal.messages);
+            }
           }
         });
       }
