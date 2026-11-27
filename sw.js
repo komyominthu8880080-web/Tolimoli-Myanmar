@@ -86,7 +86,7 @@ self.addEventListener('fetch', (e) => {
   }
 
   // အခြား Static Assets (ပုံများ၊ JS/CSS) — မအောင်မြင်ပါက HTML ပြန်မပေးဘဲ ပုံမှန်အတိုင်း Fail ဖြစ်စေမည်
-  e.respondWith(
-    caches.match(e.request).then((res) => res || fetch(e.request))
+ e.respondWith(
+    caches.match(e.request).then((res) => res || fetch(e.request).catch(() => new Response('', { status: 404 })))
   );
 });
