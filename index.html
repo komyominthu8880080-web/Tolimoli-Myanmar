@@ -13711,10 +13711,18 @@ applySoundToggleUI(isAudioMuted);
         }
         if (!parentBox.dataset.tabWired) {
           parentBox.dataset.tabWired = '1';
-          parentBox.querySelectorAll('button').forEach(b => {
+         parentBox.querySelectorAll('button').forEach(b => {
             const txt = (b.textContent || '').trim();
-            if (txt.includes('Active')) { b.id = 'adminChatTabActive'; b.onclick = () => setAdminChatFilter('active'); }
-            if (txt.includes('Done')) { b.id = 'adminChatTabDone'; b.onclick = () => setAdminChatFilter('done'); }
+            if (txt.includes('Active')) {
+              b.id = 'adminChatTabActive';
+              b.removeAttribute('onclick');
+              b.onclick = (e) => { e.preventDefault(); setAdminChatFilter('active'); };
+            }
+            if (txt.includes('Done')) {
+              b.id = 'adminChatTabDone';
+              b.removeAttribute('onclick');
+              b.onclick = (e) => { e.preventDefault(); setAdminChatFilter('done'); };
+            }
           });
         }
       }
@@ -13785,11 +13793,19 @@ applySoundToggleUI(isAudioMuted);
       const parentBox = container.parentElement;
       if (parentBox && !parentBox.dataset.tabWired) {
         parentBox.dataset.tabWired = '1';
-        parentBox.querySelectorAll('button').forEach(b => {
-          const txt = (b.textContent || '').trim();
-          if (txt.includes('Active')) { b.id = 'adminChatTabActive'; b.onclick = () => setAdminChatFilter('active'); }
-          if (txt.includes('Done')) { b.id = 'adminChatTabDone'; b.onclick = () => setAdminChatFilter('done'); }
-        });
+       parentBox.querySelectorAll('button').forEach(b => {
+            const txt = (b.textContent || '').trim();
+            if (txt.includes('Active')) {
+              b.id = 'adminChatTabActive';
+              b.removeAttribute('onclick');
+              b.onclick = (e) => { e.preventDefault(); setAdminChatFilter('active'); };
+            }
+            if (txt.includes('Done')) {
+              b.id = 'adminChatTabDone';
+              b.removeAttribute('onclick');
+              b.onclick = (e) => { e.preventDefault(); setAdminChatFilter('done'); };
+            }
+          });
       }
 
       fbDb.ref('support_chats').off('value');
@@ -13862,21 +13878,18 @@ applySoundToggleUI(isAudioMuted);
           gridWrap.style.height = 'auto';
         }
         if (listPane) listPane.style.display = 'none';
-        if (convPane) {
-          convPane.style.display = 'flex';
-          convPane.style.width = '100%';
-          convPane.style.maxWidth = '100%';
-          convPane.style.boxSizing = 'border-box';
-          convPane.style.minHeight = '440px';
-          convPane.style.maxHeight = '72vh';
-          convPane.style.overflowX = 'hidden';
-        }
-      } else {
+        } else {
         if (gridWrap) {
           gridWrap.style.display = 'grid';
           gridWrap.style.height = '62vh';
         }
-        if (listPane) listPane.style.display = 'block';
+        if (listPane) {
+          listPane.style.display = 'flex';
+          listPane.style.flexDirection = 'column';
+          listPane.style.justifyContent = 'flex-start';
+          listPane.style.height = '100%';
+          listPane.style.alignSelf = 'stretch';
+        }
         if (convPane) convPane.style.display = 'flex';
       }
 
