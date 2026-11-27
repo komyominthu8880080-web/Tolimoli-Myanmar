@@ -13727,6 +13727,9 @@ applySoundToggleUI(isAudioMuted);
     fbDb.ref('support_chats').on('value', snap => {
       const val = snap.val();
       _adminChatsCache = val;
+      if (adminActiveSelectedSession && typeof window._renderActiveChatMsgs === 'function') {
+      window._renderActiveChatMsgs((_adminChatsCache[adminActiveSelectedSession] || {}).messages);
+    }
       if (!val) {
         container.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center;">လက်ရှိ စကားဝိုင်း မရှိသေးပါ။</p>';
         return;
@@ -13890,10 +13893,8 @@ applySoundToggleUI(isAudioMuted);
     renderChatMsgsFromObj(cachedSession.messages);
   }
 
-  fbDb.ref(`support_chats/${sessionId}/messages`).off();
-  fbDb.ref(`support_chats/${sessionId}/messages`).on('value', snap => {
-    renderChatMsgsFromObj(snap.val());
-  });
+  window._renderActiveChatMsgs = renderChatMsgsFromObj;
+  renderChatMsgsFromObj(cachedSession ? cachedSession.messages : null);
 }
   function openAdminChatPhotoZoom(src) {
   let ov = document.getElementById('adminChatPhotoZoomOverlay');
