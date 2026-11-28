@@ -2142,7 +2142,203 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
     max-width: 390px; width: 100%; padding: 24px 20px; text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.7);
   }
+  /* ==================== STORY RING CATEGORY BAR (DESIGN 2) ==================== */
+  .story-cat-section {
+    background: linear-gradient(180deg, rgba(18, 13, 36, 0.96), rgba(13, 10, 26, 0.98));
+    border-bottom: 1px solid rgba(212, 175, 55, 0.16);
+    padding: 8px 10px 10px;
+    width: 100%;
+  }
+  .story-cat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding: 0 2px;
+  }
+  .story-cat-heading {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .story-cat-all-btn {
+    background: rgba(168, 85, 247, 0.16);
+    border: 1px solid rgba(168, 85, 247, 0.45);
+    color: #e9d5ff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: 0.2s;
+  }
+  .story-cat-all-btn:hover {
+    background: var(--primary);
+    color: #fff;
+  }
+  .story-cat-track-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .story-cat-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    padding: 4px 4px 2px;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
+  }
+  .story-cat-scroll::-webkit-scrollbar { display: none; }
 
+  .story-cat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 68px;
+    flex-shrink: 0;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+    position: relative;
+  }
+  .story-cat-item:active { transform: scale(0.94); }
+
+  .story-ring-outer {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 2.5px;
+    background: linear-gradient(135deg, rgba(155, 81, 224, 0.55), rgba(212, 175, 55, 0.4));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.25s ease;
+  }
+  .story-cat-item.active .story-ring-outer {
+    background: linear-gradient(135deg, #fde047, #d4af37, #f59e0b);
+    box-shadow: 0 0 14px rgba(212, 175, 55, 0.55);
+    transform: translateY(-2px);
+  }
+  .story-cat-item.promo-ring .story-ring-outer {
+    background: linear-gradient(135deg, #ff4081, #ef4444, #f59e0b);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  .story-ring-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: #140f26;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .story-ring-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    transition: filter 0.3s ease;
+  }
+  .story-ring-icon {
+    font-size: 1.35rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at top, rgba(155, 81, 224, 0.35), rgba(24, 19, 45, 0.95));
+  }
+  .story-cat-item.promo-ring .story-ring-icon {
+    background: radial-gradient(circle at top, rgba(239, 68, 68, 0.45), rgba(24, 19, 45, 0.95));
+  }
+
+  .story-count-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: #18132d;
+    color: var(--gold-light);
+    border: 1px solid var(--gold);
+    font-size: 0.58rem;
+    font-weight: 700;
+    padding: 0 5px;
+    min-width: 18px;
+    height: 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .story-cat-item.promo-ring .story-count-badge {
+    background: #ef4444;
+    color: #fff;
+    border-color: #fff;
+  }
+
+  .story-cat-label {
+    margin-top: 5px;
+    font-size: 0.67rem;
+    color: #cbd5e1;
+    text-align: center;
+    line-height: 1.25;
+    max-width: 68px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+  }
+  .story-cat-item.active .story-cat-label {
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+
+  /* Privacy Mask ဖွင့်ထားပါက Category ပုံများပါ Blur ဖြစ်စေရန် */
+  body.discreet-mask-active .story-ring-img {
+    filter: blur(8px) grayscale(65%);
+  }
+
+  /* ဖုန်းတွင် မြှားခလုတ်ဖျောက်ပြီး Desktop တွင်သာ ပြသခြင်း */
+  .story-arrow-btn {
+    display: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.16);
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    color: var(--gold-light);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+  }
+  .story-arrow-btn:hover {
+    background: var(--gold);
+    color: #12091f;
+  }
+  @media (min-width: 768px) {
+    .story-arrow-btn { display: inline-flex; }
+    .story-cat-scroll { gap: 16px; }
+  }
   </style>
 </head>
 <body>
@@ -2237,31 +2433,27 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   </div>
 </div>
 
-  <!-- CATEGORIES PILLS SCROLL -->
-<div class="category-bar-wrapper" style="position: relative; display: flex; align-items: center; gap: 4px;">
-  <!-- ၁။ အမျိုးအစားအားလုံး ခလုတ် (အရင်ဆုံး နေရာယူမည်) -->
-  <button type="button" class="btn-open-cat-modal" onclick="openCategorySheet()" style="flex-shrink: 0;">
-    <i class="fas fa-th-large"></i> အမျိုးအစားအားလုံး ▾
-  </button>
+  <!-- STORY RING CATEGORIES BAR -->
+  <section class="story-cat-section" id="storyCategorySection">
+    <div class="story-cat-header">
+      <span class="story-cat-heading"><i class="fas fa-sparkles" style="color:var(--gold);"></i> ✨ အမျိုးအစားများ</span>
+      <button type="button" class="story-cat-all-btn" onclick="openCategorySheet()">
+        <i class="fas fa-th-large"></i> အားလုံးကြည့် ›
+      </button>
+    </div>
+    <div class="story-cat-track-wrap">
+      <button type="button" class="story-arrow-btn" onclick="scrollCategories(-220)" title="ဘယ်သို့ရွှေ့ရန်">❮</button>
+      <div class="story-cat-scroll" id="categoryContainer"></div>
+      <button type="button" class="story-arrow-btn" onclick="scrollCategories(220)" title="ညာသို့ရွှေ့ရန်">❯</button>
+    </div>
+  </section>
 
-  <!-- ၂။ ဘယ်ဘက်သို့ ရွှေ့သည့် ခလုတ် (အမျိုးအစားအားလုံး ၏ ချက်ချင်းနောက်တွင် ကပ်ထားခြင်း) -->
-  <button type="button" class="cat-nav-btn cat-nav-left" onclick="scrollCategories(-140)" title="ဘယ်သို့ရွှေ့ရန်">«</button>
-
-  <!-- ၃။ Category စာရင်းများ ပြေးမည့် နေရာ -->
-  <div class="category-scroll-bar" id="categoryContainer" style="display:flex; gap:6px; overflow-x:auto; flex: 1;"></div>
-
-  <!-- ၄။ ညာဘက်သို့ ရွှေ့သည့် ခလုတ် (ညာဘက် အစွန်းဆုံးတွင် ကပ်ထားခြင်း) -->
-  <button type="button" class="cat-nav-btn cat-nav-right" onclick="scrollCategories(140)" title="ညာသို့ရွှေ့ရန်">»</button>
-</div>
-
-<script>
-function scrollCategories(amount) {
-  const container = document.getElementById('categoryContainer');
-  if (container) {
-    container.scrollBy({ left: amount, behavior: 'smooth' });
+  <script>
+  function scrollCategories(amount) {
+    const container = document.getElementById('categoryContainer');
+    if (container) container.scrollBy({ left: amount, behavior: 'smooth' });
   }
-}
-</script>
+  </script>
 
     <!-- PRICE RANGE & COD QUICK FILTER BAR -->
   <div class="price-filter-row" id="priceFilterBar">
@@ -12188,30 +12380,81 @@ function copyProductLink(productId) {
   copyTextToClipboard(url, `"${p.name.substring(0, 20)}..." Link ကူးယူပြီးပါပြီ!`);
 }
 
+    function getCategoryMetaInfo(catName) {
+      const visibleProds = (products || []).filter(p => p && !p.isHidden);
+      const matched = visibleProds.filter(p => {
+        const pCats = Array.isArray(p.categories) && p.categories.length > 0 ? p.categories : (p.category ? [p.category] : []);
+        return pCats.includes(catName) || (p.category && p.category.includes(catName));
+      });
+      const inStockFirst = matched.find(p => Number(p.stock !== undefined ? p.stock : 10) > 0) || matched[0];
+      const autoImg = inStockFirst
+        ? ((Array.isArray(inStockFirst.images) && inStockFirst.images[0]) || inStockFirst.image || '/logo.png')
+        : '/logo.png';
+      return { count: matched.length, img: autoImg };
+    }
+
     function renderCategoryUI() {
       const cont = document.getElementById('categoryContainer');
       if (cont) {
-        const promoCount = (products || []).filter(p => isProductPromo(p)).length;
+        const visibleProds = (products || []).filter(p => p && !p.isHidden);
+        const totalCount = visibleProds.length;
+        const promoCount = visibleProds.filter(p => isProductPromo(p)).length;
+        const isAllActive = selectedCategory === 'All';
         const isPromoActive = selectedCategory === 'Promotion';
 
-        cont.innerHTML = `
-          <button type="button" class="cat-pill-btn ${selectedCategory === 'All' ? 'active' : ''}" onclick="selectCategoryByName('All')">အားလုံး</button>
-          <button type="button" class="cat-pill-btn cat-pill-promo ${isPromoActive ? 'active' : ''}" onclick="selectCategoryByName('Promotion')">
-            <span>🔥 ပရိုမိုးရှင်းပစ္စည်းများ</span>
-            ${promoCount > 0 ? `<span class="promo-count-pill">${promoCount}</span>` : ''}
-            <span class="cat-pill-share-icon" onclick="copyCategoryLink(event, 'Promotion')" title="Promotion Link ကူးမည်"><i class="fas fa-link"></i></span>
-          </button>
-        ` + categories.map(c => {
+        const allItemHtml = `
+          <div class="story-cat-item ${isAllActive ? 'active' : ''}" onclick="selectCategoryByName('All')">
+            <div class="story-ring-outer">
+              <div class="story-ring-inner">
+                <div class="story-ring-icon">✨</div>
+              </div>
+              <span class="story-count-badge">${totalCount}</span>
+            </div>
+            <span class="story-cat-label">အားလုံး</span>
+          </div>
+        `;
+
+        const promoItemHtml = `
+          <div class="story-cat-item promo-ring ${isPromoActive ? 'active' : ''}" onclick="selectCategoryByName('Promotion')">
+            <div class="story-ring-outer">
+              <div class="story-ring-inner">
+                <div class="story-ring-icon">🔥</div>
+              </div>
+              ${promoCount > 0 ? `<span class="story-count-badge">${promoCount}</span>` : ''}
+            </div>
+            <span class="story-cat-label">ပရိုမိုးရှင်း</span>
+          </div>
+        `;
+
+        const catItemsHtml = (categories || []).map(c => {
           const isActive = selectedCategory === c;
-          return `<button type="button" class="cat-pill-btn ${isActive ? 'active' : ''}" onclick="selectCategoryByName('${c}')">
-            ${c}
-            <span class="cat-pill-share-icon" onclick="copyCategoryLink(event, '${c}')" title="Link ကူးမည်"><i class="fas fa-link"></i></span>
-          </button>`;
+          const safeCat = String(c).replace(/'/g, "\\'");
+          const meta = getCategoryMetaInfo(c);
+          return `
+            <div class="story-cat-item ${isActive ? 'active' : ''}" onclick="selectCategoryByName('${safeCat}')">
+              <div class="story-ring-outer">
+                <div class="story-ring-inner">
+                  <img class="story-ring-img" src="${meta.img}" alt="${c}" loading="lazy" onerror="if(!this.dataset.fb){this.dataset.fb='1';this.src='/logo.png';}else{this.onerror=null;}">
+                </div>
+                ${meta.count > 0 ? `<span class="story-count-badge">${meta.count}</span>` : ''}
+              </div>
+              <span class="story-cat-label">${c}</span>
+            </div>
+          `;
         }).join('');
+
+        cont.innerHTML = allItemHtml + promoItemHtml + catItemsHtml;
       }
       renderAdminCategoryChips();
       updateAdminPromoCountBadge();
       syncSearchCategoryDropdown();
+    }
+
+    // Firebase မှ ပစ္စည်းများ ဆွဲပြီးသည်နှင့် Story Ring ပုံနှင့် အရေအတွက်များ အလိုအလျောက် Update ဖြစ်စေရန်
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref('shop_products').on('value', () => {
+        setTimeout(() => { if (typeof renderCategoryUI === 'function') renderCategoryUI(); }, 150);
+      });
     }
     function syncSearchCategoryDropdown() {
   const sel = document.getElementById('searchCategoryFilterSelect');
