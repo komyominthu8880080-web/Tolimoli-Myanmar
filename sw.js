@@ -1,5 +1,5 @@
-const STATIC_CACHE = 'tolimoli-static-v8';
-const DYNAMIC_CACHE = 'tolimoli-dynamic-v8';
+const STATIC_CACHE = 'tolimoli-static-v9';
+const DYNAMIC_CACHE = 'tolimoli-dynamic-v9';
 
 const STATIC_ASSETS = [
   '/manifest.json',
