@@ -19282,11 +19282,12 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 // =========================================================================
-// FAST MODERN LIVE CHAT INBOX ENHANCER (0ms INSTANT SWITCH + FIXED LAYOUT)
+// FAST MODERN LIVE CHAT INBOX ENHANCER (ZERO-FLICKER + SAFE CACHE)
 // =========================================================================
 (function initModernLiveChatUpgrade() {
   window._tmAdminChatSearchQuery = '';
   window._tmChatTabMode = 'active';
+  window._tmSafeChatsCache = {};
 
   function formatChatTimeAgo(ts) {
     if (!ts) return '';
@@ -19304,12 +19305,18 @@ window.addEventListener('DOMContentLoaded', () => {
     return colors[sum % colors.length];
   }
 
+  function getMergedCache() {
+    if (typeof _adminChatsCache === 'object' && _adminChatsCache && Object.keys(_adminChatsCache).length > 0) {
+      window._tmSafeChatsCache = Object.assign({}, window._tmSafeChatsCache, _adminChatsCache);
+    }
+    return window._tmSafeChatsCache;
+  }
+
   function fixLeftColumnLayout() {
     const listBox = document.getElementById('adminChatSessionsListContainer');
     if (!listBox) return;
     const parent = listBox.parentElement;
     if (parent) {
-      // ကုဒ်အဟောင်း၏ Grid / space-between ကို !important ဖြင့် အပြီးဖျောက်ခြင်း
       parent.style.setProperty('display', 'flex', 'important');
       parent.style.setProperty('flex-direction', 'column', 'important');
       parent.style.setProperty('justify-content', 'flex-start', 'important');
@@ -19317,7 +19324,6 @@ window.addEventListener('DOMContentLoaded', () => {
       parent.style.setProperty('gap', '6px', 'important');
       parent.style.setProperty('min-height', '0', 'important');
 
-      // Active/Done ခလုတ်တန်းကို အပေါ်ဆုံးမှာ အမြင့်အသေ ကပ်ထားခြင်း
       Array.from(parent.children).forEach(ch => {
         if (ch !== listBox && ch.id !== 'tmAdminChatSearchInput') {
           ch.style.setProperty('flex', '0 0 auto', 'important');
@@ -19359,6 +19365,21 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Chat နှိပ်ချိန် စာရင်းမပျောက်စေဘဲ Highlight ကိုသာ ချက်ချင်းပြောင်းခြင်း
+  window._tmSelectChatCard = function(el, sid) {
+    document.querySelectorAll('#adminChatSessionsListContainer .tm-chat-session-card').forEach(c => {
+      c.classList.remove('active');
+    });
+    if (el) {
+      el.classList.add('active');
+      el.classList.remove('unread');
+      const dot = el.querySelector('.tm-chat-unread-dot');
+      if (dot) dot.remove();
+    }
+    if (typeof selectAdminChatSession === 'function') selectAdminChatSession(sid);
+    else if (typeof openAdminChat === 'function') openAdminChat(sid);
+  };
+
   window.fastRenderAdminChatList = function(forceMode) {
     if (forceMode) window._tmChatTabMode = forceMode;
     fixLeftColumnLayout();
@@ -19367,19 +19388,22 @@ window.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('adminChatSessionsListContainer');
     if (!container) return;
 
-    const cache = (typeof _adminChatsCache === 'object' && _adminChatsCache) ? _adminChatsCache : {};
-    if (Object.keys(cache).length === 0 && typeof fbDb !== 'undefined' && !window._tmFetchingChatFallback) {
-      window._tmFetchingChatFallback = true;
-      fbDb.ref('support_chats').once('value').then(snap => {
-        window._tmFetchingChatFallback = false;
-        const val = snap.val();
-        if (val && typeof val === 'object') {
-          window._adminChatsCache = val;
-          if (typeof _adminChatsCache !== 'undefined') _adminChatsCache = val;
-          window.fastRenderAdminChatList();
-        }
-      }).catch(() => { window._tmFetchingChatFallback = false; });
-      return;
+    const cache = getMergedCache();
+    if (Object.keys(cache).length === 0) {
+      if (typeof fbDb !== 'undefined' && !window._tmFetchingChatFallback) {
+        window._tmFetchingChatFallback = true;
+        fbDb.ref('support_chats').once('value').then(snap => {
+          window._tmFetchingChatFallback = false;
+          const val = snap.val();
+          if (val && typeof val === 'object') {
+            window._tmSafeChatsCache = val;
+            window._adminChatsCache = val;
+            if (typeof _adminChatsCache !== 'undefined') _adminChatsCache = val;
+            window.fastRenderAdminChatList();
+          }
+        }).catch(() => { window._tmFetchingChatFallback = false; });
+      }
+      return; // Data မရသေးခင် စာရင်းကို အလွတ်မဖြစ်စေရန်
     }
 
     const curFilter = window._tmChatTabMode || 'active';
@@ -19411,7 +19435,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const safeSid = sid.replace(/'/g, "\\'");
 
       return `
-        <div class="tm-chat-session-card ${isSelected ? 'active' : ''} ${isUnread ? 'unread' : ''}" onclick="if(typeof selectAdminChatSession==='function') selectAdminChatSession('${safeSid}'); else if(typeof openAdminChat==='function') openAdminChat('${safeSid}'); setTimeout(()=>window.fastRenderAdminChatList(), 20);">
+        <div class="tm-chat-session-card ${isSelected ? 'active' : ''} ${isUnread ? 'unread' : ''}" onclick="window._tmSelectChatCard(this, '${safeSid}')">
           <div class="tm-chat-avatar" style="background:${getAvatarColor(sid)};">
             ${initials}
             ${isUnread ? '<span class="tm-chat-unread-dot" title="မဖတ်ရသေးသော စာအသစ်"></span>' : ''}
@@ -19430,7 +19454,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }).join('');
   };
 
-  // Active / Done ခလုတ်နှိပ်တာနဲ့ 0ms ချက်ချင်းပြောင်းစေရန် Capture Listener ဖြင့် ဖမ်းခြင်း
   document.addEventListener('click', function(e) {
     const btn = e.target.closest('#adminChatTabActive, #adminChatTabDone');
     if (!btn) return;
