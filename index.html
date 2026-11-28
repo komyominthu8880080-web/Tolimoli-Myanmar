@@ -2844,34 +2844,47 @@ function scrollCategories(amount) {
   </div>
 
   <div class="modal-overlay" id="stockAdjustmentModal" style="z-index: 99999 !important;">
-    <div class="modal-content" style="max-width:400px;">
-      <button class="modal-close" onclick="closeModal('stockAdjustmentModal'); openModal('adminModal');"><i class="fas fa-times"></i></button>
-      <h3 style="color:var(--gold); font-size:1rem; margin-bottom:8px;"><i class="fas fa-cogs"></i> Stock ချိန်ညှိခြင်းနှင့် ပျက်စီးစာရင်း</h3>
-      <div id="adjProductInfo" style="font-size:0.8rem; color:#38bdf8; margin-bottom:10px;"></div>
+  <div class="modal-content" style="max-width:420px;">
+    <button class="modal-close" onclick="closeModal('stockAdjustmentModal'); openModal('adminModal');"><i class="fas fa-times"></i></button>
+    <h3 style="color:var(--gold); font-size:1rem; margin-bottom:8px;"><i class="fas fa-cogs"></i> Stock ချိန်ညှိခြင်းနှင့် ပျက်စီးစာရင်း</h3>
+    <div id="adjProductInfo" style="font-size:0.8rem; color:#38bdf8; margin-bottom:8px;"></div>
 
-      <div class="form-group">
-        <label>ချိန်ညှိမည့် ပုံစံ ရွေးချယ်ပါ</label>
-        <select id="adjActionType">
-          <option value="in">📦 ပစ္စည်းအဝင် ထပ်ဖြည့်မည် (Stock In)</option>
-          <option value="damage">⚠️ ပျက်စီး/ချို့ယွင်း စာရင်းသွင်းမည် (Damage)</option>
-        </select>
-      </div>
+    <!-- အရောင်အလိုက် လက်ကျန် Badge များ ကြည့်ရန် -->
+    <div id="adjColorSummaryBadges" style="display:none; flex-wrap:wrap; gap:5px; margin-bottom:10px;"></div>
 
-      <div class="form-group">
-        <label>အရေအတွက် (Quantity)</label>
-        <input type="number" id="adjActionQty" value="1" min="1">
-      </div>
-
-      <div class="form-group">
-        <label>အကြောင်းပြချက် / မှတ်ချက် (Reason Log)</label>
-        <input type="text" id="adjActionReason" placeholder="ဥပမာ - ကားဂိတ်ပို့ရင်း ဖိမိ၍ ကွဲသွားခြင်း">
-      </div>
-
-      <button class="btn-gold" onclick="confirmStockAdjustment()" style="margin-top:6px;">
-        <i class="fas fa-check"></i> အတည်ပြု သိမ်းဆည်းမည်
-      </button>
+    <!-- အရောင် ရွေးချယ်ရန် (အရောင်ခွဲရှိသော ပစ္စည်းမှသာ ပေါ်မည်) -->
+    <div class="form-group" id="adjColorSelectGroup" style="display:none;">
+      <label style="color:var(--gold); font-weight:600;"><i class="fas fa-palette"></i> ချိန်ညှိမည့် အရောင် ရွေးချယ်ပါ *</label>
+      <select id="adjColorSelect"></select>
     </div>
+
+    <div class="form-group">
+      <label>ချိန်ညှိမည့် ပုံစံ ရွေးချယ်ပါ</label>
+      <select id="adjActionType">
+        <option value="in">📦 ပစ္စည်းအဝင် ထပ်ဖြည့်မည် (Stock In +)</option>
+        <option value="out">📤 Stock လျှော့မည် / စာရင်းညှိမည် (Stock Out -)</option>
+        <option value="damage">⚠️ ပျက်စီး/ချို့ယွင်း စာရင်းသွင်းမည် (Damage -)</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>အရေအတွက် (Quantity)</label>
+      <input type="number" id="adjActionQty" value="1" min="1">
+    </div>
+
+    <div class="form-group">
+      <label>အကြောင်းပြချက် / မှတ်ချက် (Reason Log)</label>
+      <input type="text" id="adjActionReason" placeholder="ဥပမာ - အနက်ရောင် ၅ ခု ထပ်ရောက် / ဖိမိ၍ ပျက်စီး">
+    </div>
+
+    <!-- နောက်ဆုံး ချိန်ညှိမှတ်တမ်း ၃ ခု ပြသရန် -->
+    <div id="adjRecentLogsBox" style="display:none; background:rgba(255,255,255,0.03); border:1px solid #334155; border-radius:6px; padding:8px; margin-bottom:8px; font-size:0.72rem; max-height:110px; overflow-y:auto;"></div>
+
+    <button class="btn-gold" onclick="confirmStockAdjustment()" style="margin-top:6px;">
+      <i class="fas fa-check"></i> အတည်ပြု သိမ်းဆည်းမည်
+    </button>
   </div>
+</div>
 
   <!-- 5. ORDER TRACKING MODAL -->
   <div class="modal-overlay" id="orderTrackModal">
@@ -8794,28 +8807,86 @@ function checkAndTriggerLowStockAlert(purchasedItems) {
         }
       });
     }
-    function openStockAdjustmentModal(pId) {
+    function ensureProductColorVariants(p) {
+  if (!p) return [];
+  if (Array.isArray(p.colorVariants) && p.colorVariants.length > 0) {
+    return p.colorVariants;
+  }
+  if (Array.isArray(p.colors) && p.colors.length > 0) {
+    const cleanColors = p.colors.map(c => String(c || '').trim()).filter(Boolean);
+    if (cleanColors.length > 0) {
+      // အရောင်ရှိပြီး colorVariants မရှိသေးပါက လက်ရှိ stock ကို အချိုးကျခွဲထည့်ပေးမည်
+      const total = Number(p.stock) || 0;
+      const base = Math.floor(total / cleanColors.length);
+      let rem = total % cleanColors.length;
+      p.colorVariants = cleanColors.map(c => {
+        const q = base + (rem > 0 ? 1 : 0);
+        if (rem > 0) rem--;
+        return { color: c, qty: q };
+      });
+      return p.colorVariants;
+    }
+  }
+  return [];
+}
+
+function openStockAdjustmentModal(pId) {
   const p = products.find(x => x.id === pId);
   if (!p) return;
   currentAdjProductId = pId;
-  document.getElementById('adjProductInfo').innerText = `${p.name} (SKU: ${p.sku||'-'} | လက်ရှိလက်ကျန်: ${p.stock||0} ခု)`;
+
+  const variants = ensureProductColorVariants(p);
+  document.getElementById('adjProductInfo').innerText = `${p.name} (SKU: ${p.sku || '-'} | စုစုပေါင်းလက်ကျန်: ${p.stock || 0} ခု)`;
   document.getElementById('adjActionQty').value = '1';
   document.getElementById('adjActionReason').value = '';
 
-  // Admin Modal ကို ယာယီပိတ်ပြီး Stock ချိန်ညှိ Modal ကို ရှေ့ဆုံး တန်းတင်ခြင်း
+  const colorGroup = document.getElementById('adjColorSelectGroup');
+  const colorSel = document.getElementById('adjColorSelect');
+  const badgesBox = document.getElementById('adjColorSummaryBadges');
+
+  if (variants.length > 0) {
+    if (colorGroup) colorGroup.style.display = 'block';
+    if (colorSel) {
+      colorSel.innerHTML = variants.map((v, idx) =>
+        `<option value="${idx}">🎨 ${v.color} (လက်ရှိလက်ကျန်: ${Number(v.qty) || 0} ခု)</option>`
+      ).join('');
+    }
+    if (badgesBox) {
+      badgesBox.style.display = 'flex';
+      badgesBox.innerHTML = variants.map(v => {
+        const q = Number(v.qty) || 0;
+        const c = q <= 0 ? '#ef4444' : q <= 2 ? '#f59e0b' : '#10b981';
+        return `<span style="background:rgba(255,255,255,0.06); border:1px solid ${c}; color:#fff; font-size:0.7rem; padding:2px 8px; border-radius:12px;">🎨 ${v.color}: <b style="color:${c};">${q}</b></span>`;
+      }).join('');
+    }
+  } else {
+    if (colorGroup) colorGroup.style.display = 'none';
+    if (badgesBox) badgesBox.style.display = 'none';
+  }
+
+  // နောက်ဆုံး ချိန်ညှိမှတ်တမ်း ၃ ခု ပြသခြင်း
+  const logsBox = document.getElementById('adjRecentLogsBox');
+  if (logsBox) {
+    const logs = Array.isArray(p.adjustmentLogs) ? p.adjustmentLogs.slice(-3).reverse() : [];
+    if (logs.length > 0) {
+      logsBox.style.display = 'block';
+      logsBox.innerHTML = '<div style="color:var(--gold); font-weight:600; margin-bottom:4px;">📋 လတ်တလော မှတ်တမ်းများ:</div>' +
+        logs.map(l => {
+          const badge = l.action === 'in' ? '➕' : l.action === 'out' ? '➖' : '⚠️';
+          const colTag = l.color ? `[${l.color}] ` : '';
+          return `<div style="color:#cbd5e1; margin-bottom:2px;">${badge} ${colTag}<b>${l.qty} ခု</b> — ${l.reason || ''} <span style="color:#64748b;">(${l.date || ''})</span></div>`;
+        }).join('');
+    } else {
+      logsBox.style.display = 'none';
+    }
+  }
+
   const adminM = document.getElementById('adminModal');
   if (adminM) {
     adminM.classList.remove('active');
     adminM.style.setProperty('display', 'none', 'important');
   }
-
   openModal('stockAdjustmentModal');
-  const adjModal = document.getElementById('stockAdjustmentModal');
-  if (adjModal) {
-    adjModal.classList.add('active');
-    adjModal.style.setProperty('display', 'flex', 'important');
-    adjModal.style.setProperty('z-index', '2147483647', 'important');
-  }
 }
 
 function confirmStockAdjustment() {
@@ -8823,35 +8894,66 @@ function confirmStockAdjustment() {
   if (!p) return;
 
   const act = document.getElementById('adjActionType').value;
-  const qty = Number(document.getElementById('adjActionQty').value) || 1;
+  const qty = Number(document.getElementById('adjActionQty').value) || 0;
   const reason = document.getElementById('adjActionReason').value.trim() || 'ပုံမှန် ချိန်ညှိချက်';
+  if (qty <= 0) return alert('အရေအတွက် အနည်းဆုံး ၁ ခု ရိုက်ထည့်ပါ');
 
-  if (act === 'damage') {
-    if ((Number(p.stock) || 0) < qty) return alert('လက်ကျန်ထက် ပို၍ ပျက်စီးစာရင်း မသွင်းနိုင်ပါ');
-    p.damaged = (Number(p.damaged) || 0) + qty;
-    p.stock = Math.max(0, (Number(p.stock) || 0) - qty);
+  const variants = ensureProductColorVariants(p);
+  let chosenColorName = '';
+
+  if (variants.length > 0) {
+    const vIdx = Number(document.getElementById('adjColorSelect')?.value);
+    const targetVar = variants[vIdx];
+    if (!targetVar) return alert('ချိန်ညှိမည့် အရောင်ကို ရွေးချယ်ပေးပါ');
+
+    chosenColorName = targetVar.color;
+    const curVarQty = Number(targetVar.qty) || 0;
+
+    if (act === 'damage' || act === 'out') {
+      if (curVarQty < qty) {
+        return alert(`🎨 "${chosenColorName}" အရောင်၏ လက်ကျန် (${curVarQty} ခု) ထက် ပို၍ မလျှော့နိုင်ပါ`);
+      }
+      targetVar.qty = curVarQty - qty;
+      if (act === 'damage') p.damaged = (Number(p.damaged) || 0) + qty;
+    } else {
+      targetVar.qty = curVarQty + qty;
+    }
+
+    // အရောင်အားလုံးပေါင်းပြီး စုစုပေါင်း p.stock ကို Auto-Sync လုပ်ခြင်း
+    p.stock = variants.reduce((sum, v) => sum + (Number(v.qty) || 0), 0);
   } else {
-    p.stock = (Number(p.stock) || 0) + qty;
+    if (act === 'damage' || act === 'out') {
+      if ((Number(p.stock) || 0) < qty) return alert('လက်ကျန်ထက် ပို၍ မလျှော့နိုင်ပါ');
+      p.stock = Math.max(0, (Number(p.stock) || 0) - qty);
+      if (act === 'damage') p.damaged = (Number(p.damaged) || 0) + qty;
+    } else {
+      p.stock = (Number(p.stock) || 0) + qty;
+    }
   }
 
   if (!p.adjustmentLogs) p.adjustmentLogs = [];
   p.adjustmentLogs.push({
-    action: act, qty: qty, reason: reason, date: formatExactDateTime(new Date())
+    action: act,
+    color: chosenColorName,
+    qty: qty,
+    reason: reason,
+    date: formatExactDateTime(new Date())
   });
 
   saveProducts();
   renderStockTable();
+  renderAdminProducts();
   renderCatalog();
   closeModal('stockAdjustmentModal');
 
-  // Admin Modal ကို ပြန်ဖွင့်ပေးခြင်း
   const adminM = document.getElementById('adminModal');
   if (adminM) {
     adminM.classList.add('active');
     adminM.style.setProperty('display', 'flex', 'important');
   }
 
-  alert(`${p.name} ၏ Stock ကို အောင်မြင်စွာ ချိန်ညှိမှတ်တမ်းတင်ပြီးပါပြီ!`);
+  const colText = chosenColorName ? ` (${chosenColorName})` : '';
+  alert(`✅ ${p.name}${colText} ၏ Stock ကို အောင်မြင်စွာ ချိန်ညှိပြီးပါပြီ!`);
 }
     var currentActiveOrderForDetail = null;
 
