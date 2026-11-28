@@ -19282,7 +19282,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 // =========================================================================
-// FAST MODERN LIVE CHAT INBOX ENHANCER (0ms Tab Switch + Search + Unread)
+// FAST MODERN LIVE CHAT INBOX ENHANCER (FIXED LAYOUT + AUTO CACHE FALLBACK)
 // =========================================================================
 (function initModernLiveChatUpgrade() {
   window._tmAdminChatSearchQuery = '';
@@ -19303,29 +19303,58 @@ window.addEventListener('DOMContentLoaded', () => {
     return colors[sum % colors.length];
   }
 
-  // Search Box ကို Active/Done ခလုတ်အောက်တွင် အလိုအလျောက် ထည့်ပေးခြင်း
   function ensureChatSearchBox() {
     const listBox = document.getElementById('adminChatSessionsListContainer');
-    if (!listBox || document.getElementById('tmAdminChatSearchInput')) return;
+    if (!listBox) return;
+
+    // ဘယ်ဘက်ကော်လံကို အပေါ်ကနေ ညီညီညာညာ စီပေးရန်
+    const parent = listBox.parentElement;
+    if (parent) {
+      parent.style.display = 'flex';
+      parent.style.flexDirection = 'column';
+      parent.style.justifyContent = 'flex-start';
+      parent.style.alignItems = 'stretch';
+      parent.style.gap = '6px';
+    }
+    listBox.style.flex = '1';
+    listBox.style.minHeight = '0';
+
+    if (document.getElementById('tmAdminChatSearchInput')) return;
     const inp = document.createElement('input');
     inp.type = 'text';
     inp.id = 'tmAdminChatSearchInput';
     inp.className = 'tm-chat-search-input';
     inp.placeholder = '🔍 Guest ID သို့မဟုတ် စာသား ရှာရန်...';
+    // အမြင့် 34px အသေသတ်မှတ်ပြီး မရှည်ထွက်စေရန်
+    inp.style.cssText = 'height:34px !important; flex:0 0 34px !important; margin:0 !important; box-sizing:border-box; padding:0 10px;';
     inp.oninput = function() {
       window._tmAdminChatSearchQuery = (this.value || '').trim().toLowerCase();
       window.fastRenderAdminChatList();
     };
-    listBox.parentElement.insertBefore(inp, listBox);
+    parent.insertBefore(inp, listBox);
   }
 
-  // Firebase ပြန်မဆွဲဘဲ Memory Cache (_adminChatsCache) မှ ချက်ချင်း 0ms Render လုပ်ခြင်း
   window.fastRenderAdminChatList = function() {
     ensureChatSearchBox();
     const container = document.getElementById('adminChatSessionsListContainer');
     if (!container) return;
 
     const cache = (typeof _adminChatsCache === 'object' && _adminChatsCache) ? _adminChatsCache : {};
+    // Cache အလွတ်ဖြစ်နေပါက Firebase မှ တစ်ချက်အလိုအလျောက် ပြန်ဆွဲပေးခြင်း
+    if (Object.keys(cache).length === 0 && typeof fbDb !== 'undefined' && !window._tmFetchingChatFallback) {
+      window._tmFetchingChatFallback = true;
+      fbDb.ref('support_chats').once('value').then(snap => {
+        window._tmFetchingChatFallback = false;
+        const val = snap.val();
+        if (val && typeof val === 'object') {
+          window._adminChatsCache = val;
+          if (typeof _adminChatsCache !== 'undefined') _adminChatsCache = val;
+          window.fastRenderAdminChatList();
+        }
+      }).catch(() => { window._tmFetchingChatFallback = false; });
+      return;
+    }
+
     const curFilter = (typeof adminChatFilterMode !== 'undefined' ? adminChatFilterMode : 'active');
     const q = window._tmAdminChatSearchQuery || '';
 
@@ -19374,11 +19403,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }).join('');
   };
 
-  // Active ↔ Done ခလုတ်နှိပ်ချိန် Firebase ပြန်မဆွဲဘဲ ချက်ချင်းပြောင်းစေရန် Hook ချိတ်ခြင်း
   const origSetFilter = window.setAdminChatFilter;
   if (typeof origSetFilter === 'function') {
     window.setAdminChatFilter = function(mode) {
       window.adminChatFilterMode = mode;
+      if (typeof adminChatFilterMode !== 'undefined') adminChatFilterMode = mode;
       const btnA = document.getElementById('adminChatTabActive');
       const btnD = document.getElementById('adminChatTabDone');
       if (btnA) btnA.style.background = mode === 'active' ? '#10b981' : 'rgba(255,255,255,0.08)';
