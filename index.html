@@ -10245,34 +10245,81 @@ function exportOrdersCSV() {
     }
 
 
-    function renderAdminCategoryChips() {
-  const container = document.getElementById('adminCategoryChipsContainer');
-  const badge = document.getElementById('selectedCatCountBadge');
-  if (!container) return;
+   function renderAdminCategoryChips() {
+      const container = document.getElementById('adminCategoryChipsContainer');
+      const badge = document.getElementById('selectedCatCountBadge');
+      if (!container) return;
 
-  container.innerHTML = categories.map(c => {
-    const isSelected = selectedAdminCategories.includes(c);
-    return `
-      <div class="admin-cat-chip ${isSelected ? 'active' : ''}" onclick="toggleAdminCategoryChip('${c}')">
-        <span>${isSelected ? '✓ ' : ''}${c}</span>
-        <span class="chip-del-icon" onclick="deleteCategoryFromAdmin(event, '${c}')" title="ဖျက်မည်">&times;</span>
-      </div>
-    `;
-  }).join('');
+      container.innerHTML = categories.map(c => {
+        const isSelected = selectedAdminCategories.includes(c);
+        const safeCat = String(c).replace(/'/g, "\\'");
+        return `
+          <div class="admin-cat-chip ${isSelected ? 'active' : ''}" onclick="toggleAdminCategoryChip('${safeCat}')">
+            <span>${isSelected ? '✓ ' : ''}${c}</span>
+            <span class="chip-del-icon" onclick="renameCategoryFromAdmin(event, '${safeCat}')" title="နာမည်ပြင်မည်" style="opacity:0.85; font-size:0.7rem;">✏️</span>
+            <span class="chip-del-icon" onclick="deleteCategoryFromAdmin(event, '${safeCat}')" title="ဖျက်မည်">&times;</span>
+          </div>
+        `;
+      }).join('');
 
-  if (badge) {
-    badge.innerText = `${selectedAdminCategories.length} ခု ရွေးထားသည်`;
-    badge.style.color = selectedAdminCategories.length > 0 ? '#10b981' : '#f87171';
-  }
+      if (badge) {
+        badge.innerText = `${selectedAdminCategories.length} ခု ရွေးထားသည်`;
+        badge.style.color = selectedAdminCategories.length > 0 ? '#10b981' : '#f87171';
+      }
 
-  // Admin Dropdown ထဲသို့ Category များ ချက်ချင်း တိုက်ရိုက် ထည့်သွင်းခြင်း
-  const adminSel = document.getElementById('adminProductCategoryFilterSelect');
-  if (adminSel && Array.isArray(categories)) {
-    const curAdminVal = adminSel.value || 'All';
-    adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
-      categories.map(c => `<option value="${c}" ${curAdminVal === c ? 'selected' : ''}>${c}</option>`).join('');
-  }
-}
+      const adminSel = document.getElementById('adminProductCategoryFilterSelect');
+      if (adminSel && Array.isArray(categories)) {
+        const curAdminVal = adminSel.value || 'All';
+        adminSel.innerHTML = '<option value="All">အမျိုးအစား အားလုံး</option>' +
+          categories.map(c => `<option value="${c}" ${curAdminVal === c ? 'selected' : ''}>${c}</option>`).join('');
+      }
+    }
+
+    function renameCategoryFromAdmin(event, oldName) {
+      if (event) event.stopPropagation();
+      const newNameRaw = prompt(`Category အမည် ပြင်ဆင်ရန်:\n(လက်ရှိအမည်: ${oldName})`, oldName);
+      if (newNameRaw === null) return;
+      const newName = newNameRaw.trim();
+      if (!newName || newName === oldName) return;
+      if (categories.includes(newName)) {
+        return alert(`"${newName}" အမည် ရှိပြီးသားဖြစ်နေပါသည်ခင်ဗျာ`);
+      }
+
+      // ၁။ categories စာရင်းထဲတွင် နာမည်ပြောင်းခြင်း
+      const idx = categories.indexOf(oldName);
+      if (idx > -1) categories[idx] = newName;
+
+      // ၂။ ရွေးထားသော Category state များကို update လုပ်ခြင်း
+      const selIdx = selectedAdminCategories.indexOf(oldName);
+      if (selIdx > -1) selectedAdminCategories[selIdx] = newName;
+      if (selectedCategory === oldName) selectedCategory = newName;
+
+      // ၃။ ဤ Category သုံးထားသော ပစ္စည်းအားလုံးကို အလိုအလျောက် နာမည်ပြောင်းပေးခြင်း
+      let updatedCount = 0;
+      (products || []).forEach(p => {
+        let changed = false;
+        if (p.category === oldName) {
+          p.category = newName;
+          changed = true;
+        }
+        if (Array.isArray(p.categories) && p.categories.includes(oldName)) {
+          p.categories = p.categories.map(c => c === oldName ? newName : c);
+          changed = true;
+        }
+        if (changed) updatedCount++;
+      });
+
+      saveCategories();
+      if (updatedCount > 0) saveProducts();
+
+      renderCategoryUI();
+      renderAdminCategoryChips();
+      if (typeof renderCategoryReorderList === 'function') renderCategoryReorderList();
+      renderCatalog();
+      renderAdminProducts();
+
+      alert(`✅ "${oldName}" မှ "${newName}" သို့ ပြောင်းလဲပြီးပါပြီ!\n(ဆက်စပ်ပစ္စည်း ${updatedCount} မျိုးကိုပါ အလိုအလျောက် Update လုပ်ပြီးပါပြီ)`);
+    }
 
 function toggleAdminCategoryChip(catName) {
   if (navigator.vibrate) navigator.vibrate(30);
