@@ -19282,12 +19282,71 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 // =========================================================================
-// FAST MODERN LIVE CHAT INBOX ENHANCER (ZERO-FLICKER + SAFE CACHE)
+// FAST MODERN LIVE CHAT INBOX ENHANCER (FIXED LAYOUT + DELETE BUTTON)
 // =========================================================================
 (function initModernLiveChatUpgrade() {
   window._tmAdminChatSearchQuery = '';
   window._tmChatTabMode = 'active';
   window._tmSafeChatsCache = {};
+
+  // Done ဘက်မှာ မညီမညာ လုံးဝမဖြစ်စေရန် CSS !important ဖြင့် အသေချုပ်ခြင်း
+  if (!document.getElementById('tmLiveChatLayoutFixStyle')) {
+    const st = document.createElement('style');
+    st.id = 'tmLiveChatLayoutFixStyle';
+    st.textContent = `
+      div:has(> #adminChatSessionsListContainer) {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+        align-content: flex-start !important;
+        gap: 6px !important;
+        height: 100% !important;
+        min-height: 0 !important;
+      }
+      div:has(> #adminChatSessionsListContainer) > *:not(#adminChatSessionsListContainer) {
+        flex: 0 0 auto !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+      }
+      #tmAdminChatSearchInput {
+        flex: 0 0 34px !important;
+        height: 34px !important;
+        margin: 0 !important;
+      }
+      #adminChatSessionsListContainer {
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow-y: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
+      }
+      .tm-chat-del-btn {
+        background: rgba(239, 68, 68, 0.14);
+        border: 1px solid rgba(239, 68, 68, 0.35);
+        color: #f87171;
+        width: 24px;
+        height: 24px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.68rem;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: all 0.15s ease;
+      }
+      .tm-chat-del-btn:hover {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
+      }
+    `;
+    document.head.appendChild(st);
+  }
 
   function formatChatTimeAgo(ts) {
     if (!ts) return '';
@@ -19316,34 +19375,12 @@ window.addEventListener('DOMContentLoaded', () => {
     const listBox = document.getElementById('adminChatSessionsListContainer');
     if (!listBox) return;
     const parent = listBox.parentElement;
-    if (parent) {
-      parent.style.setProperty('display', 'flex', 'important');
-      parent.style.setProperty('flex-direction', 'column', 'important');
-      parent.style.setProperty('justify-content', 'flex-start', 'important');
-      parent.style.setProperty('align-items', 'stretch', 'important');
-      parent.style.setProperty('gap', '6px', 'important');
-      parent.style.setProperty('min-height', '0', 'important');
-
-      Array.from(parent.children).forEach(ch => {
-        if (ch !== listBox && ch.id !== 'tmAdminChatSearchInput') {
-          ch.style.setProperty('flex', '0 0 auto', 'important');
-          ch.style.setProperty('height', 'auto', 'important');
-          ch.style.setProperty('margin', '0', 'important');
-        }
-      });
-    }
-
-    listBox.style.setProperty('flex', '1 1 0%', 'important');
-    listBox.style.setProperty('min-height', '0', 'important');
-    listBox.style.setProperty('overflow-y', 'auto', 'important');
-
     if (!document.getElementById('tmAdminChatSearchInput') && parent) {
       const inp = document.createElement('input');
       inp.type = 'text';
       inp.id = 'tmAdminChatSearchInput';
       inp.className = 'tm-chat-search-input';
       inp.placeholder = '🔍 Guest ID သို့မဟုတ် စာသား ရှာရန်...';
-      inp.style.cssText = 'height:34px !important; flex:0 0 34px !important; margin:0 !important; box-sizing:border-box; padding:0 10px;';
       inp.oninput = function() {
         window._tmAdminChatSearchQuery = (this.value || '').trim().toLowerCase();
         window.fastRenderAdminChatList();
@@ -19365,7 +19402,31 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Chat နှိပ်ချိန် စာရင်းမပျောက်စေဘဲ Highlight ကိုသာ ချက်ချင်းပြောင်းခြင်း
+  // မလိုချင်သော Chat ကို Firebase နှင့် စာရင်းထဲမှ အပြီးဖျက်ခြင်း
+  window._tmDeleteChatSession = function(event, sid) {
+    if (event) event.stopPropagation();
+    if (!confirm(`"${sid}" စကားဝိုင်းကို အပြီးဖျက်မှာ သေချာပါသလား?`)) return;
+
+    if (typeof fbDb !== 'undefined') {
+      fbDb.ref(`support_chats/${sid}`).remove().catch(() => {});
+    }
+    if (window._tmSafeChatsCache) delete window._tmSafeChatsCache[sid];
+    if (typeof _adminChatsCache === 'object' && _adminChatsCache) delete _adminChatsCache[sid];
+
+    if (typeof adminActiveSelectedSession !== 'undefined' && adminActiveSelectedSession === sid) {
+      adminActiveSelectedSession = null;
+      const hdr = document.getElementById('adminActiveChatHeader');
+      const msgBox = document.getElementById('adminActiveChatMessages');
+      const repBar = document.getElementById('adminChatReplyBar');
+      if (hdr) hdr.innerHTML = 'စကားပြောလိုသော ဝယ်သူကို ဘယ်ဘက်မှ ရွေးချယ်ပါ';
+      if (msgBox) msgBox.innerHTML = '<p style="color:var(--text-muted); font-size:0.75rem; text-align:center; margin-top:30px;">Chat ရွေးချယ်ထားခြင်း မရှိသေးပါ</p>';
+      if (repBar) repBar.style.display = 'none';
+    }
+
+    window.fastRenderAdminChatList();
+    if (typeof showToast === 'function') showToast(`🗑️ "${sid}" ကို ဖျက်ပြီးပါပြီ`);
+  };
+
   window._tmSelectChatCard = function(el, sid) {
     document.querySelectorAll('#adminChatSessionsListContainer .tm-chat-session-card').forEach(c => {
       c.classList.remove('active');
@@ -19378,6 +19439,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     if (typeof selectAdminChatSession === 'function') selectAdminChatSession(sid);
     else if (typeof openAdminChat === 'function') openAdminChat(sid);
+    fixLeftColumnLayout();
   };
 
   window.fastRenderAdminChatList = function(forceMode) {
@@ -19403,7 +19465,7 @@ window.addEventListener('DOMContentLoaded', () => {
           }
         }).catch(() => { window._tmFetchingChatFallback = false; });
       }
-      return; // Data မရသေးခင် စာရင်းကို အလွတ်မဖြစ်စေရန်
+      return;
     }
 
     const curFilter = window._tmChatTabMode || 'active';
@@ -19449,6 +19511,9 @@ window.addEventListener('DOMContentLoaded', () => {
               ${lastMsg}
             </div>
           </div>
+          <button type="button" class="tm-chat-del-btn" onclick="window._tmDeleteChatSession(event, '${safeSid}')" title="ဤ Chat ကို ဖျက်မည်">
+            <i class="fas fa-trash-alt"></i>
+          </button>
         </div>
       `;
     }).join('');
