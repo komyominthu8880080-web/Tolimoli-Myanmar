@@ -4256,6 +4256,51 @@ function scrollCategories(amount) {
       <!-- Tab: Logistics & Delivery Management -->
       <div class="admin-tab" id="logisticsTab">
         <h4 style="color:#fff; font-size:0.9rem; margin-bottom:10px;">စနစ်ဆိုင်ရာ ပြင်ဆင်ချက်များ & Delivery Settings</h4>
+        <!-- DYNAMIC PRICE FILTER BAR MANAGER -->
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1.5px solid #a855f7; border-radius: 10px; padding: 12px; margin-bottom: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px; margin-bottom:10px;">
+            <span style="color:#e9d5ff; font-weight:700; font-size:0.88rem;">
+              <i class="fas fa-filter" style="color:var(--gold);"></i> ဈေးနှုန်း Filter ခလုတ်များ စီမံခန့်ခွဲမှု
+            </span>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <label style="display:flex; align-items:center; gap:5px; font-size:0.74rem; color:#10b981; cursor:pointer; margin:0;">
+                <input type="checkbox" id="cfgPriceBarEnabled" checked onchange="savePriceFiltersCloud()"> Bar ဖွင့်မည်
+              </label>
+              <label style="display:flex; align-items:center; gap:5px; font-size:0.74rem; color:#fde047; cursor:pointer; margin:0;">
+                <input type="checkbox" id="cfgPriceBarShowCod" checked onchange="savePriceFiltersCloud()"> COD ခလုတ်ပြမည်
+              </label>
+            </div>
+          </div>
+
+          <!-- ခလုတ်အသစ် ထပ်တိုး / ပြင်ဆင်ရန် Form -->
+          <input type="hidden" id="editPriceFilterIdx" value="">
+          <div style="display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:6px; margin-bottom:8px;">
+            <div>
+              <label style="font-size:0.7rem; color:#cbd5e1; display:block; margin-bottom:2px;">ခလုတ်အမည် *</label>
+              <input type="text" id="pfLabelInput" placeholder="ဥပမာ- ၅,၀၀၀ အောက်" style="width:100%; padding:6px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.76rem;">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; color:#cbd5e1; display:block; margin-bottom:2px;">အနည်းဆုံး (Min Ks)</label>
+              <input type="number" id="pfMinInput" placeholder="0" min="0" style="width:100%; padding:6px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.76rem;">
+            </div>
+            <div>
+              <label style="font-size:0.7rem; color:#cbd5e1; display:block; margin-bottom:2px;">အများဆုံး (Max Ks)</label>
+              <input type="number" id="pfMaxInput" placeholder="အထက်ဆို အလွတ်ထား" min="0" style="width:100%; padding:6px 8px; background:#0f172a; border:1px solid #334155; color:#fff; border-radius:6px; font-size:0.76rem;">
+            </div>
+          </div>
+
+          <div style="display:flex; gap:6px; margin-bottom:10px;">
+            <button type="button" id="btnSavePriceFilter" onclick="addOrUpdatePriceFilter()" class="btn-gold" style="flex:2; padding:7px; font-size:0.78rem;">
+              <i class="fas fa-plus"></i> ဈေး Filter ခလုတ် ထည့်မည်
+            </button>
+            <button type="button" id="btnCancelPriceFilterEdit" onclick="resetPriceFilterForm()" class="btn-secondary" style="flex:1; display:none;">
+              မပြင်တော့ပါ
+            </button>
+          </div>
+
+          <!-- လက်ရှိ ခလုတ်များ စာရင်း -->
+          <div id="adminPriceFiltersList" style="display:flex; flex-direction:column; gap:6px;"></div>
+        </div>
         <!-- LOGISTICS & DELIVERY FEATURE TOGGLE SYSTEM -->
   <div style="background: rgba(255, 255, 255, 0.03); border: 1.5px solid var(--gold, #d4af37); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
     
@@ -18498,9 +18543,170 @@ function openPolicyModal(type) {
   openModal('policyInfoModal');
 }
 
+// =========================================================================
+// DYNAMIC ADMIN-EDITABLE PRICE FILTER BAR (CLOUD SYNC)
+// =========================================================================
+var priceFilterConfig = {
+  enabled: true,
+  showCod: true,
+  items: [
+    { id: 'pf_1', label: '၁၀,၀၀၀ အောက်', min: 0, max: 9999 },
+    { id: 'pf_2', label: '၁၀,၀၀၀ - ၃၀,၀၀၀', min: 10000, max: 30000 },
+    { id: 'pf_3', label: '၃၀,၀၀၀ အထက်', min: 30001, max: null }
+  ]
+};
+try {
+  const savedPf = JSON.parse(localStorage.getItem('tm_price_filter_config'));
+  if (savedPf && Array.isArray(savedPf.items)) {
+    priceFilterConfig = Object.assign(priceFilterConfig, savedPf);
+  }
+} catch (e) {}
+
 window.currentPriceRangeFilter = 'all';
-window.setPriceRangeFilter = function(range, btn) {
-  window.currentPriceRangeFilter = range;
+
+function renderStorefrontPriceFilterBar() {
+  const bar = document.getElementById('priceFilterBar');
+  if (!bar) return;
+
+  if (priceFilterConfig.enabled === false) {
+    bar.style.display = 'none';
+    if (window.currentPriceRangeFilter !== 'all') {
+      window.currentPriceRangeFilter = 'all';
+      if (typeof renderCatalog === 'function') renderCatalog();
+    }
+    return;
+  }
+
+  bar.style.display = 'flex';
+  const cur = window.currentPriceRangeFilter || 'all';
+
+  let html = `<button type="button" class="price-chip ${cur === 'all' ? 'active' : ''}" onclick="setPriceRangeFilter('all', this)">💰 ဈေးအားလုံး</button>`;
+  html += (priceFilterConfig.items || []).map(item =>
+    `<button type="button" class="price-chip ${cur === item.id ? 'active' : ''}" onclick="setPriceRangeFilter('${item.id}', this)">${item.label}</button>`
+  ).join('');
+
+  if (priceFilterConfig.showCod !== false) {
+    html += `<button type="button" class="price-chip ${cur === 'cod_only' ? 'active' : ''}" onclick="setPriceRangeFilter('cod_only', this)">💵 COD ရပစ္စည်းများ</button>`;
+  }
+
+  bar.innerHTML = html;
+}
+
+function renderAdminPriceFiltersUI() {
+  const chkEn = document.getElementById('cfgPriceBarEnabled');
+  const chkCod = document.getElementById('cfgPriceBarShowCod');
+  if (chkEn) chkEn.checked = priceFilterConfig.enabled !== false;
+  if (chkCod) chkCod.checked = priceFilterConfig.showCod !== false;
+
+  const listEl = document.getElementById('adminPriceFiltersList');
+  if (!listEl) return;
+
+  const items = priceFilterConfig.items || [];
+  if (!items.length) {
+    listEl.innerHTML = '<div style="text-align:center; color:#94a3b8; font-size:0.74rem; padding:8px;">ဈေးနှုန်း Filter ခလုတ် မရှိသေးပါ</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.map((it, idx) => {
+    const minVal = Number(it.min) || 0;
+    const maxText = (it.max !== null && it.max !== undefined && it.max !== '') ? `${Number(it.max).toLocaleString()} Ks` : 'အထက် (∞)';
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; background:#0f172a; border:1px solid #334155; border-radius:7px; padding:6px 9px;">
+        <div style="min-width:0; flex:1;">
+          <b style="color:var(--gold-light); font-size:0.78rem;">${it.label}</b>
+          <div style="font-size:0.68rem; color:#94a3b8;">${minVal.toLocaleString()} Ks မှ ${maxText}</div>
+        </div>
+        <div style="display:flex; gap:4px; flex-shrink:0;">
+          <button type="button" class="btn-secondary" style="padding:3px 7px;" onclick="movePriceFilter(${idx}, -1)" ${idx === 0 ? 'disabled style="opacity:0.35; padding:3px 7px;"' : ''}>↑</button>
+          <button type="button" class="btn-secondary" style="padding:3px 7px;" onclick="movePriceFilter(${idx}, 1)" ${idx === items.length - 1 ? 'disabled style="opacity:0.35; padding:3px 7px;"' : ''}>↓</button>
+          <button type="button" class="action-badge" style="background:#f59e0b; color:#000;" onclick="editPriceFilter(${idx})">ပြင်</button>
+          <button type="button" class="action-badge" style="background:#ef4444; color:#fff;" onclick="deletePriceFilter(${idx})">ဖျက်</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function savePriceFiltersCloud() {
+  const chkEn = document.getElementById('cfgPriceBarEnabled');
+  const chkCod = document.getElementById('cfgPriceBarShowCod');
+  if (chkEn) priceFilterConfig.enabled = chkEn.checked;
+  if (chkCod) priceFilterConfig.showCod = chkCod.checked;
+
+  localStorage.setItem('tm_price_filter_config', JSON.stringify(priceFilterConfig));
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_settings/priceFilters').set(priceFilterConfig).catch(err => console.warn('PriceFilter Sync:', err));
+  }
+  renderStorefrontPriceFilterBar();
+  renderAdminPriceFiltersUI();
+}
+
+function addOrUpdatePriceFilter() {
+  const label = (document.getElementById('pfLabelInput')?.value || '').trim();
+  const minRaw = document.getElementById('pfMinInput')?.value;
+  const maxRaw = document.getElementById('pfMaxInput')?.value;
+  const editIdx = document.getElementById('editPriceFilterIdx')?.value;
+
+  if (!label) return alert('ခလုတ်အမည် ရိုက်ထည့်ပေးပါ (ဥပမာ- ၅,၀၀၀ အောက်)');
+
+  const minVal = minRaw !== '' && minRaw !== undefined ? Math.max(0, Number(minRaw) || 0) : 0;
+  const maxVal = (maxRaw !== '' && maxRaw !== undefined && Number(maxRaw) > 0) ? Number(maxRaw) : null;
+  if (maxVal !== null && maxVal < minVal) {
+    return alert('အများဆုံးဈေး (Max) သည် အနည်းဆုံးဈေး (Min) ထက် ကြီးရပါမည်');
+  }
+
+  if (!Array.isArray(priceFilterConfig.items)) priceFilterConfig.items = [];
+
+  if (editIdx !== '' && priceFilterConfig.items[Number(editIdx)]) {
+    const idx = Number(editIdx);
+    priceFilterConfig.items[idx] = { ...priceFilterConfig.items[idx], label, min: minVal, max: maxVal };
+  } else {
+    priceFilterConfig.items.push({ id: 'pf_' + Date.now(), label, min: minVal, max: maxVal });
+  }
+
+  resetPriceFilterForm();
+  savePriceFiltersCloud();
+  if (typeof showToast === 'function') showToast('ဈေးနှုန်း Filter ခလုတ် သိမ်းဆည်းပြီးပါပြီ!');
+}
+
+function editPriceFilter(idx) {
+  const it = (priceFilterConfig.items || [])[idx];
+  if (!it) return;
+  document.getElementById('editPriceFilterIdx').value = String(idx);
+  document.getElementById('pfLabelInput').value = it.label || '';
+  document.getElementById('pfMinInput').value = it.min || 0;
+  document.getElementById('pfMaxInput').value = (it.max !== null && it.max !== undefined) ? it.max : '';
+  document.getElementById('btnSavePriceFilter').innerHTML = '<i class="fas fa-save"></i> ပြင်ဆင်ချက် သိမ်းမည်';
+  document.getElementById('btnCancelPriceFilterEdit').style.display = 'block';
+}
+
+function resetPriceFilterForm() {
+  if (document.getElementById('editPriceFilterIdx')) document.getElementById('editPriceFilterIdx').value = '';
+  if (document.getElementById('pfLabelInput')) document.getElementById('pfLabelInput').value = '';
+  if (document.getElementById('pfMinInput')) document.getElementById('pfMinInput').value = '';
+  if (document.getElementById('pfMaxInput')) document.getElementById('pfMaxInput').value = '';
+  if (document.getElementById('btnSavePriceFilter')) document.getElementById('btnSavePriceFilter').innerHTML = '<i class="fas fa-plus"></i> ဈေး Filter ခလုတ် ထည့်မည်';
+  if (document.getElementById('btnCancelPriceFilterEdit')) document.getElementById('btnCancelPriceFilterEdit').style.display = 'none';
+}
+
+function deletePriceFilter(idx) {
+  const it = (priceFilterConfig.items || [])[idx];
+  if (!it || !confirm(`"${it.label}" ခလုတ်ကို ဖျက်မှာ သေချာပါသလား?`)) return;
+  priceFilterConfig.items.splice(idx, 1);
+  if (window.currentPriceRangeFilter === it.id) window.currentPriceRangeFilter = 'all';
+  savePriceFiltersCloud();
+}
+
+function movePriceFilter(idx, delta) {
+  const items = priceFilterConfig.items || [];
+  const target = idx + delta;
+  if (target < 0 || target >= items.length) return;
+  [items[idx], items[target]] = [items[target], items[idx]];
+  savePriceFiltersCloud();
+}
+
+window.setPriceRangeFilter = function(rangeId, btn) {
+  window.currentPriceRangeFilter = rangeId;
   document.querySelectorAll('#priceFilterBar .price-chip').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   if (typeof renderCatalog === 'function') renderCatalog();
@@ -18515,16 +18721,34 @@ window.setPriceRangeFilter = function(range, btn) {
     const backup = products;
     products = (backup || []).filter(p => {
       const price = Number(p.price || 0);
-      if (r === 'under10k') return price < 10000;
-      if (r === '10k_30k') return price >= 10000 && price <= 30000;
-      if (r === 'over30k') return price > 30000;
       if (r === 'cod_only') return !(typeof isProductNonCod === 'function' ? isProductNonCod(p) : p.isNonCod);
-      return true;
+      const rule = (priceFilterConfig.items || []).find(it => it.id === r);
+      if (!rule) return true;
+      const minOk = price >= (Number(rule.min) || 0);
+      const maxOk = (rule.max === null || rule.max === undefined || rule.max === '') ? true : price <= Number(rule.max);
+      return minOk && maxOk;
     });
     try { origRender(); } finally { products = backup; }
   };
   window.renderCatalog._priceWrapped = true;
 })();
+
+// Firebase Realtime Sync & Initial Render
+window.addEventListener('DOMContentLoaded', () => {
+  renderStorefrontPriceFilterBar();
+  renderAdminPriceFiltersUI();
+  if (typeof fbDb !== 'undefined') {
+    fbDb.ref('shop_settings/priceFilters').on('value', snap => {
+      const val = snap.val();
+      if (val && Array.isArray(val.items)) {
+        priceFilterConfig = Object.assign(priceFilterConfig, val);
+        localStorage.setItem('tm_price_filter_config', JSON.stringify(priceFilterConfig));
+        renderStorefrontPriceFilterBar();
+        renderAdminPriceFiltersUI();
+      }
+    });
+  }
+});
 </script>
 
 </body>
