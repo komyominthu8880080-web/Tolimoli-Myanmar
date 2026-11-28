@@ -2101,7 +2101,7 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
     flex: 1 1 100% !important;
   }
 }
-
+  
   /* ==================== OPTIMIZED E-COMMERCE POLISH & FIXES ==================== */
   .masked-pin-field { -webkit-text-security: disc; text-security: disc; }
 
@@ -9277,116 +9277,7 @@ function printOrderWaybill(orderId) {
           ကျေးဇူးတင်ပါသည် • Tolimoli Myanmar<br>
           အရေးပေါ်ဖုန်း: 09768124433
         </div>
-      
-<script>
-// =========================================================================
-// UNIFIED BUG FIXES, AUTOFILL GUARD, 18+ GATE, POLICY & PRICE FILTER
-// =========================================================================
-function sanitizeSearchAutofill(el) {
-  if (!el) return;
-  const v = String(el.value || '');
-  if (v.includes('@') && /gmail\.com|yahoo\.com|hotmail\.com|outlook\.com/i.test(v)) {
-    el.value = '';
-  }
-}
-
-function clearAllAutofilledSearchBoxes() {
-  ['searchInput', 'adminProductSearchInput', 'adminStockSearchInput', 'adminOrderSearchInput', 'adminCustomerSearchInput', 'adminAnalyticsSearchInput', 'trackOrderIdInput', 'publicDeliSearch'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el && el.value && el.value.includes('@')) {
-      el.value = '';
-      if (id === 'searchInput' && typeof renderCatalog === 'function') renderCatalog();
-    }
-  });
-}
-[100, 500, 1500].forEach(ms => setTimeout(clearAllAutofilledSearchBoxes, ms));
-window.addEventListener('pageshow', clearAllAutofilledSearchBoxes);
-
-function inquireProductInLiveChat() {
-  if (!currentDetailProduct) return;
-  const prod = currentDetailProduct;
-  closeModal('productDetailModal');
-  openModal('liveChatModal');
-  const prev = document.getElementById('chatProductInquiryPreview');
-  const thumb = (Array.isArray(prod.images) && prod.images[0]) || prod.image || 'logo.png';
-  if (prev) {
-    prev.innerHTML = `<div style="background:rgba(212,175,55,0.15); border:1px solid var(--gold); border-radius:8px; padding:6px 10px; margin-bottom:6px; font-size:0.73rem; display:flex; align-items:center; justify-content:space-between; gap:6px;"><div style="display:flex; align-items:center; gap:6px; min-width:0;"><img src="${thumb}" style="width:32px; height:32px; border-radius:4px; object-fit:cover;"><div style="min-width:0;"><b style="color:#fff; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${prod.name}</b><span style="color:var(--gold);">${Number(prod.price).toLocaleString()} MMK</span></div></div><button type="button" onclick="sendProductInquiryMessage()" style="background:var(--gold); color:#000; border:none; border-radius:5px; padding:4px 8px; font-weight:bold; font-size:11px; cursor:pointer;">မေးမည်</button></div>`;
-  }
-}
-
-function closeInAppMediaViewer() {
-  const box = document.getElementById('inAppMediaContainer');
-  if (box) box.innerHTML = '';
-  const modal = document.getElementById('inAppMediaModal');
-  if (modal) { modal.classList.remove('active'); modal.style.display = 'none'; }
-}
-
-window.selectCategoryFromSheet = function(cat) {
-  closeCategorySheet();
-  if (typeof selectCategoryByName === 'function') selectCategoryByName(cat);
-};
-
-function confirmAge18Plus() {
-  localStorage.setItem('tm_age_verified_18', 'true');
-  document.getElementById('ageGateModal')?.classList.remove('active');
-}
-window.addEventListener('load', () => {
-  if (localStorage.getItem('tm_age_verified_18') !== 'true') {
-    document.getElementById('ageGateModal')?.classList.add('active');
-  }
-});
-
-function openPolicyModal(type) {
-  const policies = {
-    privacy: {
-      title: '🔒 ကိုယ်ရေးလုံခြုံမှု မူဝါဒ (Privacy Policy)',
-      body: '• ဝယ်ယူသူ၏ အမည်၊ ဖုန်းနံပါတ်နှင့် လိပ်စာများကို ပစ္စည်းပို့ဆောင်ရန်အတွက်သာ အသုံးပြုပါသည်။\n• မည်သည့်ပြင်ပအဖွဲ့အစည်းသို့မျှ မျှဝေခြင်း မပြုပါ။\n• ဝက်ဘ်ဆိုက်ပေါ်ရှိ Privacy Mask (မျက်နှာဖုံးခလုတ်) နှင့် Quick Exit (🚨) တို့ကို အချိန်မရွေး အသုံးပြုနိုင်ပါသည်။'
-    },
-    return: {
-      title: '🔄 အာမခံနှင့် ပြန်လည်လဲလှယ်ခြင်း မူဝါဒ',
-      body: '• တစ်ကိုယ်ရေသုံးပစ္စည်းများဖြစ်သည့်အတွက် အသုံးပြုပြီး/ပါကင်ဖောက်ပြီး ပစ္စည်းများကို ပြန်လည်လဲလှယ်၍ မရပါ။\n• ပစ္စည်းမှားယွင်းပို့မိခြင်း သို့မဟုတ် စက်ပိုင်းဆိုင်ရာချို့ယွင်းမှု ရှိပါက ပစ္စည်းလက်ခံရရှိပြီး ၂၄ နာရီအတွင်း Unboxing Video ဖြင့် အကြောင်းကြားပါက အသစ်ပြန်လည်လဲလှယ်ပေးပါသည်။'
-    },
-    shipping: {
-      title: '📦 ၁၀၀% လျှို့ဝှက်ထုပ်ပိုး ပို့ဆောင်မှု',
-      body: '• ပါဆယ်အပြင်ဘက်တွင် ဆိုင်အမည်အစား "PS Online" နှင့် "Cosmetics" ဟုသာ ဖော်ပြပေးပို့ပါသည်။\n• အတွင်းပစ္စည်း မမြင်ရအောင် အလွှာထပ်၍ သေချာစွာ ထုပ်ပိုးပေးပါသည်။\n• ပို့ဆောင်ရေးဝန်ထမ်း (Delivery) မှလည်း အတွင်းပစ္စည်းကို သိရှိမည်မဟုတ်ပါ။'
-    }
-  };
-  const p = policies[type] || policies.privacy;
-  document.getElementById('policyModalTitle').textContent = p.title;
-  document.getElementById('policyModalBody').textContent = p.body;
-  openModal('policyInfoModal');
-}
-
-window.currentPriceRangeFilter = 'all';
-window.setPriceRangeFilter = function(range, btn) {
-  window.currentPriceRangeFilter = range;
-  document.querySelectorAll('#priceFilterBar .price-chip').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  if (typeof renderCatalog === 'function') renderCatalog();
-};
-
-(function wrapCatalogWithPriceFilter() {
-  if (typeof renderCatalog !== 'function' || renderCatalog._priceWrapped) return;
-  const origRender = renderCatalog;
-  window.renderCatalog = function() {
-    const r = window.currentPriceRangeFilter || 'all';
-    if (r === 'all') return origRender();
-    const backup = products;
-    products = (backup || []).filter(p => {
-      const price = Number(p.price || 0);
-      if (r === 'under10k') return price < 10000;
-      if (r === '10k_30k') return price >= 10000 && price <= 30000;
-      if (r === 'over30k') return price > 30000;
-      if (r === 'cod_only') return !(typeof isProductNonCod === 'function' ? isProductNonCod(p) : p.isNonCod);
-      return true;
-    });
-    try { origRender(); } finally { products = backup; }
-  };
-  window.renderCatalog._priceWrapped = true;
-})();
-</script>
-
-</body>
+      </body>
     </html>
   `;
 
@@ -18425,5 +18316,114 @@ function forceOpenAdminDashboard() {
   }, 60000);
 })();
 </script>
+
+<script>
+// =========================================================================
+// UNIFIED BUG FIXES, AUTOFILL GUARD, 18+ GATE, POLICY & PRICE FILTER
+// =========================================================================
+function sanitizeSearchAutofill(el) {
+  if (!el) return;
+  const v = String(el.value || '');
+  if (v.includes('@') && /gmail\.com|yahoo\.com|hotmail\.com|outlook\.com/i.test(v)) {
+    el.value = '';
+  }
+}
+
+function clearAllAutofilledSearchBoxes() {
+  ['searchInput', 'adminProductSearchInput', 'adminStockSearchInput', 'adminOrderSearchInput', 'adminCustomerSearchInput', 'adminAnalyticsSearchInput', 'trackOrderIdInput', 'publicDeliSearch'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.includes('@')) {
+      el.value = '';
+      if (id === 'searchInput' && typeof renderCatalog === 'function') renderCatalog();
+    }
+  });
+}
+[100, 500, 1500].forEach(ms => setTimeout(clearAllAutofilledSearchBoxes, ms));
+window.addEventListener('pageshow', clearAllAutofilledSearchBoxes);
+
+function inquireProductInLiveChat() {
+  if (!currentDetailProduct) return;
+  const prod = currentDetailProduct;
+  closeModal('productDetailModal');
+  openModal('liveChatModal');
+  const prev = document.getElementById('chatProductInquiryPreview');
+  const thumb = (Array.isArray(prod.images) && prod.images[0]) || prod.image || 'logo.png';
+  if (prev) {
+    prev.innerHTML = `<div style="background:rgba(212,175,55,0.15); border:1px solid var(--gold); border-radius:8px; padding:6px 10px; margin-bottom:6px; font-size:0.73rem; display:flex; align-items:center; justify-content:space-between; gap:6px;"><div style="display:flex; align-items:center; gap:6px; min-width:0;"><img src="${thumb}" style="width:32px; height:32px; border-radius:4px; object-fit:cover;"><div style="min-width:0;"><b style="color:#fff; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${prod.name}</b><span style="color:var(--gold);">${Number(prod.price).toLocaleString()} MMK</span></div></div><button type="button" onclick="sendProductInquiryMessage()" style="background:var(--gold); color:#000; border:none; border-radius:5px; padding:4px 8px; font-weight:bold; font-size:11px; cursor:pointer;">မေးမည်</button></div>`;
+  }
+}
+
+function closeInAppMediaViewer() {
+  const box = document.getElementById('inAppMediaContainer');
+  if (box) box.innerHTML = '';
+  const modal = document.getElementById('inAppMediaModal');
+  if (modal) { modal.classList.remove('active'); modal.style.display = 'none'; }
+}
+
+window.selectCategoryFromSheet = function(cat) {
+  closeCategorySheet();
+  if (typeof selectCategoryByName === 'function') selectCategoryByName(cat);
+};
+
+function confirmAge18Plus() {
+  localStorage.setItem('tm_age_verified_18', 'true');
+  document.getElementById('ageGateModal')?.classList.remove('active');
+}
+window.addEventListener('load', () => {
+  if (localStorage.getItem('tm_age_verified_18') !== 'true') {
+    document.getElementById('ageGateModal')?.classList.add('active');
+  }
+});
+
+function openPolicyModal(type) {
+  const policies = {
+    privacy: {
+      title: '🔒 ကိုယ်ရေးလုံခြုံမှု မူဝါဒ (Privacy Policy)',
+      body: '• ဝယ်ယူသူ၏ အမည်၊ ဖုန်းနံပါတ်နှင့် လိပ်စာများကို ပစ္စည်းပို့ဆောင်ရန်အတွက်သာ အသုံးပြုပါသည်။\n• မည်သည့်ပြင်ပအဖွဲ့အစည်းသို့မျှ မျှဝေခြင်း မပြုပါ။\n• ဝက်ဘ်ဆိုက်ပေါ်ရှိ Privacy Mask (မျက်နှာဖုံးခလုတ်) နှင့် Quick Exit (🚨) တို့ကို အချိန်မရွေး အသုံးပြုနိုင်ပါသည်။'
+    },
+    return: {
+      title: '🔄 အာမခံနှင့် ပြန်လည်လဲလှယ်ခြင်း မူဝါဒ',
+      body: '• တစ်ကိုယ်ရေသုံးပစ္စည်းများဖြစ်သည့်အတွက် အသုံးပြုပြီး/ပါကင်ဖောက်ပြီး ပစ္စည်းများကို ပြန်လည်လဲလှယ်၍ မရပါ။\n• ပစ္စည်းမှားယွင်းပို့မိခြင်း သို့မဟုတ် စက်ပိုင်းဆိုင်ရာချို့ယွင်းမှု ရှိပါက ပစ္စည်းလက်ခံရရှိပြီး ၂၄ နာရီအတွင်း Unboxing Video ဖြင့် အကြောင်းကြားပါက အသစ်ပြန်လည်လဲလှယ်ပေးပါသည်။'
+    },
+    shipping: {
+      title: '📦 ၁၀၀% လျှို့ဝှက်ထုပ်ပိုး ပို့ဆောင်မှု',
+      body: '• ပါဆယ်အပြင်ဘက်တွင် ဆိုင်အမည်အစား "PS Online" နှင့် "Cosmetics" ဟုသာ ဖော်ပြပေးပို့ပါသည်။\n• အတွင်းပစ္စည်း မမြင်ရအောင် အလွှာထပ်၍ သေချာစွာ ထုပ်ပိုးပေးပါသည်။\n• ပို့ဆောင်ရေးဝန်ထမ်း (Delivery) မှလည်း အတွင်းပစ္စည်းကို သိရှိမည်မဟုတ်ပါ။'
+    }
+  };
+  const p = policies[type] || policies.privacy;
+  document.getElementById('policyModalTitle').textContent = p.title;
+  document.getElementById('policyModalBody').textContent = p.body;
+  openModal('policyInfoModal');
+}
+
+window.currentPriceRangeFilter = 'all';
+window.setPriceRangeFilter = function(range, btn) {
+  window.currentPriceRangeFilter = range;
+  document.querySelectorAll('#priceFilterBar .price-chip').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  if (typeof renderCatalog === 'function') renderCatalog();
+};
+
+(function wrapCatalogWithPriceFilter() {
+  if (typeof renderCatalog !== 'function' || renderCatalog._priceWrapped) return;
+  const origRender = renderCatalog;
+  window.renderCatalog = function() {
+    const r = window.currentPriceRangeFilter || 'all';
+    if (r === 'all') return origRender();
+    const backup = products;
+    products = (backup || []).filter(p => {
+      const price = Number(p.price || 0);
+      if (r === 'under10k') return price < 10000;
+      if (r === '10k_30k') return price >= 10000 && price <= 30000;
+      if (r === 'over30k') return price > 30000;
+      if (r === 'cod_only') return !(typeof isProductNonCod === 'function' ? isProductNonCod(p) : p.isNonCod);
+      return true;
+    });
+    try { origRender(); } finally { products = backup; }
+  };
+  window.renderCatalog._priceWrapped = true;
+})();
+</script>
+
 </body>
 </html>
