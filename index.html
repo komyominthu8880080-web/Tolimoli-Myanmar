@@ -2362,6 +2362,111 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
     .story-arrow-btn { display: inline-flex; }
     .story-cat-scroll { gap: 16px; }
   }
+  /* ==================== MODERN LIVE CHAT INBOX & POPUP UPGRADE ==================== */
+  /* ၁။ ဝယ်သူဘက် Popup — FAQ Scrollbar အဖြူတန်းဖျောက်ခြင်း & Header ခလုတ် ၁ ကြောင်းတည်းထားခြင်း */
+  #dynamicFaqChipsBar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    padding-bottom: 2px !important;
+  }
+  #dynamicFaqChipsBar::-webkit-scrollbar {
+    display: none !important;
+    height: 0 !important;
+  }
+  #liveChatModal .action-badge {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    padding: 4px 10px !important;
+    border-radius: 14px !important;
+    font-size: 0.72rem !important;
+  }
+
+  /* ၂။ Admin Live Chat Inbox — မညီမညာဖြစ်ခြင်း ဖြေရှင်းခြင်း & Modern Scrollbar */
+  #adminChatSessionsListContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
+    align-content: flex-start !important;
+    gap: 6px !important;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.35) transparent;
+  }
+  #adminChatSessionsListContainer::-webkit-scrollbar,
+  #adminActiveChatMessages::-webkit-scrollbar {
+    width: 5px;
+  }
+  #adminChatSessionsListContainer::-webkit-scrollbar-thumb,
+  #adminActiveChatMessages::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.35);
+    border-radius: 10px;
+  }
+
+  /* ၃။ Modern Chat Session Card (Avatar + Unread Dot + Time Ago) */
+  .tm-chat-session-card {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 9px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: all 0.16s ease;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .tm-chat-session-card:hover {
+    background: rgba(168, 85, 247, 0.14);
+    border-color: rgba(168, 85, 247, 0.45);
+  }
+  .tm-chat-session-card.active {
+    background: rgba(16, 185, 129, 0.14);
+    border-color: #10b981;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.18);
+  }
+  .tm-chat-session-card.unread {
+    border-left: 3px solid var(--gold);
+    background: rgba(212, 175, 55, 0.08);
+  }
+  .tm-chat-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    position: relative;
+  }
+  .tm-chat-unread-dot {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    border: 2px solid #0b1329;
+  }
+  .tm-chat-search-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 10px;
+    margin-bottom: 6px;
+    border-radius: 8px;
+    background: #0b1329;
+    border: 1px solid #334155;
+    color: #fff;
+    font-size: 0.74rem;
+    outline: none;
+  }
+  .tm-chat-search-input:focus {
+    border-color: var(--gold);
+  }
   </style>
 </head>
 <body>
@@ -19176,6 +19281,112 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+// =========================================================================
+// FAST MODERN LIVE CHAT INBOX ENHANCER (0ms Tab Switch + Search + Unread)
+// =========================================================================
+(function initModernLiveChatUpgrade() {
+  window._tmAdminChatSearchQuery = '';
+
+  function formatChatTimeAgo(ts) {
+    if (!ts) return '';
+    const diffSec = Math.max(0, Math.floor((Date.now() - Number(ts)) / 1000));
+    if (diffSec < 60) return 'ခုလေးတင်';
+    if (diffSec < 3600) return Math.floor(diffSec / 60) + 'm';
+    if (diffSec < 86400) return Math.floor(diffSec / 3600) + 'h';
+    return Math.floor(diffSec / 86400) + 'd';
+  }
+
+  function getAvatarColor(sid) {
+    const colors = ['#8b5cf6', '#ec4899', '#06b6d4', '#10b981', '#f59e0b', '#6366f1'];
+    let sum = 0;
+    for (let i = 0; i < sid.length; i++) sum += sid.charCodeAt(i);
+    return colors[sum % colors.length];
+  }
+
+  // Search Box ကို Active/Done ခလုတ်အောက်တွင် အလိုအလျောက် ထည့်ပေးခြင်း
+  function ensureChatSearchBox() {
+    const listBox = document.getElementById('adminChatSessionsListContainer');
+    if (!listBox || document.getElementById('tmAdminChatSearchInput')) return;
+    const inp = document.createElement('input');
+    inp.type = 'text';
+    inp.id = 'tmAdminChatSearchInput';
+    inp.className = 'tm-chat-search-input';
+    inp.placeholder = '🔍 Guest ID သို့မဟုတ် စာသား ရှာရန်...';
+    inp.oninput = function() {
+      window._tmAdminChatSearchQuery = (this.value || '').trim().toLowerCase();
+      window.fastRenderAdminChatList();
+    };
+    listBox.parentElement.insertBefore(inp, listBox);
+  }
+
+  // Firebase ပြန်မဆွဲဘဲ Memory Cache (_adminChatsCache) မှ ချက်ချင်း 0ms Render လုပ်ခြင်း
+  window.fastRenderAdminChatList = function() {
+    ensureChatSearchBox();
+    const container = document.getElementById('adminChatSessionsListContainer');
+    if (!container) return;
+
+    const cache = (typeof _adminChatsCache === 'object' && _adminChatsCache) ? _adminChatsCache : {};
+    const curFilter = (typeof adminChatFilterMode !== 'undefined' ? adminChatFilterMode : 'active');
+    const q = window._tmAdminChatSearchQuery || '';
+
+    const entries = Object.entries(cache).filter(([sid, data]) => {
+      if (!data || typeof data !== 'object') return false;
+      const isDone = data.status === 'done';
+      if (curFilter === 'done' && !isDone) return false;
+      if (curFilter !== 'done' && isDone) return false;
+      if (q) {
+        const lastTxt = String(data.lastMessage || '').toLowerCase();
+        if (!sid.toLowerCase().includes(q) && !lastTxt.includes(q)) return false;
+      }
+      return true;
+    }).sort((a, b) => (Number(b[1].lastUpdate) || 0) - (Number(a[1].lastUpdate) || 0));
+
+    if (!entries.length) {
+      container.innerHTML = `<div style="color:#64748b; font-size:0.75rem; text-align:center; padding:24px 8px;">${curFilter === 'done' ? 'Done စာရင်း မရှိသေးပါ' : 'Active စကားဝိုင်း မရှိသေးပါ'}</div>`;
+      return;
+    }
+
+    container.innerHTML = entries.map(([sid, data]) => {
+      const isSelected = (typeof adminActiveSelectedSession !== 'undefined' && adminActiveSelectedSession === sid);
+      const lastMsg = String(data.lastMessage || 'စာသားမရှိသေးပါ');
+      const isUnread = !lastMsg.startsWith('Admin:') && data.status !== 'done' && !isSelected;
+      const initials = sid.replace(/[^0-9a-zA-Z]/g, '').slice(-2).toUpperCase() || 'G';
+      const timeTxt = formatChatTimeAgo(data.lastUpdate);
+      const safeSid = sid.replace(/'/g, "\\'");
+
+      return `
+        <div class="tm-chat-session-card ${isSelected ? 'active' : ''} ${isUnread ? 'unread' : ''}" onclick="if(typeof selectAdminChatSession==='function') selectAdminChatSession('${safeSid}'); else if(typeof openAdminChat==='function') openAdminChat('${safeSid}');">
+          <div class="tm-chat-avatar" style="background:${getAvatarColor(sid)};">
+            ${initials}
+            ${isUnread ? '<span class="tm-chat-unread-dot" title="မဖတ်ရသေးသော စာအသစ်"></span>' : ''}
+          </div>
+          <div style="min-width:0; flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+              <b style="color:${isSelected ? '#10b981' : '#fde047'}; font-size:0.76rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${sid}</b>
+              <span style="font-size:0.62rem; color:#94a3b8; flex-shrink:0;">${timeTxt}</span>
+            </div>
+            <div style="font-size:0.7rem; color:${isUnread ? '#fff' : '#94a3b8'}; font-weight:${isUnread ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">
+              ${lastMsg}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  // Active ↔ Done ခလုတ်နှိပ်ချိန် Firebase ပြန်မဆွဲဘဲ ချက်ချင်းပြောင်းစေရန် Hook ချိတ်ခြင်း
+  const origSetFilter = window.setAdminChatFilter;
+  if (typeof origSetFilter === 'function') {
+    window.setAdminChatFilter = function(mode) {
+      window.adminChatFilterMode = mode;
+      const btnA = document.getElementById('adminChatTabActive');
+      const btnD = document.getElementById('adminChatTabDone');
+      if (btnA) btnA.style.background = mode === 'active' ? '#10b981' : 'rgba(255,255,255,0.08)';
+      if (btnD) btnD.style.background = mode === 'done' ? '#10b981' : 'rgba(255,255,255,0.08)';
+      window.fastRenderAdminChatList();
+    };
+  }
+})();
 </script>
 
 </body>
