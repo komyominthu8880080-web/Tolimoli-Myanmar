@@ -2182,6 +2182,29 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
     background: var(--primary);
     color: #fff;
   }
+  .story-cat-copy-btn {
+    background: rgba(212, 175, 55, 0.14);
+    border: 1px solid rgba(212, 175, 55, 0.45);
+    color: var(--gold-light);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+  }
+  .story-cat-copy-btn:hover {
+    background: var(--gold);
+    color: #12091f;
+  }
+  .story-cat-copy-btn.copied {
+    background: #10b981 !important;
+    border-color: #10b981 !important;
+    color: #fff !important;
+  }
   .story-cat-track-wrap {
     position: relative;
     display: flex;
@@ -2437,9 +2460,14 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   <section class="story-cat-section" id="storyCategorySection">
     <div class="story-cat-header">
       <span class="story-cat-heading"><i class="fas fa-sparkles" style="color:var(--gold);"></i> ✨ အမျိုးအစားများ</span>
-      <button type="button" class="story-cat-all-btn" onclick="openCategorySheet()">
-        <i class="fas fa-th-large"></i> အားလုံးကြည့် ›
-      </button>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <button type="button" id="btnCopyActiveCatLink" class="story-cat-copy-btn" onclick="copyActiveCategoryLinkModern(this)" title="လက်ရှိ Category Link ကူးမည်">
+          <i class="fas fa-link"></i> <span>Link ကူးမည်</span>
+        </button>
+        <button type="button" class="story-cat-all-btn" onclick="openCategorySheet()">
+          <i class="fas fa-th-large"></i> အားလုံးကြည့် ›
+        </button>
+      </div>
     </div>
     <div class="story-cat-track-wrap">
       <button type="button" class="story-arrow-btn" onclick="scrollCategories(-220)" title="ဘယ်သို့ရွှေ့ရန်">❮</button>
@@ -2452,6 +2480,20 @@ div[id^="companyTownsList_"]::-webkit-scrollbar-thumb {
   function scrollCategories(amount) {
     const container = document.getElementById('categoryContainer');
     if (container) container.scrollBy({ left: amount, behavior: 'smooth' });
+  }
+  function copyActiveCategoryLinkModern(btn) {
+    const catName = selectedCategory || 'All';
+    if (typeof copyCategoryLink === 'function') {
+      copyCategoryLink(null, catName);
+    }
+    if (btn) {
+      btn.classList.add('copied');
+      btn.innerHTML = '<i class="fas fa-check"></i> <span>Copied!</span>';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '<i class="fas fa-link"></i> <span>Link ကူးမည်</span>';
+      }, 2000);
+    }
   }
   </script>
 
